@@ -1,0 +1,12 @@
+# backend/Dockerfile.dev (개발용 - 볼륨 마운트 + hot reload)
+
+FROM python:3.11-slim
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 소스코드는 COPY하지 않음 - docker-compose.dev.yml의 volumes가 대신 마운트함
+
+EXPOSE 4000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4000", "--reload"]

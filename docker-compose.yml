@@ -1,0 +1,44 @@
+name: herewego
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    depends_on:
+      - backend
+    networks:
+      - herewego-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_prod
+    ports:
+      - "4000:4000"
+    environment:
+      - MODEL_URL=http://model:8000
+    depends_on:
+      - model
+    networks:
+      - herewego-net
+
+  model:
+    build:
+      context: ./model
+      dockerfile: Dockerfile
+    container_name: model_prod
+    ports:
+      - "8000:8000"
+    networks:
+      - herewego-net
+
+networks:
+  herewego-net:
+    external: true
