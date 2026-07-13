@@ -15,7 +15,9 @@ _model = None  # lazy-load 캐시
 def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutput:
     """TODO(팀원): 학습된 승률 모델 연결.
 
-    1. payload(양팀 선수 목록 + 전술)를 모델이 기대하는 feature 배열로 변환
+    1. payload(양팀 선수 목록 + 전술)를 모델이 기대하는 feature 배열로 변환.
+       선수 속성은 attacking/defending 같은 합성등급으로 미리 압축하지 말고 10개 원본 스탯을
+       그대로 넣을 것 - 학습된 모델이 스스로 가중치를 찾도록 하는 게 목적.
     2. model = _load_model()
     3. 추론 결과를 WinProbabilityOutput(teamA=TeamOutcome(win, draw, loss), teamB=...) 형태로 변환해서 반환
        (win+draw+loss 합이 1이 되도록 정규화할 것)

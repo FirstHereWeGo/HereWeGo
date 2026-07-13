@@ -8,80 +8,23 @@ export interface PlayerVector {
   speed: number;
 }
 
+// 필드선수 간소화 스탯 10개, 1~20
 export interface AttributeBlock {
-  // Technical (14)
-  corners: number;
-  crossing: number;
-  dribbling: number;
-  finishing: number;
-  firstTouch: number;
-  freeKickTaking: number;
-  heading: number;
-  longShots: number;
-  longThrows: number;
-  marking: number;
-  passing: number;
-  penaltyTaking: number;
-  tackling: number;
-  technique: number;
-  // Mental (14)
-  aggression: number;
-  anticipation: number;
-  bravery: number;
-  composure: number;
-  concentration: number;
-  decisions: number;
-  determination: number;
-  flair: number;
-  leadership: number;
-  offTheBall: number;
-  positioning: number;
-  teamwork: number;
-  vision: number;
-  workRate: number;
-  // Physical (8)
-  acceleration: number;
-  agility: number;
-  balance: number;
-  jumpingReach: number;
-  naturalFitness: number;
-  pace: number;
-  stamina: number;
-  strength: number;
+  pace: number; // 주력
+  agility: number; // 민첩성
+  strength: number; // 몸싸움
+  finishing: number; // 골결정력
+  dribbling: number; // 드리블
+  passing: number; // 패스
+  vision: number; // 시야
+  positioning: number; // 위치선정
+  tackling: number; // 태클
+  marking: number; // 일대일 마크
 }
 
+// 골키퍼는 세부 스탯 없이 종합 능력치 1개만 사용, 1~20
 export interface GoalkeepingBlock {
-  // Goalkeeping (6)
-  reflexes: number;
-  handling: number;
-  commandOfArea: number;
-  kicking: number;
-  oneOnOnes: number;
-  aerialReach: number;
-  // Mental (14)
-  aggression: number;
-  anticipation: number;
-  bravery: number;
-  composure: number;
-  concentration: number;
-  decisions: number;
-  determination: number;
-  flair: number;
-  leadership: number;
-  offTheBall: number;
-  positioning: number;
-  teamwork: number;
-  vision: number;
-  workRate: number;
-  // Physical (8)
-  acceleration: number;
-  agility: number;
-  balance: number;
-  jumpingReach: number;
-  naturalFitness: number;
-  pace: number;
-  stamina: number;
-  strength: number;
+  overall: number;
 }
 
 export type Position = "GK" | "CB" | "FB" | "WB" | "DM" | "CM" | "AM" | "WG" | "ST";
