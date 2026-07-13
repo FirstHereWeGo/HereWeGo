@@ -15,79 +15,24 @@ class PlayerVector(BaseModel):
 
 
 class AttributeBlock(BaseModel):
-    # Technical (14)
-    corners: int = 10
-    crossing: int = 10
-    dribbling: int = 10
-    finishing: int = 10
-    firstTouch: int = 10
-    freeKickTaking: int = 10
-    heading: int = 10
-    longShots: int = 10
-    longThrows: int = 10
-    marking: int = 10
-    passing: int = 10
-    penaltyTaking: int = 10
-    tackling: int = 10
-    technique: int = 10
-    # Mental (14)
-    aggression: int = 10
-    anticipation: int = 10
-    bravery: int = 10
-    composure: int = 10
-    concentration: int = 10
-    decisions: int = 10
-    determination: int = 10
-    flair: int = 10
-    leadership: int = 10
-    offTheBall: int = 10
-    positioning: int = 10
-    teamwork: int = 10
-    vision: int = 10
-    workRate: int = 10
-    # Physical (8)
-    acceleration: int = 10
-    agility: int = 10
-    balance: int = 10
-    jumpingReach: int = 10
-    naturalFitness: int = 10
-    pace: int = 10
-    stamina: int = 10
-    strength: int = 10
+    """필드선수 간소화 스탯 10개, 1~20."""
+
+    pace: int = 10  # 주력
+    agility: int = 10  # 민첩성
+    strength: int = 10  # 몸싸움
+    finishing: int = 10  # 골결정력
+    dribbling: int = 10  # 드리블
+    passing: int = 10  # 패스
+    vision: int = 10  # 시야
+    positioning: int = 10  # 위치선정
+    tackling: int = 10  # 태클
+    marking: int = 10  # 일대일 마크
 
 
 class GoalkeepingBlock(BaseModel):
-    # Goalkeeping (6)
-    reflexes: int = 10
-    handling: int = 10
-    commandOfArea: int = 10
-    kicking: int = 10
-    oneOnOnes: int = 10
-    aerialReach: int = 10
-    # Mental (14)
-    aggression: int = 10
-    anticipation: int = 10
-    bravery: int = 10
-    composure: int = 10
-    concentration: int = 10
-    decisions: int = 10
-    determination: int = 10
-    flair: int = 10
-    leadership: int = 10
-    offTheBall: int = 10
-    positioning: int = 10
-    teamwork: int = 10
-    vision: int = 10
-    workRate: int = 10
-    # Physical (8)
-    acceleration: int = 10
-    agility: int = 10
-    balance: int = 10
-    jumpingReach: int = 10
-    naturalFitness: int = 10
-    pace: int = 10
-    stamina: int = 10
-    strength: int = 10
+    """골키퍼는 세부 스탯 없이 종합 능력치 1개만 사용, 1~20."""
+
+    overall: int = 10
 
 
 Position = Literal["GK", "CB", "FB", "WB", "DM", "CM", "AM", "WG", "ST"]

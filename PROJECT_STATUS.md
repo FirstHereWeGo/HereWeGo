@@ -62,12 +62,8 @@ c:\HereWeGo/
         │   ├── xg_predictor.py           # predict_xg() — 지금은 NotImplementedError만 던지는 자리표시자
         │   └── win_predictor.py          # predict_win_probability() — 지금은 NotImplementedError만 던지는 자리표시자
         ├── ml/                    # 학습된 모델 아티팩트(.joblib 등) 놓는 곳, 지금은 비어있음
-        └── formulas/              # ⚠ 지금 predictors가 호출 안 함(연결 끊김) — 참고용으로만 남겨둠, 삭제 안 함
-            ├── xg.py                    # 기존 스칼라 defenderCount 공식 (레거시 /xg 엔드포인트가 계속 사용 중)
-            ├── xg_vector.py             # 벡터+전술 기반 xG 휴리스틱 공식 (더 이상 predictor가 안 부름)
-            ├── win_probability.py       # 승/무/패 확률 휴리스틱 공식 (더 이상 predictor가 안 부름)
-            ├── attribute_index_map.py   # 선수 속성(36개/GK 20개) → 4개 합성등급 (더 이상 predictor가 안 부름)
-            └── tactic_index_map.py      # 전술 컨트롤(20여개) → 7개 합성지표 (더 이상 predictor가 안 부름)
+        └── formulas/
+            └── xg.py                    # 기존 스칼라 defenderCount 공식, 레거시 /xg 엔드포인트가 계속 사용 중 (유일하게 남은 파일)
 ```
 
 **설계 원칙**: frontend는 backend만 호출(브라우저 직접, cross-origin), backend는 model만 호출(서버간, Docker 네트워크). 확률 계산(승률/xG)은 **model 안에서만** 일어나고, backend는 seed 데이터 조회 + model 프록시만 한다. frontend는 "수정 전 1번 + 수정 후 1번" 두 번 호출해서 그 차이를 화면에서 직접 계산해 보여준다 (서버가 baseline을 따로 저장하지 않음 — 나중에 공식 상수를 튜닝해도 baseline이 안 꼬임).
@@ -101,8 +97,8 @@ c:\HereWeGo/
   attributes: AttributeBlock | GoalkeepingBlock   // position이 GK면 GoalkeepingBlock
 }
 ```
-- **AttributeBlock** (필드선수, 값 1~20 정수 36개): Technical 14개(corners, crossing, dribbling, finishing, firstTouch, freeKickTaking, heading, longShots, longThrows, marking, passing, penaltyTaking, tackling, technique) + Mental 14개(aggression, anticipation, bravery, composure, concentration, decisions, determination, flair, leadership, offTheBall, positioning, teamwork, vision, workRate) + Physical 8개(acceleration, agility, balance, jumpingReach, naturalFitness, pace, stamina, strength)
-- **GoalkeepingBlock** (GK, 20개): Goalkeeping 6개(reflexes, handling, commandOfArea, kicking, oneOnOnes, aerialReach) + 위와 동일한 Mental 14개 + Physical 8개
+- **AttributeBlock** (필드선수, 값 1~20 정수 10개, FM 전체 속성에서 간소화됨): pace(주력), agility(민첩성), strength(몸싸움), finishing(골결정력), dribbling(드리블), passing(패스), vision(시야), positioning(위치선정), tackling(태클), marking(일대일 마크)
+- **GoalkeepingBlock** (GK): 세부 스탯 없이 overall(종합 능력치) 1개만 사용, 값 1~20
 
 ### Team (로스터)
 ```
@@ -182,7 +178,7 @@ c:\HereWeGo/
 
 **지금 실제로 호출되는 곳은 `model/app/predictors/xg_predictor.py`, `win_predictor.py` 딱 두 곳뿐이다.** 둘 다 아직 학습된 모델이 없어서 `NotImplementedError`만 던지는 자리표시자 상태다 (`/api/xg/rewind`, `/api/win-probability`가 지금 항상 실패하는 이유).
 
-`model/app/formulas/` 안의 파일들(`xg_vector.py`, `win_probability.py`, `attribute_index_map.py`, `tactic_index_map.py`)은 원래 손튜닝 휴리스틱 공식으로 구현해뒀던 것인데, 최종적으로 학습된 모델을 쓰기로 하면서 predictor가 더 이상 이 파일들을 호출하지 않는다 (연결이 끊긴 상태 — 지우지는 않고 참고용/과거 구현으로 남겨둠). 스칼라 defenderCount 기반의 레거시 `formulas/xg.py`만 예외로, `/xg`(레거시 엔드포인트)에서 여전히 쓰인다.
+`model/app/formulas/`에 있던 손튜닝 휴리스틱 공식(`xg_vector.py`, `win_probability.py`, `attribute_index_map.py`, `tactic_index_map.py`)은 삭제했다. 이건 원래 속성이 36개일 때 사람이 감당 가능한 수준(합성등급 몇 개)으로 압축하려고 만든 장치였는데, 최종적으로 학습된 모델을 쓰기로 한 데다 스탯도 10개로 줄어서 더 이상 의미가 없어졌다 — **학습된 모델은 압축된 합성등급이 아니라 10개 원본 스탯을 그대로 입력받아 스스로 가중치를 학습하는 게 맞다.** 스칼라 defenderCount 기반의 레거시 `formulas/xg.py`만 예외로 남아있고, `/xg`(레거시 엔드포인트)에서 여전히 쓰인다.
 
 ---
 
@@ -197,7 +193,7 @@ c:\HereWeGo/
 
 **연결 절차**:
 1. 학습된 모델 파일(`.joblib` 등)을 `model/app/ml/`에 넣는다 (`model/app/ml/README.md` 참고).
-2. 위 두 함수 안의 TODO(지금은 `NotImplementedError`만 던짐)를 채운다 — `_load_model()`로 모델 로드 → payload를 모델이 기대하는 feature로 변환 → `model.predict()` → 지금 쓰는 응답 형태(`float` 또는 `WinProbabilityOutput`)로 변환해서 반환.
+2. 위 두 함수 안의 TODO(지금은 `NotImplementedError`만 던짐)를 채운다 — `_load_model()`로 모델 로드 → payload를 모델이 기대하는 feature로 변환 → `model.predict()` → 지금 쓰는 응답 형태(`float` 또는 `WinProbabilityOutput`)로 변환해서 반환. **feature 변환 시 선수 속성을 attacking/defending 같은 합성등급으로 미리 압축하지 말고 10개 원본 스탯(GK는 overall 1개)을 그대로 넣을 것** — 압축은 모델이 학습 과정에서 스스로 하는 거지, 우리가 미리 정해줄 이유가 없다.
 
 이걸로 끝이다 — 별도 환경변수나 모드 전환 스위치는 없다. 함수 안의 `NotImplementedError`를 실제 코드로 바꾸는 순간 바로 반영된다.
 
