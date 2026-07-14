@@ -55,12 +55,11 @@ Position = Literal["GK", "CB", "FB", "WB", "DM", "CM", "AM", "WG", "ST"]
 class Player(BaseModel):
     id: str
     name: str
-    position: Position
+    positions: list[Position]
     age: int
     height: int  # cm
-    weight: int  # kg
-    rightFoot: int  # 1~5
     leftFoot: int  # 1~5
+    rightFoot: int  # 1~5
     attributes: Union[GoalkeepingBlock, AttributeBlock]
 
 

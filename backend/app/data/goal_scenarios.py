@@ -10,7 +10,7 @@ app.schemas.scenarios.GoalScenario 형태로 항목을 추가하면 GET /api/sce
         "id": "scenario-1",
         "name": "2010 결승 마지막 실점 장면",
         "shooter": {
-            "player": {"id": "att1", "name": "Attacker", "position": "ST", "age": 26, "attributes": {...}},
+            "player": {"id": "att1", "name": "Attacker", "positions": ["ST"], "age": 26, "attributes": {...}},
             "vector": {"x": 95, "y": 34, "directionDeg": 0, "speed": 18},
             "isHeader": False,
         },
