@@ -12,13 +12,13 @@ backend/model/frontend 3개 서비스의 코드를 전부 구현 완료했다. m
 
 코드(프론트/백엔드/모델)는 이미 다 짜여 있다. **남은 건 대부분 데이터 입력이다.**
 
-| 파일 | 채워야 할 내용 | 형식 |
+| 파일 | 상태 | 남은 일 |
 |---|---|---|
-| `backend/app/data/teams.py` | 국가대표팀 로스터 (선발 11명 기준, 팀 2개 이상) | `TEAMS: list[Team]` 에 항목 추가 |
-| `backend/app/data/goal_scenarios.py` | 골 장면 시나리오 2~4개 | `GOAL_SCENARIOS: list[GoalScenario]` 에 항목 추가 |
-| `backend/app/data/player_presets.py` | 레전드 프리셋 (전성기 메시, 호날두) | `PRESETS: list[PlayerPreset]` 에 항목 추가 |
+| `backend/app/data/teams.py` | ✅ 실제 데이터 채움 — 대한민국(kor)·남아공(rsa) 26명씩, 2026 월드컵 공식 명단 기준 이름/포지션/나이 | 세부 스탯(`AttributeBlock`/`GoalkeepingBlock`)이 전부 기본값(10)이라 실제 능력치 입력 필요. 세부 포지션(CB/FB/WB, DM/CM/AM, WG/ST)도 일부는 추정치라 아는 사람이 검토 권장 |
+| `backend/app/data/goal_scenarios.py` | 비어있음 | 골 장면 시나리오 2~4개, `GOAL_SCENARIOS: list[GoalScenario]`에 항목 추가 |
+| `backend/app/data/player_presets.py` | 비어있음 | 레전드 프리셋(전성기 메시, 호날두), `PRESETS: list[PlayerPreset]`에 항목 추가 |
 
-세 파일 모두 지금은 빈 리스트(`[]`)이고, 파일 상단에 실제로 채워 넣을 때 참고할 예시 딕셔너리 형태를 주석으로 남겨뒀다. 데이터를 채우면 코드 수정 없이 바로 API에 반영된다 (GET 엔드포인트가 그 리스트를 그대로 반환).
+뒤의 두 파일은 파일 상단에 참고할 예시 형태를 주석으로 남겨뒀다. 데이터를 채우면 코드 수정 없이 바로 API에 반영된다 (GET 엔드포인트가 그 리스트를 그대로 반환).
 
 ⚠ **`/api/xg/rewind`(골 리와인드), `/api/win-probability`(승부 리와인드) 계산 엔드포인트는 지금 항상 에러(500/502)를 반환합니다 — 의도된 상태입니다.** 실제 학습된 모델을 팀원이 만들어서 넣기 전까지는 계산 결과를 낼 수 없도록 일부러 막아뒀습니다 (자세한 건 아래 "학습된 모델 연결하는 방법" 참고). `/api/teams`, `/api/scenarios/goal` 같은 조회 엔드포인트와 프론트 UI 자체는 정상 동작합니다.
 
@@ -51,7 +51,7 @@ c:\HereWeGo/
 │   └── app/
 │       ├── routers/              # teams, win_probability, scenarios, goal_rewind
 │       ├── schemas/               # player.py, tactic.py, scenarios.py, win_probability.py
-│       ├── data/                  # ⚠ teams.py / goal_scenarios.py / player_presets.py — 지금 비어있음
+│       ├── data/                  # teams.py는 실제 로스터(kor/rsa) 있음, goal_scenarios.py / player_presets.py는 ⚠ 아직 비어있음
 │       └── services/model_client.py   # model 호출 중앙화 (httpx, MODEL_URL, 에러처리)
 └── model/                                         # FastAPI — 확률 계산의 유일한 주체 (학습된 모델 연결 예정, 지금은 미연결)
     ├── main.py                  # /health, 라우터 include
@@ -209,4 +209,4 @@ c:\HereWeGo/
 2. `http://localhost:3000`, `:4000/health`, `:8000/health` 확인
 3. `/tactics`, `/rewind` 페이지 진입 — 데이터 없으면 "등록된 팀/시나리오가 없습니다" 안내만 뜨는 게 정상
 4. `docker-compose -f docker-compose.dev.yml exec frontend npx tsc --noEmit` 로 타입 에러 확인
-5. `backend/app/data/*.py` 세 파일에 실제 데이터 채운 뒤 다시 3번 확인 — 팀/시나리오 선택, 슬라이더/스탯 편집/드래그 등 UI 흐름은 정상이어야 함. **단, 실제 승률/실점확률 숫자가 나오는 건 학습된 모델이 연결된 뒤부터다 — 지금은 계산 단계에서 에러 메시지가 뜨는 게 정상이다.**
+5. `teams.py`(kor/rsa)는 이미 데이터가 있어서 `/tactics`에서 바로 팀 선택/로스터 확인 가능. `goal_scenarios.py`, `player_presets.py`도 채운 뒤 3번 다시 확인 — 팀/시나리오 선택, 슬라이더/스탯 편집/드래그 등 UI 흐름은 정상이어야 함. **단, 실제 승률/실점확률 숫자가 나오는 건 학습된 모델이 연결된 뒤부터다 — 지금은 계산 단계에서 에러 메시지가 뜨는 게 정상이다.**

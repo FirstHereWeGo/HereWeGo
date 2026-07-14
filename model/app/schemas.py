@@ -57,6 +57,10 @@ class Player(BaseModel):
     name: str
     position: Position
     age: int
+    height: int  # cm
+    weight: int  # kg
+    rightFoot: int  # 1~5
+    leftFoot: int  # 1~5
     attributes: Union[GoalkeepingBlock, AttributeBlock]
 
 
