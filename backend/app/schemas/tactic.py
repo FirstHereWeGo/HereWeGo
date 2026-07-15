@@ -55,3 +55,11 @@ class TacticConfig(BaseModel):
     opponentHalf: OpponentHalf = OpponentHalf()
     transitions: Transitions = Transitions()
     outOfPossession: OutOfPossession = OutOfPossession()
+
+
+class TeamTacticPreset(BaseModel):
+    teamId: str
+    formationId: str
+    goalkeeperId: str = ""  # 아직 미정이면 빈 문자열
+    startingPlayerIds: list[str] = []  # 필드 플레이어, formationId의 positions 순서와 1:1 대응 - 아직 미정이면 빈 리스트
+    tacticConfig: TacticConfig
