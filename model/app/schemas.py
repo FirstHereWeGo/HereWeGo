@@ -4,7 +4,7 @@ composite index 계산(속성→합성등급, 전술→지표)은 이 서비스 
 """
 from typing import Literal, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ShotInput(BaseModel):
@@ -30,6 +30,8 @@ class PlayerVector(BaseModel):
 
 class AttributeBlock(BaseModel):
     """필드선수 간소화 스탯 10개, 1~20."""
+
+    model_config = ConfigDict(extra="forbid")
 
     pace: int = 10  # 주력
     agility: int = 10  # 민첩성
@@ -75,6 +77,8 @@ class AttributeBlock(BaseModel):
 
 class GoalkeepingBlock(BaseModel):
     """골키퍼는 세부 스탯 없이 종합 능력치 1개만 사용, 1~20."""
+
+    model_config = ConfigDict(extra="forbid")
 
     overall: int = 10
 
