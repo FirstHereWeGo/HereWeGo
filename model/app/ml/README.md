@@ -5,7 +5,7 @@
 - xG 모델: `xg_model.joblib`
 - 승률 모델: `win_probability_model.joblib`
 
-파일명을 다르게 쓰고 싶으면 `app/predictors/xg_predictor.py`, `app/predictors/win_predictor.py`의
+파일명을 다르게 쓰고 싶으면 `app/predictors/xg_predictor.py`, `app/predictors/win_predictor/win_predictor.py`의
 `_load_model()` 안 경로를 맞춰서 수정하면 됩니다.
 
 모델을 넣은 뒤 `predict_xg()` / `predict_win_probability()` 함수 안 TODO를 채워서
