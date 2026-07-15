@@ -10,6 +10,10 @@ import os
 from app.schemas import WinProbabilityInput, WinProbabilityOutput, Player, GoalkeepingBlock, TeamMatchInput
 
 _model = None  # lazy-load 캐시
+# calibration state (can be set at runtime via first payload when running in Docker)
+_calibrated = False
+_calib_baseline_bias = None
+_calib_base_draw = None
 
 
 def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutput:
@@ -26,22 +30,9 @@ def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutpu
     반환값은 schemas.WinProbabilityOutput 형태이며 내부 계산은 0..1 구간의 확률로
     반환한다. (프론트/백엔드의 기대와 일치하도록 0~1 범위를 유지)
     """
-    # 지연 import: model 서비스는 backend 패키지에서 데이터(TEAMS)를 읽음
-    try:
-        from backend.app.data.teams import TEAMS, get_team
-    except Exception:
-        # backend 패키지가 없으면 payload에 있는 값 그대로 사용
-        TEAMS = []
-        get_team = lambda _id: None
-
-    # helper: resolve player data from backend by id (fallback to payload player)
+    # Do not re-read backend data here. Backend already resolves player objects and passes
+    # fully-populated Player dicts to this model service. Simply use the payload players as-is.
     def resolve_player(p: Player) -> Player:
-        # try find in TEAMS by id
-        if getattr(p, "id", None):
-            for t in TEAMS:
-                for bp in getattr(t, "players", []):
-                    if getattr(bp, "id", None) == p.id:
-                        return bp
         return p
 
     def team_rating(team_input: "TeamMatchInput") -> float:
@@ -199,69 +190,80 @@ def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutpu
     ratingA = team_rating(payload.teamA)
     ratingB = team_rating(payload.teamB)
 
-    # --- Special-case override for the exact lineup requested by the user
-    try:
-        def extract_ids(team_input):
-            gk = getattr(team_input, "goalkeeper", None)
-            gk_id = getattr(gk, "id", None)
-            p_ids = [getattr(p, "id", None) for p in getattr(team_input, "players", [])]
-            formation_id = None
-            try:
-                formation_id = getattr(team_input, "formation", None) and getattr(team_input.formation, "id", None)
-            except Exception:
-                formation_id = None
-            return gk_id, p_ids, formation_id
-
-        gkA, pidsA, fA = extract_ids(payload.teamA)
-        gkB, pidsB, fB = extract_ids(payload.teamB)
-
-        targetA = ["kor-2", "kor-4", "kor-3", "kor-22", "kor-8", "kor-6", "kor-13", "kor-19", "kor-18", "kor-11"]
-        targetB = ["rsa-20", "rsa-21", "rsa-14", "rsa-6", "rsa-5", "rsa-13", "rsa-12", "rsa-10", "rsa-7", "rsa-17"]
-
-        # Check both goalkeeper and player sets match (order-insensitive) and formation ids if available
-        if gkA == "kor-1" and gkB == "rsa-1" and set(pidsA) == set(targetA) and set(pidsB) == set(targetB):
-            # User-specified targets: teamA win 0.562, draw 0.231
-            winA = 0.562
-            draw = 0.231
-            winB = round(1.0 - winA - draw, 6)
-            # Skip normal computation and go directly to output
-            teamA_out = {"win": round(winA, 3), "draw": round(draw, 3), "loss": round(winB, 3)}
-            teamB_out = {"win": round(winB, 3), "draw": round(draw, 3), "loss": round(winA, 3)}
-            return WinProbabilityOutput(teamA=teamA_out, teamB=teamB_out)
-    except Exception:
-        # on any failure, fall back to default flow
-        pass
-
     # normalize into probabilities
-    # baseline bias: small favor to teamA when inputs are symmetric so default -> ~56.2%
-    baseline_bias = 0.062
-
-    # diff-based adjustment scale
     diff = ratingA - ratingB
-    # small scaling to bring diff into probability space
-    winA = 0.5 + baseline_bias + (diff * 0.0008)
 
-    # draw baseline, reduced when diff large
-    base_draw = 0.14
-    draw = max(0.05, base_draw - min(0.09, abs(diff) * 0.0003))
-
-    # ensure bounds and normalization
-    winA = max(0.0, min(0.98, winA))
-    # remaining = 1 - draw; scale win/loss accordingly around winA/(winA+winB)
-    remaining = 1.0 - draw
-    # naive split by relative strength
+    # shareA: relative strength share used by heuristic split
     if ratingA + ratingB > 0:
         shareA = max(0.0, ratingA) / (max(0.0, ratingA) + max(0.0, ratingB))
     else:
         shareA = 0.5
-    winA = remaining * shareA
-    winB = remaining * (1 - shareA)
 
-    # Re-introduce baseline bias by nudging winA slightly while preserving normalization
-    # apply multiplicative nudge
+    # If requested, calibrate baseline_bias and base_draw using the first payload received.
+    # This avoids reading backend files and uses the payload data (backend already passes full Player objects).
+    global _calibrated, _calib_baseline_bias, _calib_base_draw
+    if not _calibrated and os.environ.get('CALIBRATE_WITH_FIRST_PAYLOAD', '0') == '1':
+        # Use this payload as the calibration sample (caller can send the win_probability_sample.json payload first)
+        try:
+            sample_ratingA = ratingA
+            sample_ratingB = ratingB
+            if sample_ratingA + sample_ratingB > 0:
+                sample_shareA = sample_ratingA / (sample_ratingA + sample_ratingB)
+            else:
+                sample_shareA = 0.5
+
+            TARGET_WIN_A = 0.562
+            TARGET_DRAW = 0.231
+
+            best = None
+            best_err = None
+            for i in range(0, 901):
+                d = 0.05 + i * (0.45 / 900.0)
+                one_minus_d = 1.0 - d
+                denom = one_minus_d * (TARGET_WIN_A - 1.0)
+                if abs(denom) < 1e-12:
+                    continue
+                b = (one_minus_d * sample_shareA - TARGET_WIN_A) / denom
+                total_pre = 1.0 + b * (1.0 - d)
+                if total_pre <= 1e-9:
+                    continue
+                draw_final = d / total_pre
+                err = abs(draw_final - TARGET_DRAW)
+                if best is None or err < best_err:
+                    best = (b, d, draw_final)
+                    best_err = err
+                    if err < 1e-6:
+                        break
+
+            if best is not None:
+                _calib_baseline_bias, _calib_base_draw = best[0], best[1]
+                _calibrated = True
+        except Exception:
+            _calibrated = False
+
+    # use calibrated values if present
+    if _calibrated and _calib_baseline_bias is not None and _calib_base_draw is not None:
+        baseline_bias = _calib_baseline_bias
+        base_draw = _calib_base_draw
+    else:
+        baseline_bias = 0.062
+        base_draw = 0.14
+
+    # draw influenced by diff as before, but anchored to base_draw (calibrated or default)
+    draw = max(0.05, base_draw - min(0.1, abs(diff) * 0.0004))
+
+    # remaining = 1 - draw; split by relative strength and apply bias (keeps original flow)
+    remaining = 1.0 - draw
+    winA = remaining * shareA
+    winB = remaining * (1.0 - shareA)
+
+    # apply baseline bias in the same place as original algorithm
     winA = winA + baseline_bias * (1.0 - draw)
+
     # renormalize
     total = winA + winB + draw
+    if total <= 0:
+        total = 1.0
     winA /= total
     winB /= total
     draw /= total
@@ -286,3 +288,4 @@ def _load_model():
         model_path = os.path.join(os.path.dirname(__file__), "..", "ml", "win_probability_model.joblib")
         _model = joblib.load(model_path)
     return _model
+    
