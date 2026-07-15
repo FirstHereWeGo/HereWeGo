@@ -52,6 +52,13 @@ class GoalkeepingBlock(BaseModel):
 Position = Literal["GK", "CB", "FB", "WB", "DM", "CM", "AM", "WG", "ST"]
 
 
+class Formation(BaseModel):
+    id: str
+    name: str
+    positions: list[Position]
+    # GK 제외 필드 플레이어 10명. 오른쪽부터 수비→미드필드→공격 라인 순, 각 라인은 오른쪽에서 왼쪽 순으로 나열.
+
+
 class Player(BaseModel):
     id: str
     name: str
@@ -160,7 +167,9 @@ class XgOutput(BaseModel):
 
 
 class TeamMatchInput(BaseModel):
-    players: list[Player]
+    goalkeeper: Player
+    players: list[Player]  # 필드 플레이어 10명, formation.positions 순서와 1:1 대응
+    formation: Formation
     tacticConfig: TacticConfig = TacticConfig()
 
 

@@ -10,8 +10,15 @@ class Team(BaseModel):
     players: list[Player] = []
 
 
+class StartingXI(BaseModel):
+    formationId: str
+    goalkeeperId: str
+    playerIds: list[str]  # 필드 플레이어 10명, 선택한 Formation.positions 순서와 1:1 대응
+
+
 class TeamMatchConfig(BaseModel):
     teamId: str
+    startingXI: StartingXI
     tacticConfig: TacticConfig = TacticConfig()
     playerOverrides: list[PlayerOverride] = []
 
