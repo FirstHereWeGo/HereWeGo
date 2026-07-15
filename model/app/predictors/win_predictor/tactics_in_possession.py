@@ -25,17 +25,17 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
     overlap_right = getattr(ip, "overlapRight", False)
     build_from_back = getattr(ip, "buildFromBack", False)
 
-    # Short build + low directness -> midfield synergy or turnover penalty
+    # 짧은 빌드업 + 낮은 직선성 -> 미드필드 시너지 보너스 또는 턴오버 페널티
     if buildup == "short" and passing_directness < 50:
         mid_pass_avg = avg(lambda p: attr(p, "passing"), midfielders)
         mid_vision_avg = avg(lambda p: attr(p, "vision"), midfielders)
         mid_agility_avg = avg(lambda p: attr(p, "agility"), midfielders)
         if mid_pass_avg >= 13 and mid_vision_avg >= 13 and mid_agility_avg >= 13:
-            rating += 4.0  # synergy bonus
+            rating += 4.0  # 시너지 보너스
         else:
-            rating -= 6.0  # turnover penalty
+            rating -= 6.0  # 턴오버 페널티
 
-    # Direct build + high directness -> use CB passing + attacker physicals
+    # 다이렉트 빌드업 + 높은 직선성 -> CB 패스 + 공격수 피지컬 활용
     if buildup == "direct" and passing_directness > 50:
         cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
         atk_strength_avg = avg(lambda p: attr(p, "strength"), attackers)
@@ -46,18 +46,18 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         else:
             rating -= 2.5
 
-    # Attacking width + targetWide
+    # 넓은 공격 폭 + targetWide
     if attacking_width > 65 and target_wide:
-        # require wing resources
+        # 윙 자원이 필요함
         if len(wingers) < 2:
-            # tactical mismatch with narrow personnel
+            # 좁은 스쿼드 구성과 전술이 어긋남
             rating -= 7.0
         else:
             wings_pace_avg = avg(lambda p: attr(p, "pace"), wingers)
             wings_drib_avg = avg(lambda p: attr(p, "dribbling"), wingers)
             rating += (wings_pace_avg + wings_drib_avg - 20) * 0.15
 
-    # Narrow width + targetCentral
+    # 좁은 공격 폭 + targetCentral
     if attacking_width < 35 and target_central:
         central_players = [p for p in field_players if any(pos in ("CM", "AM", "ST") for pos in getattr(p, "positions", []))]
         cent_pass_avg = avg(lambda p: attr(p, "passing"), central_players)
@@ -65,15 +65,15 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         cent_agility_avg = avg(lambda p: attr(p, "agility"), central_players)
         rating += (cent_pass_avg + cent_vision_avg + cent_agility_avg - 30) * 0.12
 
-    # Overlaps
+    # 오버랩
     if overlap_left or overlap_right:
-        # treat both sides the same due to lack of side-specific players
+        # 사이드별 선수 구분이 없어 좌/우를 동일하게 취급
         overlap_players = [p for p in field_players if any(pos in ("FB", "WB") for pos in getattr(p, "positions", []))]
         ov_pace_avg = avg(lambda p: attr(p, "pace"), overlap_players)
         ov_pos_avg = avg(lambda p: attr(p, "positioning"), overlap_players)
         if ov_pace_avg >= 14 and ov_pos_avg >= 14:
             rating += 2.5
-            # risk: if CBs are slow or poor marking, heavy vulnerability
+            # 리스크: CB가 느리거나 마킹이 약하면 큰 취약점
             cb_pace_avg = avg(lambda p: attr(p, "pace"), cbs)
             cb_mark_avg = avg(lambda p: attr(p, "marking"), cbs)
             if cb_pace_avg <= 11 or cb_mark_avg <= 11:
@@ -81,7 +81,7 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         else:
             rating -= 1.5
 
-    # Build from back
+    # 빌드업 시 GK 참여
     if build_from_back:
         gk_over = getattr(getattr(gk, "attributes", None), "overall", 0)
         cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
@@ -90,10 +90,10 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         if gk_over >= 12 and cb_pass_avg >= 11 and cb_vision_avg >= 11 and cb_agility_avg >= 10:
             rating += 3.0
         else:
-            # turnover -> significant penalty
+            # 턴오버 -> 큰 페널티
             rating -= 8.0
 
-    # Tempo
+    # 템포
     if tempo > 70:
         team_agility_avg = avg(lambda p: attr(p, "agility"), field_players)
         team_pass_avg = avg(lambda p: attr(p, "passing"), field_players)

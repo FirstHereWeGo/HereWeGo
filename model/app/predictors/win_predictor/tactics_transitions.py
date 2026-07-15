@@ -30,7 +30,7 @@ def apply_transitions(rating: float, tc: TacticConfig, context: TeamContext) -> 
             rating += 3.0
         else:
             rating -= 4.0
-        # stamina / age penalty
+        # 체력/연령 페널티
         if age_avg >= 32 or strength_avg <= 9:
             rating *= 0.9
 
@@ -49,7 +49,7 @@ def apply_transitions(rating: float, tc: TacticConfig, context: TeamContext) -> 
                 rating += 1.8
             else:
                 rating -= 2.5
-        else:  # long
+        else:  # 롱 배급
             st_height_avg = avg(lambda p: getattr(p, "height", 0), attackers)
             st_strength_avg = avg(lambda p: attr(p, "strength"), attackers)
             rating += (st_height_avg - 180) * 0.02 + (st_strength_avg - 10) * 0.12

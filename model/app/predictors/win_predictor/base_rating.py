@@ -15,16 +15,16 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
     tackling_w = WEIGHTS.get("tackling_w", 0.8)
     marking_w = WEIGHTS.get("marking_w", 0.8)
     gk_w = WEIGHTS.get("gk_w", 2.0)
-    foot_w = WEIGHTS.get("foot_w", 0.08)  # per foot rating (1..5)
+    foot_w = WEIGHTS.get("foot_w", 0.08)  # 발(왼발/오른발) 능력치 1개당 가중치 (1..5)
     mismatch_penalty = WEIGHTS.get("mismatch_penalty", 2.0)
 
     rating = 0.0
 
     for pl in context.field_players:
         attrs = pl.attributes
-        # defensive vs attacking boost based on nominal position
+        # 주 포지션 기준으로 수비/공격 가산치 적용
         pos_primary = getattr(pl, "positions", [None])[0]
-        # sum core stats
+        # 핵심 스탯 합산
         pace = getattr(attrs, "pace", 0)
         agility = getattr(attrs, "agility", 0)
         strength = getattr(attrs, "strength", 0)
@@ -32,7 +32,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
 
         base = (pace + agility + strength + positioning) * core_w
 
-        # other stats
+        # 그 외 스탯
         finishing = getattr(attrs, "finishing", 0)
         dribbling = getattr(attrs, "dribbling", 0)
         passing = getattr(attrs, "passing", 0)
@@ -48,7 +48,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
             + marking * marking_w
         )
 
-        # position-specific emphasis (respect constraints in guideline)
+        # 포지션별 특화 가산 (지침의 제약 준수)
         if pos_primary in ("WG", "ST"):
             finish_w = min(finishing_attack_w, core_w)
             other += finishing * finish_w
@@ -59,7 +59,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
             def_w = min(tackling_def_w, core_w)
             other += (tackling + marking) * def_w
 
-        # foot ability
+        # 양발 능력치
         lf = getattr(pl, "leftFoot", 0)
         rf = getattr(pl, "rightFoot", 0)
         foot_bonus = (lf + rf) * foot_w
@@ -67,16 +67,16 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         player_score = base + other + foot_bonus
         rating += player_score
 
-    # goalkeeper
+    # 골키퍼
     if context.gk is not None:
         gk_attrs = getattr(context.gk, "attributes", None)
         gk_overall = getattr(gk_attrs, "overall", None)
         if gk_overall is None:
-            # some payloads may put GK in attributes as AttributeBlock - fall back
+            # 일부 payload는 GK의 attributes가 AttributeBlock으로 올 수 있음 - fallback
             gk_overall = 0
         rating += gk_overall * gk_w
 
-    # formation-position mismatch penalty
+    # 포메이션-포지션 미스매치 페널티
     try:
         formation_positions = team_input.formation.positions
         for i, pos in enumerate(formation_positions):
@@ -87,7 +87,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
     except Exception:
         pass
 
-    # age based penalties (if all ages >=30 OR all ages <=29) — both extremes reduce
+    # 연령 기반 페널티 (전원 30세 이상 OR 전원 29세 이하) — 양쪽 극단 모두 감소
     ages = [getattr(p, "age", 0) for p in context.players]
     if ages:
         if all(a >= 30 for a in ages):
@@ -95,7 +95,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         if all(a <= 29 for a in ages):
             rating *= 0.98
 
-    # height penalty: team avg height <= 181 -> slight decrease
+    # 신장 페널티: 팀 평균 신장 <= 181 -> 소폭 감소
     heights = [getattr(p, "height", 0) for p in context.players]
     if heights:
         avg_h = sum(heights) / len(heights)

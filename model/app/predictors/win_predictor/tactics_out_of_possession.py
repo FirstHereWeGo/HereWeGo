@@ -25,21 +25,21 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
     cb_pos_avg = avg(lambda p: attr(p, "positioning"), cbs)
     cb_height_avg = avg(lambda p: getattr(p, "height", 0), cbs)
 
-    # High line & high pressing requires quick CBs
+    # 높은 라인 & 강한 압박은 빠른 CB가 필요
     if dline > 70 and pressing > 70:
         if cb_pace_avg <= 11 or cb_agil_avg <= 11:
             rating -= 8.0
         else:
             rating += 2.5
 
-    # Low line (ten-back) emphasizes strength/height/marking
+    # 낮은 라인(텐백)은 힘/신장/마킹을 중시
     if dline < 40 and pressing < 40:
         if cb_strength_avg >= 12 and cb_height_avg >= 182 and cb_mark_avg >= 12:
             rating += 2.0
         else:
             rating -= 3.0
 
-    # Pressing intensity effect
+    # 압박 강도 효과
     if pressing > 75:
         mid_def = [p for p in field_players if any(pos in ("DM", "CM", "CB") for pos in getattr(p, "positions", []))]
         press_tackle = avg(lambda p: attr(p, "tackling"), mid_def)
@@ -47,7 +47,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         press_pace = avg(lambda p: attr(p, "pace"), mid_def)
         rating += (press_tackle + press_pos + press_pace - 30) * 0.08
 
-    # Tackling instruction
+    # 태클 지침
     if tackling_instr == "hard_tackle":
         team_tackle_avg = avg(lambda p: attr(p, "tackling"), field_players)
         team_strength_avg = avg(lambda p: attr(p, "strength"), field_players)
@@ -55,19 +55,19 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
             rating += 2.0
         else:
             rating -= 3.0
-    else:  # stay_on_feet
+    else:  # 서서 버티기(stay_on_feet)
         team_pos_avg = avg(lambda p: attr(p, "positioning"), field_players)
         team_mark_avg = avg(lambda p: attr(p, "marking"), field_players)
         rating += (team_pos_avg + team_mark_avg - 20) * 0.07
 
-    # Offside trap
+    # 오프사이드 트랩
     if offside_trap == "in":
         if cb_pos_avg >= 15 and avg(lambda p: attr(p, "vision"), cbs) >= 15:
             rating += 3.0
         else:
             rating -= 6.0
 
-    # Defensive shape & crosses
+    # 수비 형태 & 크로스 허용
     if defensive_shape == "narrow" and allow_crosses:
         if cb_height_avg >= 182 and cb_strength_avg >= 12:
             rating += 2.5
@@ -75,7 +75,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
             rating -= 2.0
 
     if defensive_shape == "wide" and not allow_crosses:
-        # require fullbacks and CBs adapted
+        # 풀백/CB가 적응돼 있어야 함
         fb_wb = [p for p in field_players if any(pos in ("FB", "WB") for pos in getattr(p, "positions", []))]
         fb_wb_pace = avg(lambda p: attr(p, "pace"), fb_wb)
         fb_wb_mark = avg(lambda p: attr(p, "marking"), fb_wb)
