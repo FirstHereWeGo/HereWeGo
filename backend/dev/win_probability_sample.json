@@ -1,0 +1,18 @@
+{
+  "teamA": {
+    "teamId": "kor",
+    "startingXI": {
+      "formationId": "4-4-2",
+      "goalkeeperId": "kor-1",
+      "playerIds": ["kor-13", "kor-2", "kor-4", "kor-15", "kor-11", "kor-6", "kor-8", "kor-17", "kor-7", "kor-9"]
+    }
+  },
+  "teamB": {
+    "teamId": "rsa",
+    "startingXI": {
+      "formationId": "4-4-2",
+      "goalkeeperId": "rsa-1",
+      "playerIds": ["rsa-2", "rsa-3", "rsa-14", "rsa-18", "rsa-25", "rsa-4", "rsa-5", "rsa-7", "rsa-9", "rsa-15"]
+    }
+  }
+}

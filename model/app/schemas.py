@@ -42,11 +42,44 @@ class AttributeBlock(BaseModel):
     tackling: int = 10  # 태클
     marking: int = 10  # 일대일 마크
 
+    def __init__(
+        self,
+        pace: int = 10,
+        agility: int = 10,
+        strength: int = 10,
+        finishing: int = 10,
+        dribbling: int = 10,
+        passing: int = 10,
+        vision: int = 10,
+        positioning: int = 10,
+        tackling: int = 10,
+        marking: int = 10,
+        **kwargs,
+    ):
+        # seed 데이터(backend/app/data/teams.py)가 위 필드 순서대로 위치 인자를 넘기므로,
+        # Pydantic v2 기본(키워드 전용)과 다르게 위치 인자도 받도록 열어둔다.
+        super().__init__(
+            pace=pace,
+            agility=agility,
+            strength=strength,
+            finishing=finishing,
+            dribbling=dribbling,
+            passing=passing,
+            vision=vision,
+            positioning=positioning,
+            tackling=tackling,
+            marking=marking,
+            **kwargs,
+        )
+
 
 class GoalkeepingBlock(BaseModel):
     """골키퍼는 세부 스탯 없이 종합 능력치 1개만 사용, 1~20."""
 
     overall: int = 10
+
+    def __init__(self, overall: int = 10, **kwargs):
+        super().__init__(overall=overall, **kwargs)
 
 
 Position = Literal["GK", "CB", "FB", "WB", "DM", "CM", "AM", "WG", "ST"]
