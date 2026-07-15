@@ -39,7 +39,7 @@ KOREA_REPUBLIC = Team(
         Player(id="kor-16", name="PARK Jinseob", positions=["DM", "CB"], age=30, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(13, 13, 13, 9, 11, 13, 12, 14, 11, 13)),
         Player(id="kor-17", name="BAE Junho", positions=["AM", "WG"], age=22, height=180, leftFoot=2, rightFoot=5, attributes=AttributeBlock(11, 15, 9, 7, 13, 12, 12, 12, 7, 7)),
         Player(id="kor-18", name="OH Hyeongyu", positions=["ST"], age=25, height=183, leftFoot=4, rightFoot=5, attributes=AttributeBlock(12, 14, 14, 13, 12, 9, 11, 12, 7, 5)),
-        Player(id="kor-19", name="LEE Kangin", positions=["AM", "CM"], age=25, height=174, leftFoot=5, rightFoot=4, attributes=AttributeBlock(13, 16, 10, 13, 16, 15, 15, 14, 6, 6)),
+        Player(id="kor-19", name="LEE Kangin", positions=["AM", "CM", "WG"], age=25, height=174, leftFoot=5, rightFoot=4, attributes=AttributeBlock(13, 16, 10, 13, 16, 15, 15, 14, 6, 6)),
         Player(id="kor-20", name="YANG Hyunjun", positions=["WG", "WB"], age=24, height=179, leftFoot=3, rightFoot=5, attributes=AttributeBlock(14, 13, 7, 9, 14, 12, 11, 12, 10, 8)),
         Player(id="kor-21", name="JO Hyeonwoo", positions=["GK"], age=34, height=189, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(13)),
         Player(id="kor-22", name="SEOL Youngwoo", positions=["FB", "WB"], age=27, height=180, leftFoot=4, rightFoot=5, attributes=AttributeBlock(12, 12, 12, 8, 11, 11, 13, 13, 13, 13)),
