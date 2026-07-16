@@ -62,15 +62,6 @@ function reducer(state, action) {
       if (!p || !p.data.star) return state;
       return { ...state, players: { ...state.players, [id]: { ...p, prime: !p.prime } } };
     }
-    case 'RESTORE_HOME': {
-      if (!state.editable) return state;
-      const players = {};
-      for (const id in state.players) {
-        const p = state.players[id];
-        players[id] = { ...p, x: p.homeX, y: p.homeY };
-      }
-      return { ...state, players };
-    }
     case 'MAKE_SUB': {
       if (!state.editable) return state;
       const { benchId } = action;
@@ -78,12 +69,25 @@ function reducer(state, action) {
       const entry = state.benchState.find(b => b.id === benchId);
       if (!entry || entry.status !== 'ok' || state.subsLeft <= 0) return state;
       if (!outId || !state.players[outId]) return state;
-      if (state.players[outId].data.pref.includes('GK')) return state;
-      const cur = state.players[outId];
+
+      // ⭐ [수정된 핵심 로직] 골키퍼 차단 코드를 지우고, 포지션 미스매치 검증을 넣음!
+      const outPlayer = state.players[outId];
+      const inPlayerData = SQUAD[benchId];
+      if (!inPlayerData) return state;
+
+      const isOutGk = outPlayer.data.pref.includes('GK');
+      const isInGk = inPlayerData.pref.includes('GK');
+      // 골키퍼-필드선수 간 서로 다른 포지션 교체 시도면 방어!
+      if (isOutGk !== isInGk) {
+        console.warn('❌ 포지션 규칙 오류: 골키퍼와 필드 선수는 교체할 수 없습니다.');
+        return state;
+      }
+
+      const cur = outPlayer;
       const players = { ...state.players };
       delete players[outId];
       players[benchId] = {
-        data: SQUAD[benchId], x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY, prime: false,
+        data: inPlayerData, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY, prime: false,
       };
       const benchState = state.benchState.map(b => b.id === benchId ? { ...b, status: 'in' } : b);
       benchState.push({ id: outId, status: 'out', note: '교체 아웃' });

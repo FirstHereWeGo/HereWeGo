@@ -11,8 +11,9 @@ export const PRIME_BOOST = 0.15;
 export const OFFROLE_PENALTY = 0.92;
 export const GK_MISMATCH = 0.80;
 
-// ---------- 대한민국 선수 DB ----------
+// ---------- 대한민국 선수 DB (선발 11명 + 벤치 15명 = 총 26명 완벽 스쿼드) ----------
 export const SQUAD = {
+  // ----- 선발 11명 -----
   kimSG:   { no: 1,  name: '김승규',      pref: ['GK'],       h: 187, age: 35, star: false,
              stats: [40, 70, 62, 30, 15, 25, 60, 58, 45, 40] },
   leeKH:   { no: 3,  name: '이기혁',      pref: ['DF'],       h: 186, age: 25, star: false,
@@ -35,7 +36,8 @@ export const SQUAD = {
              stats: [72, 58, 86, 74, 78, 90, 92, 90, 42, 40] },
   ohHG:    { no: 18, name: '오현규',      pref: ['ST'],       h: 185, age: 25, star: false,
              stats: [80, 84, 72, 76, 74, 62, 58, 56, 44, 42] },
-  // ----- 벤치 (실제 교체 자원 5명) -----
+
+  // ----- 벤치 (기존 5명) -----
   sonHM:   { no: 7,  name: '손흥민',      pref: ['WG', 'ST'], h: 183, age: 33, star: true,
              stats: [84, 70, 84, 88, 94, 84, 84, 82, 40, 38] },
   kimJG:   { no: 24, name: '김진규',      pref: ['MF'],       h: 177, age: 29, star: false,
@@ -46,6 +48,28 @@ export const SQUAD = {
              stats: [66, 82, 68, 50, 40, 44, 72, 70, 84, 86] },
   choGS:   { no: 9,  name: '조규성',      pref: ['ST'],       h: 189, age: 28, star: false,
              stats: [74, 88, 66, 80, 78, 56, 60, 58, 48, 46] },
+
+  // ⭐ ----- 벤치 (추가된 후보 10명 완벽 병합) -----
+  yang20:  { no: 20, name: '양현준',      pref: ['WG', 'MF'], h: 179, age: 24, star: false,
+             stats: [84, 86, 72, 75, 45, 65, 77, 83, 76, 40] },
+  eom25:   { no: 25, name: '엄지성',      pref: ['WG'],       h: 178, age: 24, star: false,
+             stats: [85, 87, 73, 74, 42, 63, 76, 82, 74, 38] },
+  bae17:   { no: 17, name: '배준호',      pref: ['MF', 'WG'], h: 180, age: 22, star: true, // ⭐ 전성기 모드 가능
+             stats: [81, 85, 76, 83, 50, 70, 80, 86, 84, 48] },
+  lee26:   { no: 26, name: '이동경',      pref: ['MF'],       h: 175, age: 28, star: false,
+             stats: [76, 79, 81, 85, 52, 68, 78, 80, 84, 50] },
+  lee10:   { no: 10, name: '이재성',      pref: ['MF', 'WG'], h: 180, age: 33, star: true, // ⭐ 전성기 모드 가능
+             stats: [78, 82, 77, 84, 68, 73, 85, 81, 86, 65] },
+  kim15:   { no: 15, name: '김문환',      pref: ['DF'],       h: 173, age: 30, star: false,
+             stats: [84, 83, 60, 75, 78, 71, 76, 77, 73, 79] },
+  kim5:    { no: 5,  name: '김태현',      pref: ['DF'],       h: 187, age: 25, star: false,
+             stats: [74, 71, 45, 68, 79, 83, 75, 65, 68, 81] },
+  cho14:   { no: 14, name: '조위제',      pref: ['DF'],       h: 189, age: 24, star: false,
+             stats: [72, 69, 40, 65, 78, 85, 76, 62, 64, 80] },
+  song12:  { no: 12, name: '송범근',      pref: ['GK'],       h: 194, age: 28, star: false,
+             stats: [65, 75, 20, 68, 82, 84, 83, 55, 68, 81] },
+  jo21:    { no: 21, name: '조현우',      pref: ['GK'],       h: 189, age: 34, star: true, // ⭐ 전성기 모드 가능
+             stats: [70, 88, 15, 65, 87, 79, 89, 50, 70, 86] },
 };
 
 // ---------- 킥오프 라인업 (실제 선발 3-4-2-1, 감독 홍명보) ----------
@@ -56,8 +80,13 @@ export const KOR_STARTING = [
   ['hwangHC', 35, 32], ['leeKI', 65, 32],
   ['ohHG', 50, 20],
 ];
-export const KOR_BENCH = ['sonHM', 'kimJG', 'castrop', 'parkJS', 'choGS'];
-export const MAX_SUBS = 5;
+
+// ⭐ ----- 벤치 등록 리스트 (기존 5명 + 추가 10명 = 총 15명 대기) -----
+export const KOR_BENCH = [
+  'sonHM', 'kimJG', 'castrop', 'parkJS', 'choGS',
+  'yang20', 'eom25', 'bae17', 'lee26', 'lee10', 'kim15', 'kim5', 'cho14', 'song12', 'jo21'
+];
+export const MAX_SUBS = 5; // 경기 중 최대 교체 가능 횟수 유지
 
 // ---------- 남아공 선발 (4-2-3-1, 감독 브루스) + 실제 교체 스케줄 ----------
 // y: 0=남아공 골문 쪽(상단), 100=대한민국 골문 쪽
