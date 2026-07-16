@@ -3,11 +3,10 @@ import { SQUAD, ROLE_KR } from '../data/squad';
 
 export default function BenchList() {
   const state = useGameState();
-  const { makeSub, recalc } = useGameActions();
+  const { makeSub } = useGameActions();
 
   function handleSub(benchId) {
     makeSub(benchId);
-    setTimeout(recalc, 0);
   }
 
   const selected = state.selected ? state.players[state.selected] : null;
@@ -28,6 +27,7 @@ export default function BenchList() {
           const canSub =
             b.status === 'ok' &&
             state.subsLeft > 0 &&
+            state.editable &&
             selected &&
             !selected.data.pref.includes('GK');
           const statusTxt =

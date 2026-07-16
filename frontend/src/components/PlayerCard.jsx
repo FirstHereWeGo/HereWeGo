@@ -4,7 +4,7 @@ import { STAT_NAMES, KEY_STATS, ROLE_KR } from '../data/squad';
 
 export default function PlayerCard() {
   const state = useGameState();
-  const { togglePrime, recalc } = useGameActions();
+  const { togglePrime } = useGameActions();
   const id = state.selected;
   const p = id ? state.players[id] : null;
 
@@ -12,9 +12,9 @@ export default function PlayerCard() {
     return (
       <div className="pcard">
         <div className="pcard-empty">
-          필드의 선수를 선택하면
+          피치 위의 선수를 클릭하면
           <br />
-          능력치 카드가 표시됩니다
+          상세 정보가 표시됩니다
         </div>
       </div>
     );
@@ -26,37 +26,37 @@ export default function PlayerCard() {
 
   const fitChip =
     fit === 'ok' ? (
-      <span className="bio-chip fit-ok">현재 {ROLE_KR[role]} · 적합</span>
+      <span className="bio-chip fit-ok">{ROLE_KR[role]} · 적합</span>
     ) : fit === 'off' ? (
-      <span className="bio-chip fit-bad">현재 {ROLE_KR[role]} · 부적응 −8%</span>
+      <span className="bio-chip fit-bad">{ROLE_KR[role]} · 부적응 −8%</span>
     ) : (
       <span className="bio-chip fit-bad">포지션 오류 −20%</span>
     );
 
-  function handleTogglePrime() {
-    togglePrime();
-    setTimeout(recalc, 0);
-  }
-
   return (
     <div className={`pcard ${p.prime ? 'prime-active' : ''}`}>
-      <div className="pcard-head">
-        <div className="pcard-name">
-          {p.data.star ? <span className="star">★ </span> : null}
-          {p.data.name}
+      <div className="pcard-top">
+        {/* 프로필 사진 자리 — 추후 실제 이미지 삽입용 3:4 고정 비율 */}
+        <div className="photo-ph">
+          <span className="photo-no num">{p.data.no}</span>
+          <span className="photo-note">PHOTO</span>
         </div>
-        <div className="pcard-pos">
-          NO.{p.data.no} · 선호 {p.data.pref.map(r => ROLE_KR[r]).join('/')}
+        <div className="pcard-head">
+          <div className="pcard-name">
+            {p.data.star ? <span className="star">★ </span> : null}
+            {p.data.name}
+          </div>
+          <div className="pcard-pos">
+            NO.{p.data.no} · {p.data.pref.map(r => ROLE_KR[r]).join('/')}
+          </div>
+          <div className="bio-row">
+            <span className="bio-chip">{p.data.h}cm</span>
+            <span className="bio-chip">{p.data.age}세{p.prime ? '→27' : ''}</span>
+            {fitChip}
+          </div>
         </div>
       </div>
-      <div className="bio-row">
-        <span className="bio-chip">{p.data.h}cm</span>
-        <span className="bio-chip">
-          {p.data.age}세{p.prime ? ' → 피크 27세' : ''}
-        </span>
-        {fitChip}
-        {p.prime ? <span className="bio-chip prime-chip">★ 전성기 +15%</span> : null}
-      </div>
+
       <div className="stat-grid">
         {STAT_NAMES.map((name, i) => (
           <div key={name} className={`statline ${keyIdx.has(i) ? 'keystat' : ''} ${p.prime ? 'boosted' : ''}`}>
@@ -70,10 +70,10 @@ export default function PlayerCard() {
       </div>
       <button
         className={`btn-prime ${p.prime ? 'on' : ''}`}
-        disabled={!p.data.star}
-        onClick={handleTogglePrime}
+        disabled={!p.data.star || !state.editable}
+        onClick={() => togglePrime()}
       >
-        {p.data.star ? (p.prime ? '★ 전성기 모드 ON' : '전성기 소환') : '전성기 소환 불가'}
+        {p.data.star ? (p.prime ? '★ 전성기 모드 ON' : '⚡ 전성기 소환') : '전성기 소환 불가'}
       </button>
     </div>
   );

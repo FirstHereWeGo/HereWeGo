@@ -1,39 +1,40 @@
 export default function Landing({ onEnter }) {
   return (
     <section className="view-landing">
-      <div className="landing-eyebrow">2026 FIFA WORLD CUP · GROUP STAGE</div>
-      <h1 className="landing-title">
-        PRIME <span className="rewind">REWIND</span>
-      </h1>
-      <p className="landing-sub">
-        그날, 전성기의 그가 있었다면.
-        <br />
-        실제 경기 데이터로 그 순간을 되감고, 감독이 되어 다시 지휘하세요.
-        <br />
-        당신의 선택은 <b style={{ color: 'var(--green-bright)' }}>xG와 승률</b>로 증명됩니다.
-      </p>
-      <div className="scoreline">
-        <div>
-          <div className="team">대한민국</div>
-          <div className="meta">KOR · 3-4-2-1</div>
-        </div>
-        <div className="score num">0 : 1</div>
-        <div>
-          <div className="team">남아공</div>
-          <div className="meta">RSA · 4-2-3-1</div>
-        </div>
-        <div style={{ width: 1, height: 44, background: 'var(--line)' }} />
-        <div className="meta" style={{ textAlign: 'left' }}>
-          2026. 6. 25
+      <div className="landing-inner">
+        <div className="landing-eyebrow">2026 FIFA WORLD CUP · INTERACTIVE TACTICS SIM</div>
+        <h1 className="landing-title">
+          PRIME <span className="rewind">REWIND</span>
+        </h1>
+        <p className="landing-sub">
+          2026 월드컵 조별리그 최종전, 대한민국 0-1 남아공.
           <br />
-          조별리그 최종전
+          그 90분을 처음부터 다시 지휘하는 <b>실시간 3D 전술 시뮬레이션</b>입니다.
           <br />
-          FT · 마세코 63'
+          포메이션·교체·전성기 소환 — 당신의 선택이 xG와 승률로 증명됩니다.
+        </p>
+        <div className="scoreline glass">
+          <div>
+            <div className="team">대한민국</div>
+            <div className="meta">3-4-2-1 · 홍명보</div>
+          </div>
+          <div className="score num">0 : 1</div>
+          <div>
+            <div className="team">남아공</div>
+            <div className="meta">4-2-3-1 · 브루스</div>
+          </div>
+          <div className="scoreline-div" />
+          <div className="meta left">
+            2026. 6. 25 · FT
+            <br />
+            마세코 63'
+          </div>
         </div>
+        <button className="cta" onClick={onEnter}>
+          시작하기
+        </button>
+        <div className="landing-foot">시작하면 양 팀 선발 라인업과 전술을 확인할 수 있습니다</div>
       </div>
-      <button className="cta" onClick={onEnter}>
-        감독으로 입장하기 →
-      </button>
     </section>
   );
 }
