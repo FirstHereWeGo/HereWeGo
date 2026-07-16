@@ -60,6 +60,20 @@ export default function TacticalBoard({ onFinish }) {
   const gRef = useRef(g); gRef.current = g;
   const lastWholeMin = useRef(-1);
 
+  // ⭐ [추가/수정된 핵심 로직] 
+  // 컴포넌트 마운트 시 단 한 번 자동으로 선발 스쿼드와 매치를 초기화합니다!
+  useEffect(() => {
+    resetMatch();
+    dm({ type: 'RESET' });
+    lastWholeMin.current = -1;
+    // 3D 씬이 렌더링된 직후 킥오프 위치를 잡기 위해 약간의 지연 후 호출합니다.
+    const timer = setTimeout(() => {
+      pitchRef.current?.resetKickoff();
+    }, 100);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 백엔드 브리지 구독 — 서버가 승률을 보내면 그것을 우선 사용
   const bridge = useSyncExternalStore(subscribeBridge, getBridgeState, getBridgeState);
   useEffect(() => {
