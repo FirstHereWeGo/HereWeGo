@@ -4,14 +4,14 @@ import { jerseyNumber } from '../utils/playerDisplay';
 
 export default function PlayerCard() {
   const state = useGameState();
-  const id = state.selected;
-  const p = id ? state.players[id] : null;
+  const id = state.viewedId;
+  const d = id ? (state.players[id]?.data ?? state.team?.players.find(p => p.id === id)) : null;
 
-  if (!p) {
+  if (!d) {
     return (
       <div className="pcard">
         <div className="pcard-empty">
-          피치 위의 선수를 클릭하면
+          피치 또는 벤치의 선수를 클릭하면
           <br />
           상세 정보가 표시됩니다
         </div>
@@ -19,7 +19,6 @@ export default function PlayerCard() {
     );
   }
 
-  const d = p.data;
   const no = jerseyNumber(d.id);
   const isGk = d.positions.includes('GK');
   const keySet = new Set(KEY_ATTRS[d.positions[0]] || []);

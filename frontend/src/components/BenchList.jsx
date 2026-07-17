@@ -4,7 +4,7 @@ import { jerseyNumber } from '../utils/playerDisplay';
 
 export default function BenchList() {
   const state = useGameState();
-  const { makeSub } = useGameActions();
+  const { makeSub, viewPlayer } = useGameActions();
 
   function handleSub(benchId) {
     makeSub(benchId);
@@ -35,7 +35,11 @@ export default function BenchList() {
           const canSub = state.editable && !!state.selected && !isGkMismatch;
 
           return (
-            <div className="bench-item" key={d.id}>
+            <div
+              className={`bench-item ${state.viewedId === d.id ? 'viewed' : ''}`}
+              key={d.id}
+              onClick={() => viewPlayer(d.id)}
+            >
               <div className="bdisc num">{jerseyNumber(d.id)}</div>
               <div className="bname">
                 {d.name}
@@ -44,7 +48,7 @@ export default function BenchList() {
               <button
                 className="btn-sub"
                 disabled={!canSub}
-                onClick={() => handleSub(d.id)}
+                onClick={(e) => { e.stopPropagation(); handleSub(d.id); }}
                 title={
                   !state.selected ? '피치 위에서 교체할 선수를 먼저 클릭하세요.' :
                   isGkMismatch ? (isOutGk ? '골키퍼는 골키퍼끼리만 교체할 수 있습니다!' : '필드 선수를 골키퍼와 교체할 수 없습니다!') : ''

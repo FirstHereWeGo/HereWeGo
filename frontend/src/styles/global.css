@@ -227,8 +227,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .bench h4{font-size:.68rem;letter-spacing:.2em;color:var(--text-dim);margin-bottom:.4rem}
 .subs-left{font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:.45rem}
 .bench-hint{font-size:.66rem;color:var(--text-dim);margin-bottom:.55rem;line-height:1.55}
-.bench-item{display:flex;align-items:center;gap:.6rem;padding:.42rem .45rem;border-radius:8px;margin-bottom:.28rem}
+.bench-item{display:flex;align-items:center;gap:.6rem;padding:.42rem .45rem;border-radius:8px;margin-bottom:.28rem;cursor:pointer}
 .bench-item:hover{background:rgba(255,255,255,.03)}
+.bench-item.viewed{background:rgba(52,224,122,.08);border:1px solid rgba(52,224,122,.35)}
 .bench-item .bdisc{width:26px;height:26px;border-radius:50%;background:rgba(215,38,29,.25);border:1px solid rgba(215,38,29,.5);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani';font-weight:700;font-size:.76rem;flex-shrink:0}
 .bench-item .bname{flex:1;font-size:.8rem;font-weight:500;min-width:0}
 .bench-item .bstatus{font-size:.6rem;color:var(--text-dim)}
