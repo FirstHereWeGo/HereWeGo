@@ -1,41 +1,79 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
-import { SQUAD, KOR_STARTING, KOR_BENCH, MAX_SUBS } from '../data/squad';
+import { getFormations, getTactics, getTeams } from '../api/client';
+import { layoutFormation, GK_COORD } from '../data/formationLayout';
+
+const MAX_SUBS = 5;
+const KOR_TEAM_ID = 'kor';
+const OPP_TEAM_ID = 'rsa';
 
 /**
- * 스쿼드/전술 전역 상태.
- * 경기 시계·스코어 등 매치 런타임 상태는 TacticalBoard가 로컬로 관리한다.
- * editable: 킥오프 전/일시정지/하프타임에만 true — 이때만 배치/교체/전성기/전술 수정 가능.
+ * 로스터/포메이션/전술 전역 상태.
+ * editable: 로딩 완료 후 항상 true — 승률 계산은 프리매치 예측이라 언제든 편집 가능.
  */
 const initialState = {
-  players: {},
-  selected: null,
-  benchState: [],
+  loading: true,
+  error: null,
+  team: null,          // kor Team (id, name, players)
+  oppTeam: null,        // rsa Team
+  formations: [],        // Formation[]
+  tacticPreset: null,     // kor TeamTacticPreset
+  oppTacticPreset: null,   // rsa TeamTacticPreset
+  formationId: null,
+  players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY} }
+  benchState: [],         // [{id, status}]
   subsLeft: MAX_SUBS,
-  inst: { line: 'mid', press: 'counterpress', transition: 'counter', tempo: 'slow' },
-  lineVal: 50,        // 수비 라인 높이 슬라이더 (0=낮음, 100=높음)
-  balanceVal: 50,     // 공격/수비 비중 슬라이더 (0=수비, 100=공격)
-  mentality: 'balanced',
+  selected: null,
+  tacticConfig: null,      // kor 현재 TacticConfig (Sidebar가 수정)
   editable: true,
-  playing: false, // 찬스 애니메이션 재생 중
 };
 
-function buildStartingPlayers() {
+function isGk(player) {
+  return player.positions.includes('GK');
+}
+
+function buildFromPreset(team, formation, preset) {
+  const coords = layoutFormation(formation.positions);
+  const playersById = Object.fromEntries(team.players.map(p => [p.id, p]));
   const players = {};
-  KOR_STARTING.forEach(([id, x, y]) => {
-    players[id] = { data: SQUAD[id], x, y, homeX: x, homeY: y, prime: false };
+
+  const gk = playersById[preset.goalkeeperId];
+  if (gk) {
+    players[gk.id] = { data: gk, x: GK_COORD.x, y: GK_COORD.y, homeX: GK_COORD.x, homeY: GK_COORD.y };
+  }
+  preset.startingPlayerIds.forEach((id, i) => {
+    const p = playersById[id];
+    if (!p) return;
+    players[id] = { data: p, x: coords[i].x, y: coords[i].y, homeX: coords[i].x, homeY: coords[i].y };
   });
-  return players;
+
+  const startingSet = new Set([preset.goalkeeperId, ...preset.startingPlayerIds]);
+  const benchState = team.players.filter(p => !startingSet.has(p.id)).map(p => ({ id: p.id, status: 'ok' }));
+  return { players, benchState };
 }
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'RESET_MATCH':
+    case 'LOAD_START':
+      return { ...state, loading: true, error: null };
+    case 'LOAD_ERROR':
+      return { ...state, loading: false, error: action.error };
+    case 'LOAD_SUCCESS': {
+      const { team, oppTeam, formations, tacticPreset, oppTacticPreset } = action;
+      const formation = formations.find(f => f.id === tacticPreset.formationId) || formations[0];
+      const { players, benchState } = buildFromPreset(team, formation, tacticPreset);
       return {
-        ...initialState,
-        players: buildStartingPlayers(),
-        benchState: KOR_BENCH.map(id => ({ id, status: 'ok' })),
+        ...state,
+        loading: false,
+        error: null,
+        team, oppTeam, formations, tacticPreset, oppTacticPreset,
+        formationId: formation.id,
+        players,
+        benchState,
         subsLeft: MAX_SUBS,
+        tacticConfig: tacticPreset.tacticConfig,
+        selected: null,
       };
+    }
     case 'SELECT_PLAYER':
       return { ...state, selected: action.id };
     case 'MOVE_PLAYER': {
@@ -44,7 +82,7 @@ function reducer(state, action) {
       if (!p) return state;
       let x = Math.max(3, Math.min(97, action.x));
       let y = Math.max(3, Math.min(97, action.y));
-      if (p.data.pref.includes('GK')) { y = Math.max(78, y); x = Math.max(25, Math.min(75, x)); }
+      if (isGk(p.data)) { y = Math.max(78, y); x = Math.max(25, Math.min(75, x)); }
       return { ...state, players: { ...state.players, [action.id]: { ...p, x, y } } };
     }
     case 'SET_PLAYER_POS_BULK': {
@@ -55,13 +93,18 @@ function reducer(state, action) {
       });
       return { ...state, players };
     }
-    case 'TOGGLE_PRIME': {
+    case 'RESTORE_HOME': {
       if (!state.editable) return state;
-      const id = state.selected;
-      const p = state.players[id];
-      if (!p || !p.data.star) return state;
-      return { ...state, players: { ...state.players, [id]: { ...p, prime: !p.prime } } };
+      const players = {};
+      for (const id in state.players) {
+        const p = state.players[id];
+        players[id] = { ...p, x: p.homeX, y: p.homeY };
+      }
+      return { ...state, players };
     }
+    case 'APPLY_FORMATION':
+      if (!state.editable) return state;
+      return { ...state, formationId: action.formationId };
     case 'MAKE_SUB': {
       if (!state.editable) return state;
       const { benchId } = action;
@@ -69,54 +112,26 @@ function reducer(state, action) {
       const entry = state.benchState.find(b => b.id === benchId);
       if (!entry || entry.status !== 'ok' || state.subsLeft <= 0) return state;
       if (!outId || !state.players[outId]) return state;
+      const inPlayer = state.team.players.find(p => p.id === benchId);
+      if (!inPlayer) return state;
 
-      // ⭐ [수정된 핵심 로직] 골키퍼 차단 코드를 지우고, 포지션 미스매치 검증을 넣음!
       const outPlayer = state.players[outId];
-      const inPlayerData = SQUAD[benchId];
-      if (!inPlayerData) return state;
-
-      const isOutGk = outPlayer.data.pref.includes('GK');
-      const isInGk = inPlayerData.pref.includes('GK');
-      // 골키퍼-필드선수 간 서로 다른 포지션 교체 시도면 방어!
-      if (isOutGk !== isInGk) {
-        console.warn('❌ 포지션 규칙 오류: 골키퍼와 필드 선수는 교체할 수 없습니다.');
-        return state;
-      }
+      if (isGk(outPlayer.data) !== isGk(inPlayer)) return state;
 
       const cur = outPlayer;
       const players = { ...state.players };
       delete players[outId];
-      players[benchId] = {
-        data: inPlayerData, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY, prime: false,
-      };
-      const benchState = state.benchState.map(b => b.id === benchId ? { ...b, status: 'in' } : b);
-      benchState.push({ id: outId, status: 'out', note: '교체 아웃' });
+      players[benchId] = { data: inPlayer, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY };
+      const benchState = state.benchState
+        .map(b => b.id === benchId ? { ...b, status: 'in' } : b)
+        .concat({ id: outId, status: 'out', note: '교체 아웃' });
       return { ...state, players, benchState, subsLeft: state.subsLeft - 1, selected: benchId };
     }
-    case 'SET_INST':
+    case 'SET_TACTIC_CONFIG':
       if (!state.editable) return state;
-      return { ...state, inst: { ...state.inst, [action.group]: action.val } };
-    case 'SET_LINE_VAL': {
-      if (!state.editable) return state;
-      const v = action.value;
-      const line = v < 35 ? 'low' : v > 65 ? 'high' : 'mid';
-      return { ...state, lineVal: v, inst: { ...state.inst, line } };
-    }
-    case 'SET_BALANCE_VAL': {
-      if (!state.editable) return state;
-      const v = action.value;
-      const mentality = v < 33 ? 'defensive' : v > 66 ? 'dominant' : 'balanced';
-      return { ...state, balanceVal: v, mentality };
-    }
-    case 'SET_MENTALITY':
-      if (!state.editable) return state;
-      return { ...state, mentality: action.val };
+      return { ...state, tacticConfig: action.value };
     case 'SET_EDITABLE':
       return { ...state, editable: action.value };
-    case 'START_PLAYBACK':
-      return { ...state, playing: true, selected: null };
-    case 'END_PLAYBACK':
-      return { ...state, playing: false };
     default:
       return state;
   }
@@ -126,7 +141,7 @@ const GameStateContext = createContext(null);
 const GameDispatchContext = createContext(null);
 
 export function GameProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, undefined, () => reducer(initialState, { type: 'RESET_MATCH' }));
+  const [state, dispatch] = useReducer(reducer, initialState);
   return (
     <GameStateContext.Provider value={state}>
       <GameDispatchContext.Provider value={dispatch}>
@@ -148,20 +163,32 @@ export function useGameDispatch() {
 }
 export function useGameActions() {
   const dispatch = useGameDispatch();
+  const loadMatch = useCallback(async () => {
+    dispatch({ type: 'LOAD_START' });
+    try {
+      const [teams, formations, tactics] = await Promise.all([getTeams(), getFormations(), getTactics()]);
+      const team = teams.find(t => t.id === KOR_TEAM_ID);
+      const oppTeam = teams.find(t => t.id === OPP_TEAM_ID);
+      const tacticPreset = tactics.find(t => t.teamId === KOR_TEAM_ID);
+      const oppTacticPreset = tactics.find(t => t.teamId === OPP_TEAM_ID);
+      if (!team || !oppTeam || !tacticPreset || !oppTacticPreset) {
+        throw new Error('필요한 팀/전술 데이터를 찾지 못했습니다');
+      }
+      dispatch({ type: 'LOAD_SUCCESS', team, oppTeam, formations, tacticPreset, oppTacticPreset });
+    } catch (err) {
+      dispatch({ type: 'LOAD_ERROR', error: err.message });
+    }
+  }, [dispatch]);
+
   return {
-    resetMatch: useCallback(() => dispatch({ type: 'RESET_MATCH' }), [dispatch]),
+    loadMatch,
     selectPlayer: useCallback((id) => dispatch({ type: 'SELECT_PLAYER', id }), [dispatch]),
     movePlayer: useCallback((id, x, y) => dispatch({ type: 'MOVE_PLAYER', id, x, y }), [dispatch]),
     setPlayerPosBulk: useCallback((updates) => dispatch({ type: 'SET_PLAYER_POS_BULK', updates }), [dispatch]),
-    togglePrime: useCallback(() => dispatch({ type: 'TOGGLE_PRIME' }), [dispatch]),
     restoreHome: useCallback(() => dispatch({ type: 'RESTORE_HOME' }), [dispatch]),
+    applyFormation: useCallback((formationId) => dispatch({ type: 'APPLY_FORMATION', formationId }), [dispatch]),
     makeSub: useCallback((benchId) => dispatch({ type: 'MAKE_SUB', benchId }), [dispatch]),
-    setInst: useCallback((group, val) => dispatch({ type: 'SET_INST', group, val }), [dispatch]),
-    setMentality: useCallback((val) => dispatch({ type: 'SET_MENTALITY', val }), [dispatch]),
-    setLineVal: useCallback((value) => dispatch({ type: 'SET_LINE_VAL', value }), [dispatch]),
-    setBalanceVal: useCallback((value) => dispatch({ type: 'SET_BALANCE_VAL', value }), [dispatch]),
+    setTacticConfig: useCallback((value) => dispatch({ type: 'SET_TACTIC_CONFIG', value }), [dispatch]),
     setEditable: useCallback((value) => dispatch({ type: 'SET_EDITABLE', value }), [dispatch]),
-    startPlayback: useCallback(() => dispatch({ type: 'START_PLAYBACK' }), [dispatch]),
-    endPlayback: useCallback(() => dispatch({ type: 'END_PLAYBACK' }), [dispatch]),
   };
 }
