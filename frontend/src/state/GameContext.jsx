@@ -2,9 +2,6 @@ import { createContext, useContext, useReducer, useCallback } from 'react';
 import { getFormations, getTactics, getTeams } from '../api/client';
 import { layoutFormation, GK_COORD } from '../data/formationLayout';
 
-const KOR_TEAM_ID = 'kor';
-const OPP_TEAM_ID = 'rsa';
-
 /**
  * 로스터/포메이션/전술 전역 상태.
  * editable: 로딩 완료 후 항상 true — 승률 계산은 프리매치 예측이라 언제든 편집 가능.
@@ -12,15 +9,16 @@ const OPP_TEAM_ID = 'rsa';
 const initialState = {
   loading: true,
   error: null,
-  team: null,          // kor Team (id, name, players)
-  oppTeam: null,        // rsa Team
+  team: null,          // 내 팀 Team (id, name, players)
+  oppTeam: null,        // 상대 팀 Team
   formations: [],        // Formation[]
-  tacticPreset: null,     // kor TeamTacticPreset
-  oppTacticPreset: null,   // rsa TeamTacticPreset
+  tacticPreset: null,     // 내 팀 TeamTacticPreset
+  oppTacticPreset: null,   // 상대 팀 TeamTacticPreset
   formationId: null,
   players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY} }
-  selected: null,
-  tacticConfig: null,      // kor 현재 TacticConfig (Sidebar가 수정)
+  selected: null,          // 피치에서 선택된 선수(교체 시 "나가는" 선수) id
+  viewedId: null,          // PlayerCard에 표시 중인 선수 id — 벤치 선수 클릭 시엔 이것만 바뀜
+  tacticConfig: null,      // 내 팀 현재 TacticConfig (Sidebar/TacticsPanel이 수정)
   editable: true,
 };
 
@@ -65,10 +63,13 @@ function reducer(state, action) {
         players,
         tacticConfig: tacticPreset.tacticConfig,
         selected: null,
+        viewedId: null,
       };
     }
     case 'SELECT_PLAYER':
-      return { ...state, selected: action.id };
+      return { ...state, selected: action.id, viewedId: action.id };
+    case 'VIEW_PLAYER':
+      return { ...state, viewedId: action.id };
     case 'MOVE_PLAYER': {
       if (!state.editable) return state;
       const p = state.players[action.id];
@@ -114,7 +115,7 @@ function reducer(state, action) {
       const players = { ...state.players };
       delete players[outId];
       players[benchId] = { data: inPlayer, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY };
-      return { ...state, players, selected: benchId };
+      return { ...state, players, selected: benchId, viewedId: benchId };
     }
     case 'SET_TACTIC_CONFIG':
       if (!state.editable) return state;
@@ -152,17 +153,16 @@ export function useGameDispatch() {
 }
 export function useGameActions() {
   const dispatch = useGameDispatch();
-  const loadMatch = useCallback(async () => {
+  const loadMatch = useCallback(async (myTeamId, oppTeamId) => {
     dispatch({ type: 'LOAD_START' });
     try {
       const [teams, formations, tactics] = await Promise.all([getTeams(), getFormations(), getTactics()]);
-      const team = teams.find(t => t.id === KOR_TEAM_ID);
-      const oppTeam = teams.find(t => t.id === OPP_TEAM_ID);
-      const tacticPreset = tactics.find(t => t.teamId === KOR_TEAM_ID);
-      const oppTacticPreset = tactics.find(t => t.teamId === OPP_TEAM_ID);
-      if (!team || !oppTeam || !tacticPreset || !oppTacticPreset) {
-        throw new Error('필요한 팀/전술 데이터를 찾지 못했습니다');
-      }
+      const team = teams.find(t => t.id === myTeamId);
+      const oppTeam = teams.find(t => t.id === oppTeamId);
+      const tacticPreset = tactics.find(t => t.teamId === myTeamId);
+      const oppTacticPreset = tactics.find(t => t.teamId === oppTeamId);
+      if (!team || !tacticPreset) throw new Error(`선택한 내 팀(${myTeamId})의 데이터를 찾지 못했습니다`);
+      if (!oppTeam || !oppTacticPreset) throw new Error(`선택한 상대 팀(${oppTeamId})의 데이터를 찾지 못했습니다`);
       dispatch({ type: 'LOAD_SUCCESS', team, oppTeam, formations, tacticPreset, oppTacticPreset });
     } catch (err) {
       dispatch({ type: 'LOAD_ERROR', error: err.message });
@@ -172,6 +172,7 @@ export function useGameActions() {
   return {
     loadMatch,
     selectPlayer: useCallback((id) => dispatch({ type: 'SELECT_PLAYER', id }), [dispatch]),
+    viewPlayer: useCallback((id) => dispatch({ type: 'VIEW_PLAYER', id }), [dispatch]),
     movePlayer: useCallback((id, x, y) => dispatch({ type: 'MOVE_PLAYER', id, x, y }), [dispatch]),
     setPlayerPosBulk: useCallback((updates) => dispatch({ type: 'SET_PLAYER_POS_BULK', updates }), [dispatch]),
     restoreHome: useCallback(() => dispatch({ type: 'RESTORE_HOME' }), [dispatch]),
