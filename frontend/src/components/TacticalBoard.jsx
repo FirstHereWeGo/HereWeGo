@@ -6,6 +6,12 @@ import Sidebar from './Sidebar';
 import PitchBoard from './PitchBoard';
 import PlayerCard from './PlayerCard';
 import BenchList from './BenchList';
+import TacticsPanel from './TacticsPanel';
+
+const TABS = [
+  ['formation', '포메이션'],
+  ['tactics', '전술'],
+];
 
 function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticConfig) {
   return {
@@ -19,6 +25,7 @@ function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticCon
 export default function TacticalBoard({ onHome }) {
   const state = useGameState();
   const { loadMatch } = useGameActions();
+  const [tab, setTab] = useState('formation');
   const [winProb, setWinProb] = useState(null);
   const [predicting, setPredicting] = useState(false);
   const [predictError, setPredictError] = useState(null);
@@ -98,19 +105,34 @@ export default function TacticalBoard({ onHome }) {
             {predicting ? '계산 중...' : '승률 계산'}
           </button>
         </div>
+        <div className="view-tabs">
+          {TABS.map(([key, label]) => (
+            <button
+              key={key}
+              className={`tab-btn ${tab === key ? 'on' : ''}`}
+              onClick={() => setTab(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="topbar-right">
           <button className="btn-ghost" onClick={onHome}>처음으로</button>
         </div>
       </div>
 
-      <div className="board-body">
-        <Sidebar />
-        <PitchBoard />
-        <aside className="rightbar glass">
-          <PlayerCard />
-          <BenchList />
-        </aside>
-      </div>
+      {tab === 'formation' ? (
+        <div className="board-body">
+          <Sidebar />
+          <PitchBoard />
+          <aside className="rightbar glass">
+            <PlayerCard />
+            <BenchList />
+          </aside>
+        </div>
+      ) : (
+        <TacticsPanel />
+      )}
     </section>
   );
 }
