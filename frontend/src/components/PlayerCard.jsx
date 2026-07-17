@@ -59,7 +59,7 @@ export default function PlayerCard() {
           <div className="statline keystat">
             <span className="sname">종합 능력치</span>
             <div className="sbar">
-              <div className="sfill" style={{ width: `${(d.attributes.overall / 20) * 100}%` }} />
+              <div className="sfill" style={{ width: `${(d.attributes.overall / 100) * 100}%` }} />
             </div>
             <span className="sval num">{d.attributes.overall}</span>
           </div>
@@ -70,7 +70,7 @@ export default function PlayerCard() {
             <div key={key} className={`statline ${keySet.has(key) ? 'keystat' : ''}`}>
               <span className="sname">{name}</span>
               <div className="sbar">
-                <div className="sfill" style={{ width: `${(d.attributes[key] / 20) * 100}%` }} />
+                <div className="sfill" style={{ width: `${(d.attributes[key] / 100) * 100}%` }} />
               </div>
               <span className="sval num">{d.attributes[key]}</span>
             </div>

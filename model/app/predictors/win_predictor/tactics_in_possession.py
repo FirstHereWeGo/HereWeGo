@@ -1,5 +1,5 @@
 """TacticConfig.inPossession 기반 rating 조정."""
-from app.predictors.win_predictor.context import TeamContext, attr, avg
+from app.predictors.win_predictor.context import TeamContext, attr, avg, gk_overall
 from app.schemas import TacticConfig
 
 
@@ -83,7 +83,7 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
 
     # 빌드업 시 GK 참여
     if build_from_back:
-        gk_over = getattr(getattr(gk, "attributes", None), "overall", 0)
+        gk_over = gk_overall(gk)
         cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
         cb_vision_avg = avg(lambda p: attr(p, "vision"), cbs)
         cb_agility_avg = avg(lambda p: attr(p, "agility"), cbs)

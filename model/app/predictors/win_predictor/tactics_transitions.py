@@ -1,5 +1,5 @@
 """TacticConfig.transitions 기반 rating 조정."""
-from app.predictors.win_predictor.context import TeamContext, attr, avg
+from app.predictors.win_predictor.context import TeamContext, attr, avg, gk_overall
 from app.schemas import TacticConfig
 
 
@@ -42,7 +42,7 @@ def apply_transitions(rating: float, tc: TacticConfig, context: TeamContext) -> 
 
     if gk_distribution_quick:
         if distribution_method == "short":
-            gk_over = getattr(getattr(gk, "attributes", None), "overall", 0)
+            gk_over = gk_overall(gk)
             cb_pos_avg = avg(lambda p: attr(p, "positioning"), cbs)
             cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
             if gk_over >= 12 and cb_pos_avg >= 11 and cb_pass_avg >= 11:
