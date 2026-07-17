@@ -31,8 +31,8 @@ export default function PlayerCard() {
           <span className="photo-no num">{no}</span>
           <span className="photo-note">PHOTO</span>
           <img
-            key={no}
-            src={`/players/${no}.png`}
+            key={d.id}
+            src={`/players/${d.id}.png`}
             alt={d.name}
             style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',

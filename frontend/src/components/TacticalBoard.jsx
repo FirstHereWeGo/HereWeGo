@@ -22,7 +22,7 @@ function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticCon
   };
 }
 
-export default function TacticalBoard({ onHome }) {
+export default function TacticalBoard({ myTeamId, oppTeamId, onHome }) {
   const state = useGameState();
   const { loadMatch } = useGameActions();
   const [tab, setTab] = useState('formation');
@@ -31,7 +31,7 @@ export default function TacticalBoard({ onHome }) {
   const [predictError, setPredictError] = useState(null);
 
   useEffect(() => {
-    loadMatch();
+    loadMatch(myTeamId, oppTeamId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,9 +49,9 @@ export default function TacticalBoard({ onHome }) {
     setPredictError(null);
     try {
       const result = await postWinProbability({
-        teamA: buildTeamConfig('kor', formation.id, goalkeeperId, playerIds, state.tacticConfig),
+        teamA: buildTeamConfig(state.team.id, formation.id, goalkeeperId, playerIds, state.tacticConfig),
         teamB: buildTeamConfig(
-          'rsa',
+          state.oppTeam.id,
           state.oppTacticPreset.formationId,
           state.oppTacticPreset.goalkeeperId,
           state.oppTacticPreset.startingPlayerIds,
@@ -86,9 +86,9 @@ export default function TacticalBoard({ onHome }) {
       <div className="topbar">
         <div className="brand">PRIME<span>REWIND</span></div>
         <div className="score-card glass">
-          <div className="tteam kor"><span className="tname">{state.team.name}</span></div>
+          <div className="tteam home"><span className="tname">{state.team.name}</span></div>
           <div className="score-mid"><div className="clock num">{state.formationId}</div></div>
-          <div className="tteam rsa"><span className="tname">{state.oppTeam.name}</span></div>
+          <div className="tteam away"><span className="tname">{state.oppTeam.name}</span></div>
         </div>
         <div className="prob-card glass">
           <div className="prob-title">예측 승률</div>
