@@ -7,6 +7,11 @@ from dataclasses import dataclass
 
 from app.schemas import GoalkeepingBlock, Player, TeamMatchInput
 
+# backend/app/data/teams.py의 능력치가 1~20에서 0~100 스케일로 바뀌었다.
+# 이 폴더의 가중치/임계값(weights.py, tactics_*.py)은 전부 1~20 기준으로 캘리브레이션돼
+# 있으므로, 여기서 한 번 나눠 원래 스케일로 되돌린 값만 아래 로직에 흘려보낸다.
+ATTR_SCALE = 5
+
 
 def avg(stat_getter, players: list[Player]) -> float:
     vals = [stat_getter(p) for p in players if stat_getter(p) is not None]
@@ -14,7 +19,11 @@ def avg(stat_getter, players: list[Player]) -> float:
 
 
 def attr(player: Player, name: str):
-    return getattr(getattr(player, "attributes", None), name, 0)
+    return getattr(getattr(player, "attributes", None), name, 0) / ATTR_SCALE
+
+
+def gk_overall(player: Player | None) -> float:
+    return getattr(getattr(player, "attributes", None), "overall", 0) / ATTR_SCALE
 
 
 def _has_position(player: Player, positions: tuple[str, ...]) -> bool:

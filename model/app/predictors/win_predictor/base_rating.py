@@ -1,5 +1,5 @@
 """전술 조정 이전 기본 rating: 선수 능력치 합산 + GK + 포지션 미스매치 + 연령/신장 페널티."""
-from app.predictors.win_predictor.context import TeamContext
+from app.predictors.win_predictor.context import ATTR_SCALE, TeamContext, gk_overall
 from app.predictors.win_predictor.weights import WEIGHTS
 from app.schemas import TeamMatchInput
 
@@ -24,21 +24,21 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         attrs = pl.attributes
         # 주 포지션 기준으로 수비/공격 가산치 적용
         pos_primary = getattr(pl, "positions", [None])[0]
-        # 핵심 스탯 합산
-        pace = getattr(attrs, "pace", 0)
-        agility = getattr(attrs, "agility", 0)
-        strength = getattr(attrs, "strength", 0)
-        positioning = getattr(attrs, "positioning", 0)
+        # 핵심 스탯 합산 (ATTR_SCALE로 나눠 1~20 캘리브레이션 기준으로 되돌림)
+        pace = getattr(attrs, "pace", 0) / ATTR_SCALE
+        agility = getattr(attrs, "agility", 0) / ATTR_SCALE
+        strength = getattr(attrs, "strength", 0) / ATTR_SCALE
+        positioning = getattr(attrs, "positioning", 0) / ATTR_SCALE
 
         base = (pace + agility + strength + positioning) * core_w
 
         # 그 외 스탯
-        finishing = getattr(attrs, "finishing", 0)
-        dribbling = getattr(attrs, "dribbling", 0)
-        passing = getattr(attrs, "passing", 0)
-        vision = getattr(attrs, "vision", 0)
-        tackling = getattr(attrs, "tackling", 0)
-        marking = getattr(attrs, "marking", 0)
+        finishing = getattr(attrs, "finishing", 0) / ATTR_SCALE
+        dribbling = getattr(attrs, "dribbling", 0) / ATTR_SCALE
+        passing = getattr(attrs, "passing", 0) / ATTR_SCALE
+        vision = getattr(attrs, "vision", 0) / ATTR_SCALE
+        tackling = getattr(attrs, "tackling", 0) / ATTR_SCALE
+        marking = getattr(attrs, "marking", 0) / ATTR_SCALE
 
         other = (
             dribbling * dribbling_w
@@ -69,12 +69,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
 
     # 골키퍼
     if context.gk is not None:
-        gk_attrs = getattr(context.gk, "attributes", None)
-        gk_overall = getattr(gk_attrs, "overall", None)
-        if gk_overall is None:
-            # 일부 payload는 GK의 attributes가 AttributeBlock으로 올 수 있음 - fallback
-            gk_overall = 0
-        rating += gk_overall * gk_w
+        rating += gk_overall(context.gk) * gk_w
 
     # 포메이션-포지션 미스매치 페널티
     try:
