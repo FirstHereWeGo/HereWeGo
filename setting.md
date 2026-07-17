@@ -78,7 +78,7 @@ model 쪽 `TeamMatchInput` 스키마도 이와 동일한 필드명을 쓰도록 
 
 - **Player**: `id, name, positions: list[Position], age, height, leftFoot, rightFoot, attributes`. `Position = "GK"|"CB"|"FB"|"WB"|"DM"|"CM"|"AM"|"WG"|"ST"`. `positions`는 리스트라 선수 한 명이 여러 포지션을 가질 수 있음. `attributes`는 GK면 `GoalkeepingBlock{overall}`, 아니면 `AttributeBlock`(10개 스탯: pace/agility/strength/finishing/dribbling/passing/vision/positioning/tackling/marking, 1~20).
 - **Formation**: `id, name, positions: list[Position]` — GK 제외 필드 10명, 오른쪽부터 수비→미드필드→공격 순, 각 라인은 오른쪽→왼쪽.
-- **TacticConfig**: FM 스타일 4섹션(`style`, `inPossession`, `opponentHalf`, `transitions`, `outOfPossession`) 그대로 미러링.
+- **TacticConfig**: FM 스타일 5섹션(`style`, `inPossession`, `opponentHalf`, `transitions`, `outOfPossession`) 그대로 미러링.
 - **TeamTacticPreset**: `teamId, formationId, goalkeeperId, startingPlayerIds, tacticConfig` — 팀 선택 시 기본으로 깔리는 값.
 
 ---
@@ -86,5 +86,5 @@ model 쪽 `TeamMatchInput` 스키마도 이와 동일한 필드명을 쓰도록 
 ## 4. 참고
 
 - `backend/dev/`에 `/api/win-probability` 수동 테스트용 샘플 payload(`win_probability_sample.json`)와 실행 스크립트(`test_win_probability.py`)가 있음. 컨테이너 안에서 `python dev/test_win_probability.py`로 실행.
-- frontend(`frontend/src/`)는 아직 backend API와 연동되지 않은 상태로 보인다 — `frontend/src/engine/`(formation.js, stats.js, xgModel.js)에 자체 로컬 계산 로직이 별도로 존재한다. backend 연동 작업 시 이 부분을 backend API 호출로 교체해야 할 가능성이 높다.
+- frontend(`frontend/src/`)는 이제 backend API와 연동돼 있다 (`src/api/client.js`). `GameContext.jsx`가 앱 로드 시 `/api/teams`+`/api/formations`+`/api/tactics`로 로스터/포메이션/기본 전술 프리셋을 받아와 상태를 구성하고, `TacticalBoard.jsx`가 "승률 계산" 버튼을 누를 때만 `/api/win-probability`를 호출한다(자동 재계산 없음 — 경기 중 라이브 시뮬레이션이 아니라 프리매치 스쿼드/전술 편집 도구이기 때문). 화면은 "포메이션"(로스터·라인업·3D 피치)과 "전술"(`TacticConfig` 5개 섹션 전체를 노출하는 상세 폼, `TacticsPanel.jsx`) 두 탭으로 분리돼 있다. 예전에 있던 `frontend/src/engine/`(로컬 xG/매치 시뮬레이션)과 `frontend/src/data/squad.js`(mock 로스터)는 삭제됐다. `/api/xg/rewind`가 여전히 스텁이라 장면별 xG나 라이브 매치 재현 기능은 프론트에 없다.
 - 루트의 `PROJECT_STATUS.md`는 과거 스냅샷(Next.js 프론트 기준 등)이라 현재 상태와 다른 부분이 있으니 참고할 때 주의.

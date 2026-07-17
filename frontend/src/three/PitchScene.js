@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { jerseyNumber } from '../utils/playerDisplay';
 
 const PITCH_L = 105, PITCH_W = 68;
 const pctToWorld = (x, y) => ({ x: (x - 50) / 100 * PITCH_W, z: (y - 50) / 100 * PITCH_L });
@@ -443,9 +444,9 @@ export class PitchScene {
 
   // ================= 선수 =================
   spawnPlayer(id, p) {
-    const gk = p.data.pref.includes('GK');
+    const gk = p.data.positions.includes('GK');
     const kit = gk ? KIT.korGk : KIT.kor;
-    const fig = makePlayerFigure({ ...kit, prime: p.prime, height: p.data.h });
+    const fig = makePlayerFigure({ ...kit, prime: p.prime, height: p.data.height });
     const w = pctToWorld(p.x, p.y);
     fig.position.set(w.x, 0, w.z);
     fig.userData.key = id;
@@ -454,7 +455,7 @@ export class PitchScene {
     fig.userData.tx = w.x; fig.userData.tz = w.z;
     fig.userData.wanderPhase = Math.random() * Math.PI * 2;
     // 머리 위 UI — 등번호만
-    const badge = makeNumberBadge(p.data.no, p.prime ? '#f2c14e' : '#d7261d');
+    const badge = makeNumberBadge(jerseyNumber(p.data.id), p.prime ? '#f2c14e' : '#d7261d');
     badge.position.y = 5.5 / (fig.userData.bodyScale || 1);
     fig.add(badge);
     this.scene.add(fig);

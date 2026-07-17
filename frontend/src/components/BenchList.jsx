@@ -1,5 +1,6 @@
 import { useGameState, useGameActions } from '../state/GameContext';
-import { SQUAD, ROLE_KR } from '../data/squad';
+import { ROLE_KR } from '../data/positionLabels';
+import { jerseyNumber } from '../utils/playerDisplay';
 
 export default function BenchList() {
   const state = useGameState();
@@ -9,20 +10,15 @@ export default function BenchList() {
     makeSub(benchId);
   }
 
-  // 1. 피치 위에서 현재 선택된 선수 가져오기
-  const selected = state.selected ? state.players[state.selected] : null;
-
-  // ⭐ 2. 선택된 선수가 골키퍼인지 확인 (선택 안 했으면 false)
-  const isOutGk = selected ? selected.data.pref.includes('GK') : false;
+  const selectedPlayer = state.selected ? state.players[state.selected] : null;
+  const isOutGk = !!selectedPlayer && selectedPlayer.data.positions.includes('GK');
+  const bench = state.team ? state.team.players.filter(p => !state.players[p.id]) : [];
 
   return (
     <div className="bench">
-      <h4>벤치 · SUBSTITUTES</h4>
-      <div className="subs-left">
-        {state.subsLeft > 0 ? `남은 교체 카드: ${state.subsLeft}장` : '교체 카드 소진 — 교체 불가'}
-      </div>
+      <h4>벤치 · 후보 명단</h4>
       <div className="bench-hint">
-        {selected ? (
+        {state.selected ? (
           isOutGk ? (
             <span>🧤 <b style={{ color: '#38bdf8' }}>골키퍼</b> 교체 대상 선택 중...</span>
           ) : (
@@ -33,50 +29,28 @@ export default function BenchList() {
         )}
       </div>
       <div>
-        {state.benchState.map(b => {
-          const d = SQUAD[b.id];
-          if (!d) return null;
-
-          // ⭐ 3. 벤치에 있는 후보 선수가 골키퍼인지 확인
-          const isInGk = d.pref.includes('GK');
-
-          // ⭐ 4. 포지션 미스매치 검사 (둘 중 하나만 골키퍼이면 true -> 교체 불가)
-          const isGkMismatch = selected ? (isOutGk !== isInGk) : false;
-
-          // ⭐ 5. 최종 교체 가능 여부 조건 (골키퍼 미스매치가 아닐 때만 가능!)
-          const canSub =
-            b.status === 'ok' &&
-            state.subsLeft > 0 &&
-            state.editable &&
-            selected &&
-            !isGkMismatch;
-
-          const statusTxt =
-            b.status === 'ok'
-              ? `${ROLE_KR[d.pref[0]] || d.pref[0]} · ${d.h}cm · ${d.age}세`
-              : b.status === 'in'
-              ? '투입 완료'
-              : b.note || '교체 아웃';
+        {bench.map(d => {
+          const isInGk = d.positions.includes('GK');
+          const isGkMismatch = state.selected ? (isOutGk !== isInGk) : false;
+          const canSub = state.editable && !!state.selected && !isGkMismatch;
 
           return (
-            <div className={`bench-item ${b.status !== 'ok' ? 'subbed' : ''}`} key={b.id}>
-              <div className="bdisc num">{d.no}</div>
+            <div className="bench-item" key={d.id}>
+              <div className="bdisc num">{jerseyNumber(d.id)}</div>
               <div className="bname">
-                {d.star ? <span className="star">★ </span> : null}
                 {d.name}
-                <div className="bstatus">{statusTxt}</div>
+                <div className="bstatus">{ROLE_KR[d.positions[0]] || d.positions[0]} · {d.height}cm · {d.age}세</div>
               </div>
-              <button 
-                className="btn-sub" 
-                disabled={!canSub} 
-                onClick={() => handleSub(b.id)}
-                /* ⭐ 6. 왜 교체가 안 되는지 마우스 올렸을 때 툴팁으로 설명해 주기 */
+              <button
+                className="btn-sub"
+                disabled={!canSub}
+                onClick={() => handleSub(d.id)}
                 title={
-                  !selected ? '피치 위에서 교체할 선수를 먼저 클릭하세요.' :
+                  !state.selected ? '피치 위에서 교체할 선수를 먼저 클릭하세요.' :
                   isGkMismatch ? (isOutGk ? '골키퍼는 골키퍼끼리만 교체할 수 있습니다!' : '필드 선수를 골키퍼와 교체할 수 없습니다!') : ''
                 }
               >
-                {b.status !== 'ok' ? '완료' : isGkMismatch && selected ? '불가' : '교체'}
+                {isGkMismatch && state.selected ? '불가' : '교체'}
               </button>
             </div>
           );

@@ -28,6 +28,7 @@ services:
       - "4000:4000"
     environment:
       - MODEL_URL=http://model:8000
+      - FRONTEND_ORIGIN=http://localhost:5173
     command: uvicorn main:app --host 0.0.0.0 --port 4000 --reload
     depends_on:
       - model
