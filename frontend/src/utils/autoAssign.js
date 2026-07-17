@@ -19,7 +19,7 @@ const NEIGHBOR = {
  * @returns {{id:string,x:number,y:number}[]}
  */
 export function assignFormation(outfieldPlayers, formation) {
-  const coords = layoutFormation(formation.positions);
+  const coords = layoutFormation(formation);
   const pool = Object.keys(outfieldPlayers);
   const assigned = new Set();
   const updates = [];
@@ -56,7 +56,7 @@ function dist(x1, y1, x2, y2) {
  * @returns {string[]|null} 슬롯 수와 선수 수가 다르면 null
  */
 export function slotOrderPlayerIds(outfieldPlayers, formation) {
-  const coords = layoutFormation(formation.positions);
+  const coords = layoutFormation(formation);
   const pool = Object.entries(outfieldPlayers).map(([id, p]) => ({ id, x: p.x, y: p.y }));
   if (pool.length !== coords.length) return null;
 

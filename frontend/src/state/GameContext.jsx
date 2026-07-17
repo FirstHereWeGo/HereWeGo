@@ -2,7 +2,6 @@ import { createContext, useContext, useReducer, useCallback } from 'react';
 import { getFormations, getTactics, getTeams } from '../api/client';
 import { layoutFormation, GK_COORD } from '../data/formationLayout';
 
-const MAX_SUBS = 5;
 const KOR_TEAM_ID = 'kor';
 const OPP_TEAM_ID = 'rsa';
 
@@ -20,8 +19,6 @@ const initialState = {
   oppTacticPreset: null,   // rsa TeamTacticPreset
   formationId: null,
   players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY} }
-  benchState: [],         // [{id, status}]
-  subsLeft: MAX_SUBS,
   selected: null,
   tacticConfig: null,      // kor 현재 TacticConfig (Sidebar가 수정)
   editable: true,
@@ -32,7 +29,7 @@ function isGk(player) {
 }
 
 function buildFromPreset(team, formation, preset) {
-  const coords = layoutFormation(formation.positions);
+  const coords = layoutFormation(formation);
   const playersById = Object.fromEntries(team.players.map(p => [p.id, p]));
   const players = {};
 
@@ -46,9 +43,7 @@ function buildFromPreset(team, formation, preset) {
     players[id] = { data: p, x: coords[i].x, y: coords[i].y, homeX: coords[i].x, homeY: coords[i].y };
   });
 
-  const startingSet = new Set([preset.goalkeeperId, ...preset.startingPlayerIds]);
-  const benchState = team.players.filter(p => !startingSet.has(p.id)).map(p => ({ id: p.id, status: 'ok' }));
-  return { players, benchState };
+  return players;
 }
 
 function reducer(state, action) {
@@ -60,7 +55,7 @@ function reducer(state, action) {
     case 'LOAD_SUCCESS': {
       const { team, oppTeam, formations, tacticPreset, oppTacticPreset } = action;
       const formation = formations.find(f => f.id === tacticPreset.formationId) || formations[0];
-      const { players, benchState } = buildFromPreset(team, formation, tacticPreset);
+      const players = buildFromPreset(team, formation, tacticPreset);
       return {
         ...state,
         loading: false,
@@ -68,8 +63,6 @@ function reducer(state, action) {
         team, oppTeam, formations, tacticPreset, oppTacticPreset,
         formationId: formation.id,
         players,
-        benchState,
-        subsLeft: MAX_SUBS,
         tacticConfig: tacticPreset.tacticConfig,
         selected: null,
       };
@@ -109,8 +102,7 @@ function reducer(state, action) {
       if (!state.editable) return state;
       const { benchId } = action;
       const outId = state.selected;
-      const entry = state.benchState.find(b => b.id === benchId);
-      if (!entry || entry.status !== 'ok' || state.subsLeft <= 0) return state;
+      if (state.players[benchId]) return state; // 이미 선발이면 무시
       if (!outId || !state.players[outId]) return state;
       const inPlayer = state.team.players.find(p => p.id === benchId);
       if (!inPlayer) return state;
@@ -122,10 +114,7 @@ function reducer(state, action) {
       const players = { ...state.players };
       delete players[outId];
       players[benchId] = { data: inPlayer, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY };
-      const benchState = state.benchState
-        .map(b => b.id === benchId ? { ...b, status: 'in' } : b)
-        .concat({ id: outId, status: 'out', note: '교체 아웃' });
-      return { ...state, players, benchState, subsLeft: state.subsLeft - 1, selected: benchId };
+      return { ...state, players, selected: benchId };
     }
     case 'SET_TACTIC_CONFIG':
       if (!state.editable) return state;
