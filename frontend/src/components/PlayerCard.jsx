@@ -1,5 +1,5 @@
 import { useGameState } from '../state/GameContext';
-import { ATTRIBUTE_LABELS, KEY_ATTRS, ROLE_KR } from '../data/positionLabels';
+import { ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
 import { jerseyNumber } from '../utils/playerDisplay';
 
 export default function PlayerCard() {
@@ -45,7 +45,7 @@ export default function PlayerCard() {
         <div className="pcard-head">
           <div className="pcard-name">{d.name}</div>
           <div className="pcard-pos">
-            NO.{no} · {d.positions.map(r => ROLE_KR[r]).join('/')}
+            NO.{no} · {d.positions.join('/')}
           </div>
           <div className="bio-row">
             <span className="bio-chip">{d.height}cm</span>
