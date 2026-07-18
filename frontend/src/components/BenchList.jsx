@@ -1,5 +1,4 @@
 import { useGameState, useGameActions } from '../state/GameContext';
-import { ROLE_KR } from '../data/positionLabels';
 import { jerseyNumber } from '../utils/playerDisplay';
 
 export default function BenchList() {
@@ -43,7 +42,7 @@ export default function BenchList() {
               <div className="bdisc num">{jerseyNumber(d.id)}</div>
               <div className="bname">
                 {d.name}
-                <div className="bstatus">{ROLE_KR[d.positions[0]] || d.positions[0]} · {d.height}cm · {d.age}세</div>
+                <div className="bstatus">{d.positions[0]} · {d.height}cm · {d.age}세</div>
               </div>
               <button
                 className="btn-sub"
