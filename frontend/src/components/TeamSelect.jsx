@@ -70,9 +70,10 @@ export default function TeamSelect({ onConfirm }) {
             {teams.map(t => (
               <button
                 key={t.id}
-                className={`fm-btn wide ${myTeamId === t.id ? 'on' : ''}`}
+                className={`fm-btn wide team-btn ${myTeamId === t.id ? 'on' : ''}`}
                 onClick={() => selectMyTeam(t.id)}
               >
+                <img className="team-btn-flag" src={`/flags/${t.id}.png`} alt="" onError={(e) => { e.target.style.display = 'none'; }} />
                 {t.name}
               </button>
             ))}
@@ -82,9 +83,10 @@ export default function TeamSelect({ onConfirm }) {
             {teams.map(t => (
               <button
                 key={t.id}
-                className={`fm-btn wide ${oppTeamId === t.id ? 'on' : ''}`}
+                className={`fm-btn wide team-btn ${oppTeamId === t.id ? 'on' : ''}`}
                 onClick={() => selectOppTeam(t.id)}
               >
+                <img className="team-btn-flag" src={`/flags/${t.id}.png`} alt="" onError={(e) => { e.target.style.display = 'none'; }} />
                 {t.name}
               </button>
             ))}

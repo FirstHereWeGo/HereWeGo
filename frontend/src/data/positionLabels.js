@@ -1,19 +1,8 @@
 /**
  * backend Player.positions(9종 세부 포지션)과 AttributeBlock(10개 스탯)에 대한
- * 표시용 한글 라벨. 게임 데이터가 아니라 UI 라벨/레이아웃 상수라 프론트에 남는다.
+ * 표시용 라벨. 게임 데이터가 아니라 UI 라벨/레이아웃 상수라 프론트에 남는다.
+ * positions 코드(GK/CB/FB/WB/DM/CM/AM/WG/ST) 자체가 이미 약자라 그대로 표시에 쓴다.
  */
-export const ROLE_KR = {
-  GK: '골키퍼',
-  CB: '센터백',
-  FB: '풀백',
-  WB: '윙백',
-  DM: '수비형 미드필더',
-  CM: '중앙 미드필더',
-  AM: '공격형 미드필더',
-  WG: '윙어',
-  ST: '스트라이커',
-};
-
 export const ATTRIBUTE_LABELS = [
   ['pace', '주력'],
   ['agility', '민첩성'],

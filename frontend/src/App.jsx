@@ -26,6 +26,7 @@ function AppInner() {
           myTeamId={teams.myTeamId}
           oppTeamId={teams.oppTeamId}
           onHome={() => setView('landing')}
+          onChangeTeams={() => setView('teamSelect')}
         />
       )}
     </>
