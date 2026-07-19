@@ -313,7 +313,73 @@ SWITZERLAND = Team(
     ],
 )
 
-TEAMS: list[Team] = [KOREA_REPUBLIC, SOUTH_AFRICA, SPAIN, FRANCE, ENGLAND, ARGENTINA, BELGIUM, MOROCCO, SWITZERLAND]
+NORWAY = Team(
+    id="nor",
+    name="Norway",
+    players=[
+        Player(id="nor-1", name="Orjan Nyland", positions=["GK"], age=35, height=192, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(65)),
+        Player(id="nor-2", name="Morten Thorsby", positions=["DM", "CM", "AM"], age=29, height=189, leftFoot=2, rightFoot=5, attributes=AttributeBlock(60, 50, 75, 55, 50, 60, 55, 70, 70, 70)),
+        Player(id="nor-3", name="Kristoffer Ajer", positions=["FB", "CB"], age=27, height=196, leftFoot=2, rightFoot=5, attributes=AttributeBlock(65, 55, 70, 50, 60, 65, 65, 65, 70, 70)),
+        Player(id="nor-4", name="Leo Ostigard", positions=["CB"], age=26, height=182, leftFoot=2, rightFoot=5, attributes=AttributeBlock(70, 55, 80, 40, 40, 50, 55, 70, 70, 70)),
+        Player(id="nor-5", name="David Moller Wolfe", positions=["FB", "WB", "WG"], age=23, height=185, leftFoot=5, rightFoot=3, attributes=AttributeBlock(70, 60, 55, 40, 65, 60, 55, 70, 60, 60)),
+        Player(id="nor-6", name="Patrick Berg", positions=["DM", "CM"], age=28, height=177, leftFoot=2, rightFoot=5, attributes=AttributeBlock(50, 60, 55, 50, 55, 65, 70, 85, 65, 70)),
+        Player(id="nor-7", name="Alexander Sorloth", positions=["ST"], age=30, height=194, leftFoot=5, rightFoot=3, attributes=AttributeBlock(75, 65, 80, 80, 65, 60, 65, 75, 30, 30)),
+        Player(id="nor-8", name="Sander Berge", positions=["DM", "CM", "AM"], age=27, height=195, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 65, 65, 50, 65, 75, 70, 70, 70, 55)),
+        Player(id="nor-9", name="Erling Haaland", positions=["ST"], age=25, height=195, leftFoot=5, rightFoot=3, attributes=AttributeBlock(95, 80, 85, 90, 70, 65, 70, 90, 35, 30)),
+        Player(id="nor-10", name="Martin Odegaard", positions=["CM", "AM"], age=26, height=178, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 80, 55, 65, 85, 90, 95, 85, 50, 45)),
+        Player(id="nor-11", name="Jorgen Strand Larsen", positions=["ST"], age=25, height=194, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 80, 70, 65, 65, 65, 80, 35, 40)),
+        Player(id="nor-12", name="Sander Tangvik", positions=["GK"], age=23, height=193, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(60)),
+        Player(id="nor-13", name="Egil Selvik", positions=["GK"], age=28, height=187, leftFoot=5, rightFoot=4, attributes=GoalkeepingBlock(60)),
+        Player(id="nor-14", name="Fredrik Aursnes", positions=["CM", "WG"], age=30, height=179, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 60, 60, 50, 65, 75, 70, 80, 50, 55)),
+        Player(id="nor-15", name="Fredrik Bjorkan", positions=["FB", "WB"], age=27, height=180, leftFoot=5, rightFoot=2, attributes=AttributeBlock(70, 70, 55, 45, 70, 55, 50, 70, 60, 55)),
+        Player(id="nor-16", name="Marcus Holmgren Pedersen", positions=["FB", "WB"], age=25, height=183, leftFoot=2, rightFoot=5, attributes=AttributeBlock(85, 70, 45, 35, 65, 65, 50, 55, 65, 50)),
+        Player(id="nor-17", name="Torbjorn Heggem", positions=["CB"], age=26, height=192, leftFoot=5, rightFoot=4, attributes=AttributeBlock(60, 60, 65, 25, 45, 50, 50, 75, 70, 70)),
+        Player(id="nor-18", name="Kristian Thorstvedt", positions=["CM", "AM"], age=26, height=189, leftFoot=5, rightFoot=3, attributes=AttributeBlock(60, 60, 75, 70, 65, 70, 65, 70, 50, 40)),
+        Player(id="nor-19", name="Thelo Aasgaard", positions=["CM", "WG", "AM"], age=23, height=185, leftFoot=4, rightFoot=5, attributes=AttributeBlock(60, 70, 55, 55, 70, 65, 70, 60, 35, 30)),
+        Player(id="nor-20", name="Antonio Nusa", positions=["WG"], age=20, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 80, 55, 55, 80, 60, 60, 60, 40, 40)),
+        Player(id="nor-21", name="Andreas Schjelderup", positions=["WG"], age=21, height=176, leftFoot=4, rightFoot=5, attributes=AttributeBlock(70, 70, 60, 65, 65, 70, 75, 65, 40, 30)),
+        Player(id="nor-22", name="Oscar Bobb", positions=["CM", "WG", "AM"], age=22, height=174, leftFoot=5, rightFoot=4, attributes=AttributeBlock(70, 75, 40, 55, 75, 65, 65, 65, 30, 35)),
+        Player(id="nor-23", name="Jens Petter Hauge", positions=["WG", "AM"], age=26, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 75, 55, 65, 75, 65, 65, 65, 40, 40)),
+        Player(id="nor-24", name="Sondre Langas", positions=["CB"], age=24, height=187, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 40, 75, 35, 45, 50, 45, 75, 65, 65)),
+        Player(id="nor-25", name="Henrik Falchener", positions=["CB", "DM"], age=22, height=194, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 50, 70, 30, 30, 65, 55, 65, 65, 70)),
+        Player(id="nor-26", name="Julian Ryerson", positions=["FB", "WB"], age=28, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 60, 65, 40, 60, 60, 60, 65, 70, 65)),
+    ],
+)
+
+PORTUGAL = Team(
+    id="por",
+    name="Portugal",
+    players=[
+        Player(id="por-1", name="Diogo Costa", positions=["GK"], age=26, height=186, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(80)),
+        Player(id="por-2", name="Nelson Semedo", positions=["FB", "WB"], age=32, height=177, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 55, 45, 65, 65, 55, 65, 60, 60)),
+        Player(id="por-3", name="Ruben Dias", positions=["CB"], age=28, height=186, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 65, 80, 30, 60, 65, 65, 80, 85, 85)),
+        Player(id="por-4", name="Tomas Araujo", positions=["CB"], age=23, height=184, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 65, 60, 35, 55, 70, 65, 70, 80, 70)),
+        Player(id="por-5", name="Diogo Dalot", positions=["FB", "WB"], age=26, height=184, leftFoot=4, rightFoot=5, attributes=AttributeBlock(75, 70, 70, 40, 65, 65, 50, 70, 65, 60)),
+        Player(id="por-6", name="Matheus Nunes", positions=["FB", "CM"], age=27, height=184, leftFoot=3, rightFoot=4, attributes=AttributeBlock(75, 65, 70, 60, 70, 65, 70, 70, 55, 45)),
+        Player(id="por-7", name="Cristiano Ronaldo", positions=["ST"], age=40, height=187, leftFoot=4, rightFoot=5, attributes=AttributeBlock(55, 45, 75, 95, 60, 65, 55, 99, 25, 15)),
+        Player(id="por-8", name="Bruno Fernandes", positions=["DM", "CM", "AM"], age=31, height=179, leftFoot=4, rightFoot=5, attributes=AttributeBlock(65, 70, 50, 75, 55, 90, 90, 80, 40, 15)),
+        Player(id="por-9", name="Goncalo Ramos", positions=["ST"], age=24, height=185, leftFoot=4, rightFoot=5, attributes=AttributeBlock(70, 70, 70, 75, 65, 65, 65, 75, 40, 35)),
+        Player(id="por-10", name="Bernardo Silva", positions=["CM", "WG", "AM"], age=31, height=173, leftFoot=5, rightFoot=2, attributes=AttributeBlock(60, 75, 45, 75, 85, 85, 85, 85, 40, 60)),
+        Player(id="por-11", name="Joao Felix", positions=["WG", "AM"], age=26, height=181, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 75, 50, 75, 85, 80, 75, 85, 35, 25)),
+        Player(id="por-12", name="Jose Sa", positions=["GK"], age=32, height=192, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(65)),
+        Player(id="por-13", name="Renato Veiga", positions=["CB"], age=22, height=190, leftFoot=5, rightFoot=3, attributes=AttributeBlock(70, 60, 75, 35, 60, 65, 60, 65, 75, 75)),
+        Player(id="por-14", name="Goncalo Inacio", positions=["CB"], age=24, height=186, leftFoot=5, rightFoot=2, attributes=AttributeBlock(65, 60, 70, 55, 60, 75, 75, 75, 65, 80)),
+        Player(id="por-15", name="Joao Neves", positions=["DM", "CM"], age=21, height=174, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 75, 65, 55, 80, 75, 70, 70, 80, 70)),
+        Player(id="por-16", name="Francisco Trincao", positions=["WG", "AM"], age=25, height=184, leftFoot=5, rightFoot=3, attributes=AttributeBlock(75, 75, 55, 75, 85, 80, 85, 70, 40, 30)),
+        Player(id="por-17", name="Rafael Leao", positions=["WG", "ST"], age=26, height=188, leftFoot=4, rightFoot=5, attributes=AttributeBlock(85, 90, 65, 70, 85, 65, 60, 70, 20, 20)),
+        Player(id="por-18", name="Pedro Neto", positions=["WG"], age=25, height=172, leftFoot=5, rightFoot=3, attributes=AttributeBlock(80, 80, 35, 65, 90, 65, 55, 65, 25, 25)),
+        Player(id="por-19", name="Goncalo Guedes", positions=["WG"], age=29, height=179, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 60, 70, 70, 65, 65, 70, 35, 35)),
+        Player(id="por-20", name="Joao Cancelo", positions=["FB", "WB"], age=31, height=182, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 60, 60, 80, 80, 80, 70, 65, 45)),
+        Player(id="por-21", name="Ruben Neves", positions=["DM", "CM"], age=28, height=180, leftFoot=3, rightFoot=5, attributes=AttributeBlock(55, 60, 60, 55, 60, 85, 85, 70, 65, 55)),
+        Player(id="por-22", name="Rui Silva", positions=["GK"], age=31, height=191, leftFoot=5, rightFoot=3, attributes=GoalkeepingBlock(70)),
+        Player(id="por-23", name="Vitinha", positions=["DM", "CM"], age=25, height=172, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 90, 55, 60, 85, 85, 85, 75, 70, 75)),
+        Player(id="por-24", name="Samu", positions=["DM", "CM"], age=25, height=183, leftFoot=5, rightFoot=3, attributes=AttributeBlock(60, 65, 70, 50, 55, 70, 65, 80, 80, 65)),
+        Player(id="por-25", name="Nuno Mendes", positions=["FB", "WB"], age=23, height=176, leftFoot=5, rightFoot=3, attributes=AttributeBlock(90, 75, 65, 50, 75, 70, 65, 70, 70, 60)),
+        Player(id="por-26", name="Francisco Conceicao", positions=["WG"], age=22, height=170, leftFoot=5, rightFoot=2, attributes=AttributeBlock(75, 90, 50, 65, 85, 65, 65, 70, 40, 20)),
+    ],
+)
+
+TEAMS: list[Team] = [KOREA_REPUBLIC, SOUTH_AFRICA, SPAIN, FRANCE, ENGLAND, ARGENTINA, BELGIUM, MOROCCO, SWITZERLAND, NORWAY, PORTUGAL]
 
 
 def get_team(team_id: str) -> Team | None:

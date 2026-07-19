@@ -468,6 +468,106 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
             ),
         ),
     ),
+    TeamTacticPreset(
+        teamId="nor",
+        formationId="4-1-2-3",
+        goalkeeperId="nor-1",
+        # positions 순서(FB,CB,CB,FB,DM,CM,CM,WG,ST,WG)와 1:1 대응:
+        # 뤼에르손,아예르,헤겜,볼페,베르게,외데고르,베르그,쉴로트,홀란,누사
+        startingPlayerIds=[
+            "nor-26", "nor-3", "nor-17", "nor-5", "nor-8",
+            "nor-10", "nor-6", "nor-7", "nor-9", "nor-20",
+        ],
+        tacticConfig=TacticConfig(
+            style=TacticStyle(tacticStyle="counter", approach="balanced"),
+            inPossession=InPossession(
+                attackingWidth=60,
+                buildupStyle="mixed",
+                overlapLeft=True,
+                overlapRight=True,
+                targetCentral=True,
+                targetWide=True,
+                buildFromBack=True,
+                passingDirectness=55,
+                tempo=55,
+                timeWasting=20,
+            ),
+            opponentHalf=OpponentHalf(
+                crossingApproach="high",
+                playCalmly=True,
+                earlyCrosses=False,
+                dontHoldBack=False,
+                exploitSetPieces=True,
+                dribbleMore=False,
+                playForFreedom=False,
+            ),
+            transitions=Transitions(
+                pressAfterLoss=False,
+                counterAfterWin=True,
+                gkDistributeQuick=True,
+                distributionMethod="long",
+            ),
+            outOfPossession=OutOfPossession(
+                defensiveShape="narrow",
+                pressingIntensity=30,
+                pressingLine="low",
+                tackling="stay_on_feet",
+                defensiveLineHeight=30,
+                offsideTrap="none",
+                allowCrosses=True,
+            ),
+        ),
+    ),
+    TeamTacticPreset(
+        teamId="por",
+        formationId="4-2-3-1",
+        goalkeeperId="por-1",
+        # positions 순서(FB,CB,CB,FB,CM,CM,WG,AM,WG,ST)와 1:1 대응:
+        # 멘드스,베이가,디아스,칸셀루,비티냐,네베스,펠릭스,페르난데스,네투,호날두
+        startingPlayerIds=[
+            "por-25", "por-13", "por-3", "por-20", "por-23",
+            "por-15", "por-11", "por-8", "por-18", "por-7",
+        ],
+        tacticConfig=TacticConfig(
+            style=TacticStyle(tacticStyle="possession", approach="attacking"),
+            inPossession=InPossession(
+                attackingWidth=45,
+                buildupStyle="short",
+                overlapLeft=True,
+                overlapRight=True,
+                targetCentral=True,
+                targetWide=False,
+                buildFromBack=True,
+                passingDirectness=25,
+                tempo=40,
+                timeWasting=10,
+            ),
+            opponentHalf=OpponentHalf(
+                crossingApproach="low",
+                playCalmly=True,
+                earlyCrosses=False,
+                dontHoldBack=False,
+                exploitSetPieces=True,
+                dribbleMore=False,
+                playForFreedom=False,
+            ),
+            transitions=Transitions(
+                pressAfterLoss=False,
+                counterAfterWin=False,
+                gkDistributeQuick=False,
+                distributionMethod="short",
+            ),
+            outOfPossession=OutOfPossession(
+                defensiveShape="normal",
+                pressingIntensity=40,
+                pressingLine="mid",
+                tackling="stay_on_feet",
+                defensiveLineHeight=50,
+                offsideTrap="none",
+                allowCrosses=False,
+            ),
+        ),
+    ),
 ]
 
 
