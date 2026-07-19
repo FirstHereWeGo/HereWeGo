@@ -39,7 +39,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if cb_pace_avg <= 11 or cb_agil_avg <= 11:
             # 패널티: 높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함
             _record_penalty(context, "OOP_HIGH_LINE_SLOW_CB")
-            rating -= 8.0
+            rating -= 16.0
         else:
             rating += 2.5
 
@@ -50,7 +50,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         else:
             # 패널티: 낮은 블록을 유지할 센터백 몸싸움/신장/마킹이 부족함
             _record_penalty(context, "OOP_LOW_BLOCK_WEAK_CB")
-            rating -= 3.0
+            rating -= 6.0
 
     # 압박 강도 효과
     if pressing > 75:
@@ -61,7 +61,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         # 패널티: 강한 압박을 걸기엔 중원/수비의 태클·위치선정·주력이 부족함
         if (press_tackle + press_pos + press_pace) < 30:
             _record_penalty(context, "OOP_PRESSING_CORE_WEAK")
-        rating += (press_tackle + press_pos + press_pace - 30) * 0.08
+        rating += (press_tackle + press_pos + press_pace - 30) * 0.12
 
     # 태클 지침
     if tackling_instr == "hard_tackle":
@@ -72,7 +72,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         else:
             # 패널티: 강한 태클 지시를 소화할 전체 태클/몸싸움이 부족함
             _record_penalty(context, "OOP_HARD_TACKLE_WEAK")
-            rating -= 3.0
+            rating -= 6.0
     else:  # 서서 버티기(stay_on_feet)
         team_pos_avg = avg(lambda p: attr(p, "positioning"), field_players)
         team_mark_avg = avg(lambda p: attr(p, "marking"), field_players)
@@ -88,7 +88,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         else:
             # 패널티: 오프사이드 트랩을 운영할 센터백 위치선정/시야가 부족함
             _record_penalty(context, "OOP_OFFSIDE_TRAP_WEAK")
-            rating -= 6.0
+            rating -= 12.0
 
     # 수비 형태 & 크로스 허용
     if defensive_shape == "narrow" and allow_crosses:
@@ -97,7 +97,7 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         else:
             # 패널티: 좁은 수비 형태에서 크로스를 허용했을 때 제공권 대응이 약함
             _record_penalty(context, "OOP_NARROW_SHAPE_CROSS_WEAK")
-            rating -= 2.0
+            rating -= 4.0
 
     if defensive_shape == "wide" and not allow_crosses:
         # 풀백/CB가 적응돼 있어야 함
@@ -109,6 +109,6 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         else:
             # 패널티: 넓은 수비 형태와 크로스 차단을 소화할 측면 수비 자원이 부족함
             _record_penalty(context, "OOP_WIDE_SHAPE_CROSS_STOP_WEAK")
-            rating -= 3.0
+            rating -= 6.0
 
     return rating
