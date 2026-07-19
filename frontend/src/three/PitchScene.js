@@ -395,12 +395,6 @@ export class PitchScene {
         seat.position.set(-1.1, 0.85, -4.5 + i * 2.25);
         g.add(seat);
       }
-      for (let i = 0; i < 3; i++) {
-        const coach = makeStaffFigure({ suit, height: 175 });
-        coach.scale.multiplyScalar(0.88);
-        coach.position.set(-1.1, 0.55, -2.3 + i * 2.25);
-        g.add(coach);
-      }
       g.position.set(sideX, 0, cz);
       this.scene.add(g);
 
