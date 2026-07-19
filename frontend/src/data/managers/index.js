@@ -1,0 +1,1 @@
+export { MANAGERS } from './coach';
