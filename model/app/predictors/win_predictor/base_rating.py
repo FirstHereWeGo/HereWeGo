@@ -4,6 +4,52 @@ from app.predictors.win_predictor.weights import WEIGHTS
 from app.schemas import TeamMatchInput
 
 
+POSITION_GROUPS = {
+    "CB": "defense",
+    "FB": "defense",
+    "WB": "defense",
+    "DM": "midfield",
+    "CM": "midfield",
+    "AM": "midfield",
+    "WG": "attack",
+    "ST": "attack",
+}
+
+POSITION_COMPATIBILITY = {
+    "CB": {"same_family": {"FB", "WB"}, "adjacent_line": {"DM"}},
+    "FB": {"same_family": {"CB", "WB"}, "adjacent_line": {"DM", "WG"}},
+    "WB": {"same_family": {"CB", "FB"}, "adjacent_line": {"DM", "WG"}},
+    "DM": {"same_family": {"CM", "AM"}, "adjacent_line": {"CB", "FB", "WB"}},
+    "CM": {"same_family": {"DM", "AM"}, "adjacent_line": {"CB", "FB", "WB", "WG"}},
+    "AM": {"same_family": {"CM", "WG"}, "adjacent_line": {"DM", "ST"}},
+    "WG": {"same_family": {"AM", "ST"}, "adjacent_line": {"FB", "WB", "CM"}},
+    "ST": {"same_family": {"WG", "AM"}, "adjacent_line": {"CM", "DM"}},
+}
+
+
+def _position_mismatch_penalty(slot_pos: str, player_positions: list[str]) -> float:
+    """포지션 미스매치를 3단계로 나눠 반영한다."""
+    if slot_pos in player_positions:
+        return 0.0
+
+    same_family_penalty = WEIGHTS.get("mismatch_penalty_same_family", 14.0)
+    adjacent_line_penalty = WEIGHTS.get("mismatch_penalty_adjacent_line", 34.0)
+    wrong_role_penalty = WEIGHTS.get("mismatch_penalty_wrong_role", 48.0)
+
+    compat = POSITION_COMPATIBILITY.get(slot_pos, {})
+    for pos in player_positions:
+        if pos in compat.get("same_family", set()):
+            return same_family_penalty
+        if pos in compat.get("adjacent_line", set()):
+            return adjacent_line_penalty
+
+    primary = player_positions[0] if player_positions else None
+    if primary is not None and POSITION_GROUPS.get(primary) == POSITION_GROUPS.get(slot_pos):
+        return same_family_penalty
+
+    return wrong_role_penalty
+
+
 def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> float:
     core_w = WEIGHTS.get("core_w", 1.5)
     finishing_attack_w = WEIGHTS.get("finishing_attack_w", 1.4)
@@ -16,7 +62,6 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
     marking_w = WEIGHTS.get("marking_w", 0.8)
     gk_w = WEIGHTS.get("gk_w", 2.0)
     foot_w = WEIGHTS.get("foot_w", 0.08)  # 발(왼발/오른발) 능력치 1개당 가중치 (1..5)
-    mismatch_penalty = WEIGHTS.get("mismatch_penalty", 2.0)
 
     rating = 0.0
 
@@ -77,8 +122,7 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         for i, pos in enumerate(formation_positions):
             if i < len(team_input.players):
                 p = team_input.players[i]
-                if pos not in getattr(p, "positions", []):
-                    rating -= mismatch_penalty
+                rating -= _position_mismatch_penalty(pos, list(getattr(p, "positions", [])))
     except Exception:
         pass
 
