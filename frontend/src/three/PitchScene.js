@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { jerseyNumber } from '../utils/playerDisplay';
+import { MANAGERS } from '../data/managers';
 
 const PITCH_L = 105, PITCH_W = 68;
 const pctToWorld = (x, y) => ({ x: (x - 50) / 100 * PITCH_W, z: (y - 50) / 100 * PITCH_L });
@@ -242,10 +243,12 @@ const KIT = {
 };
 
 export class PitchScene {
-  constructor(canvas, { onSelectPlayer, onDragPlayer } = {}) {
+  constructor(canvas, { onSelectPlayer, onDragPlayer, myTeamId, oppTeamId } = {}) {
     this.canvas = canvas;
     this.onSelectPlayer = onSelectPlayer || (() => {});
     this.onDragPlayer = onDragPlayer || (() => {});
+    this.myTeamId = myTeamId;
+    this.oppTeamId = oppTeamId;
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.shadowMap.enabled = true;
@@ -411,8 +414,10 @@ export class PitchScene {
       this.scene.add(manager);
       return manager;
     };
-    this.managerKor = buildDugout(19, 0xb32720, 0x1a2440, '홍명보', 13);
-    this.managerRsa = buildDugout(-19, 0xc7a02e, 0x2e2a20, '브루스', -13);
+    const myManagerName = MANAGERS[this.myTeamId] || '감독';
+    const oppManagerName = MANAGERS[this.oppTeamId] || '감독';
+    this.managerMine = buildDugout(19, 0xb32720, 0x1a2440, myManagerName, 13);
+    this.managerOpp = buildDugout(-19, 0xc7a02e, 0x2e2a20, oppManagerName, -13);
   }
 
   // ================= 카메라 =================
@@ -759,8 +764,8 @@ export class PitchScene {
     }
     this.flashMeshes.forEach((m, i) => { m.material.opacity = 0.45 + 0.35 * Math.sin(t * 5 + i); });
 
-    if (this.camMode === 'managerFP' && this.managerKor) {
-      const mp = this.managerKor.position;
+    if (this.camMode === 'managerFP' && this.managerMine) {
+      const mp = this.managerMine.position;
       const eye = new THREE.Vector3(mp.x + 0.4, 4.4, mp.z);
       eye.y += Math.sin(t * 1.7) * 0.06;
       this.camera.position.lerp(eye, 0.12);
@@ -770,7 +775,7 @@ export class PitchScene {
       this._fpLook.lerp(look, 0.08);
       this.camera.lookAt(this._fpLook);
       const angle = Math.atan2(look.x - mp.x, look.z - mp.z);
-      this.managerKor.rotation.y += (angle - this.managerKor.rotation.y) * 0.05;
+      this.managerMine.rotation.y += (angle - this.managerMine.rotation.y) * 0.05;
     } else if (this.camAnim) {
       this.camAnim.t = Math.min(1, this.camAnim.t + 0.035);
       const e = 1 - Math.pow(1 - this.camAnim.t, 3);

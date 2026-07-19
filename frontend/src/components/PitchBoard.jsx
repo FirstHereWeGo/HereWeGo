@@ -40,6 +40,8 @@ export default function PitchBoard() {
 
   useEffect(() => {
     const pitch = new PitchScene(canvasRef.current, {
+      myTeamId: state.team.id,
+      oppTeamId: state.oppTeam.id,
       onSelectPlayer: (id) => selectPlayer(id),
       onDragPlayer: (id, x, y) => {
         pitch.syncPlayerWorldPos(id, x, y);
