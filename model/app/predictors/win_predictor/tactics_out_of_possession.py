@@ -3,6 +3,15 @@ from app.predictors.win_predictor.context import TeamContext, attr, avg
 from app.schemas import TacticConfig
 
 
+def _record_penalty(context: TeamContext, code: str) -> None:
+    penalties = getattr(context, "penalty_codes", None)
+    if penalties is None:
+        penalties = []
+        setattr(context, "penalty_codes", penalties)
+    penalties.append(code)
+    setattr(TeamContext, "_last_penalty_codes", list(penalties))
+
+
 def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContext) -> float:
     oop_def = getattr(tc, "outOfPossession", None)
     if not oop_def:
@@ -28,6 +37,8 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
     # 높은 라인 & 강한 압박은 빠른 CB가 필요
     if dline > 70 and pressing > 70:
         if cb_pace_avg <= 11 or cb_agil_avg <= 11:
+            # 패널티: 높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함
+            _record_penalty(context, "OOP_HIGH_LINE_SLOW_CB")
             rating -= 8.0
         else:
             rating += 2.5
@@ -37,6 +48,8 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if cb_strength_avg >= 12 and cb_height_avg >= 182 and cb_mark_avg >= 12:
             rating += 2.0
         else:
+            # 패널티: 낮은 블록을 유지할 센터백 몸싸움/신장/마킹이 부족함
+            _record_penalty(context, "OOP_LOW_BLOCK_WEAK_CB")
             rating -= 3.0
 
     # 압박 강도 효과
@@ -45,6 +58,9 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         press_tackle = avg(lambda p: attr(p, "tackling"), mid_def)
         press_pos = avg(lambda p: attr(p, "positioning"), mid_def)
         press_pace = avg(lambda p: attr(p, "pace"), mid_def)
+        # 패널티: 강한 압박을 걸기엔 중원/수비의 태클·위치선정·주력이 부족함
+        if (press_tackle + press_pos + press_pace) < 30:
+            _record_penalty(context, "OOP_PRESSING_CORE_WEAK")
         rating += (press_tackle + press_pos + press_pace - 30) * 0.08
 
     # 태클 지침
@@ -54,10 +70,15 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if team_tackle_avg >= 13 and team_strength_avg >= 12:
             rating += 2.0
         else:
+            # 패널티: 강한 태클 지시를 소화할 전체 태클/몸싸움이 부족함
+            _record_penalty(context, "OOP_HARD_TACKLE_WEAK")
             rating -= 3.0
     else:  # 서서 버티기(stay_on_feet)
         team_pos_avg = avg(lambda p: attr(p, "positioning"), field_players)
         team_mark_avg = avg(lambda p: attr(p, "marking"), field_players)
+        # 패널티: 서서 버티기 전술인데 전체 위치선정/마킹이 부족함
+        if (team_pos_avg + team_mark_avg) < 20:
+            _record_penalty(context, "OOP_STAY_ON_FEET_WEAK")
         rating += (team_pos_avg + team_mark_avg - 20) * 0.07
 
     # 오프사이드 트랩
@@ -65,6 +86,8 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if cb_pos_avg >= 15 and avg(lambda p: attr(p, "vision"), cbs) >= 15:
             rating += 3.0
         else:
+            # 패널티: 오프사이드 트랩을 운영할 센터백 위치선정/시야가 부족함
+            _record_penalty(context, "OOP_OFFSIDE_TRAP_WEAK")
             rating -= 6.0
 
     # 수비 형태 & 크로스 허용
@@ -72,6 +95,8 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if cb_height_avg >= 182 and cb_strength_avg >= 12:
             rating += 2.5
         else:
+            # 패널티: 좁은 수비 형태에서 크로스를 허용했을 때 제공권 대응이 약함
+            _record_penalty(context, "OOP_NARROW_SHAPE_CROSS_WEAK")
             rating -= 2.0
 
     if defensive_shape == "wide" and not allow_crosses:
@@ -82,6 +107,8 @@ def apply_out_of_possession(rating: float, tc: TacticConfig, context: TeamContex
         if fb_wb_pace >= 12 and cb_mark_avg >= 12 and avg(lambda p: attr(p, "tackling"), fb_wb) >= 11:
             rating += 2.0
         else:
+            # 패널티: 넓은 수비 형태와 크로스 차단을 소화할 측면 수비 자원이 부족함
+            _record_penalty(context, "OOP_WIDE_SHAPE_CROSS_STOP_WEAK")
             rating -= 3.0
 
     return rating

@@ -15,6 +15,7 @@
 """
 import os
 
+from app.predictors.win_predictor.context import TeamContext
 from app.predictors.win_predictor.probability import ratings_to_output
 from app.predictors.win_predictor.team_rating import team_rating
 from app.schemas import WinProbabilityInput, WinProbabilityOutput
@@ -35,10 +36,15 @@ def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutpu
     반환값은 schemas.WinProbabilityOutput 형태이며 내부 계산은 0..1 구간의 확률로
     반환한다. (프론트/백엔드의 기대와 일치하도록 0~1 범위를 유지)
     """
+    setattr(TeamContext, "_last_penalty_codes", [])
     rating_a = team_rating(payload.teamA)
-    rating_b = team_rating(payload.teamB)
+    penalties_a = list(getattr(TeamContext, "_last_penalty_codes", []))
 
-    return ratings_to_output(rating_a, rating_b)
+    setattr(TeamContext, "_last_penalty_codes", [])
+    rating_b = team_rating(payload.teamB)
+    penalties_b = list(getattr(TeamContext, "_last_penalty_codes", []))
+
+    return ratings_to_output(rating_a, rating_b, penalties_a, penalties_b)
 
 
 def _load_model():
