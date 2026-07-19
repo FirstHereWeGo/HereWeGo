@@ -8,7 +8,12 @@ DRAW_FLOOR = 0.05  # 한쪽이 압도적으로 강해도 남겨두는 최소 무
 SCALE = 400.0  # rating 차이가 커질수록 확률이 갈리는 속도 (클수록 완만하게 갈림)
 
 
-def ratings_to_output(rating_a: float, rating_b: float) -> WinProbabilityOutput:
+def ratings_to_output(
+    rating_a: float,
+    rating_b: float,
+    penalties_a: list[str] | None = None,
+    penalties_b: list[str] | None = None,
+) -> WinProbabilityOutput:
     diff = rating_a - rating_b
     strength = math.tanh(diff / SCALE)  # -1..1, diff=0이면 0 (완전 동률)
 
@@ -25,7 +30,13 @@ def ratings_to_output(rating_a: float, rating_b: float) -> WinProbabilityOutput:
         "win": round(win_a, 3),
         "draw": round(draw, 3),
         "loss": round(win_b, 3),
+        "penalties": penalties_a or [],
     }
-    team_b_out = {"win": round(win_b, 3), "draw": round(draw, 3), "loss": round(win_a, 3)}
+    team_b_out = {
+        "win": round(win_b, 3),
+        "draw": round(draw, 3),
+        "loss": round(win_a, 3),
+        "penalties": penalties_b or [],
+    }
 
     return WinProbabilityOutput(teamA=team_a_out, teamB=team_b_out)

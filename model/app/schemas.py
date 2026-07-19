@@ -219,6 +219,7 @@ class TeamOutcome(BaseModel):
     win: float
     draw: float
     loss: float
+    penalties: list[str] = []
 
 
 class WinProbabilityOutput(BaseModel):

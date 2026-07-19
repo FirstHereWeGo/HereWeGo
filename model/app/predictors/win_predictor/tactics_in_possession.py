@@ -3,6 +3,15 @@ from app.predictors.win_predictor.context import TeamContext, attr, avg, gk_over
 from app.schemas import TacticConfig
 
 
+def _record_penalty(context: TeamContext, code: str) -> None:
+    penalties = getattr(context, "penalty_codes", None)
+    if penalties is None:
+        penalties = []
+        setattr(context, "penalty_codes", penalties)
+    penalties.append(code)
+    setattr(TeamContext, "_last_penalty_codes", list(penalties))
+
+
 def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -> float:
     ip = getattr(tc, "inPossession", None)
     if not ip:
@@ -33,6 +42,8 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         if mid_pass_avg >= 13 and mid_vision_avg >= 13 and mid_agility_avg >= 13:
             rating += 4.0  # 시너지 보너스
         else:
+            # 패널티: 미드필드 패스/시야/민첩성이 부족해 짧은 빌드업이 끊김
+            _record_penalty(context, "IP_SHORT_BUILDUP_MIDFIELD_WEAK")
             rating -= 6.0  # 턴오버 페널티
 
     # 다이렉트 빌드업 + 높은 직선성 -> CB 패스 + 공격수 피지컬 활용
@@ -44,6 +55,8 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         if cb_pass_avg >= 11 and (atk_strength_avg >= 11 or atk_pace_avg >= 12):
             rating += 3.0
         else:
+            # 패널티: 센터백 패스 능력이나 공격수의 피지컬/주력이 부족해 직선 전개가 안 맞음
+            _record_penalty(context, "IP_DIRECT_BUILDUP_MATCHUP_WEAK")
             rating -= 2.5
 
     # 넓은 공격 폭 + targetWide
@@ -51,6 +64,8 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         # 윙 자원이 필요함
         if len(wingers) < 2:
             # 좁은 스쿼드 구성과 전술이 어긋남
+            # 패널티: 폭을 넓히는 전술인데 윙어/사이드 자원이 부족함
+            _record_penalty(context, "IP_WIDE_ATTACK_NO_WINGERS")
             rating -= 7.0
         else:
             wings_pace_avg = avg(lambda p: attr(p, "pace"), wingers)
@@ -63,6 +78,9 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         cent_pass_avg = avg(lambda p: attr(p, "passing"), central_players)
         cent_vision_avg = avg(lambda p: attr(p, "vision"), central_players)
         cent_agility_avg = avg(lambda p: attr(p, "agility"), central_players)
+        # 패널티: 중앙 집중 전술인데 중앙 자원의 패스/시야/민첩성이 부족함
+        if central_players and (cent_pass_avg + cent_vision_avg + cent_agility_avg) < 30:
+            _record_penalty(context, "IP_CENTRAL_ATTACK_SUPPORT_WEAK")
         rating += (cent_pass_avg + cent_vision_avg + cent_agility_avg - 30) * 0.12
 
     # 오버랩
@@ -77,8 +95,12 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
             cb_pace_avg = avg(lambda p: attr(p, "pace"), cbs)
             cb_mark_avg = avg(lambda p: attr(p, "marking"), cbs)
             if cb_pace_avg <= 11 or cb_mark_avg <= 11:
+                # 패널티: 오버랩 뒤 공간을 커버할 센터백 속도/마킹이 부족함
+                _record_penalty(context, "IP_OVERLAP_BACKLINE_VULNERABLE")
                 rating -= 5.0
         else:
+            # 패널티: 풀백/윙백의 전진 자원과 위치 선정이 부족해 오버랩이 살아나지 않음
+            _record_penalty(context, "IP_OVERLAP_FULLBACK_WEAK")
             rating -= 1.5
 
     # 빌드업 시 GK 참여
@@ -91,6 +113,8 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
             rating += 3.0
         else:
             # 턴오버 -> 큰 페널티
+            # 패널티: 골키퍼/센터백의 후방 빌드업 능력이 부족해 위험한 실수가 발생함
+            _record_penalty(context, "IP_BUILD_FROM_BACK_TURNOVER")
             rating -= 8.0
 
     # 템포
@@ -101,6 +125,8 @@ def apply_in_possession(rating: float, tc: TacticConfig, context: TeamContext) -
         if team_agility_avg >= 12 and team_pass_avg >= 12 and team_vision_avg >= 12:
             rating += (tempo - 70) * 0.08
         else:
+            # 패널티: 빠른 템포를 버틸 팀 전체의 민첩성/패스/시야가 부족함
+            _record_penalty(context, "IP_HIGH_TEMPO_UNDERQUALIFIED")
             rating -= (tempo - 70) * 0.12
 
     return rating
