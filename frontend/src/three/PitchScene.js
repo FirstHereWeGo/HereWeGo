@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { jerseyNumber } from '../utils/playerDisplay';
-import { MANAGERS } from '../data/managers';
 
 const PITCH_L = 105, PITCH_W = 68;
 const pctToWorld = (x, y) => ({ x: (x - 50) / 100 * PITCH_W, z: (y - 50) / 100 * PITCH_L });
@@ -243,12 +242,14 @@ const KIT = {
 };
 
 export class PitchScene {
-  constructor(canvas, { onSelectPlayer, onDragPlayer, myTeamId, oppTeamId } = {}) {
+  constructor(canvas, { onSelectPlayer, onDragPlayer, myTeamId, oppTeamId, myManagerName, oppManagerName } = {}) {
     this.canvas = canvas;
     this.onSelectPlayer = onSelectPlayer || (() => {});
     this.onDragPlayer = onDragPlayer || (() => {});
     this.myTeamId = myTeamId;
     this.oppTeamId = oppTeamId;
+    this.myManagerName = myManagerName;
+    this.oppManagerName = oppManagerName;
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.shadowMap.enabled = true;
@@ -408,8 +409,8 @@ export class PitchScene {
       this.scene.add(manager);
       return manager;
     };
-    const myManagerName = MANAGERS[this.myTeamId] || '감독';
-    const oppManagerName = MANAGERS[this.oppTeamId] || '감독';
+    const myManagerName = this.myManagerName || '감독';
+    const oppManagerName = this.oppManagerName || '감독';
     this.managerMine = buildDugout(19, 0xb32720, 0x1a2440, myManagerName, 13);
     this.managerOpp = buildDugout(-19, 0xc7a02e, 0x2e2a20, oppManagerName, -13);
   }

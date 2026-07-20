@@ -42,6 +42,8 @@ export default function PitchBoard() {
     const pitch = new PitchScene(canvasRef.current, {
       myTeamId: state.team.id,
       oppTeamId: state.oppTeam.id,
+      myManagerName: state.team.manager,
+      oppManagerName: state.oppTeam.manager,
       onSelectPlayer: (id) => selectPlayer(id),
       onDragPlayer: (id, x, y) => {
         pitch.syncPlayerWorldPos(id, x, y);

@@ -20,6 +20,7 @@ PLACEHOLDER_FOOT = 3
 KOREA_REPUBLIC = Team(
     id="kor",
     name="Korea Republic",
+    manager="Hong Myung-bo",
     players=[
         Player(id="kor-1", name="KIM Seunggyu", positions=["GK"], age=35, height=187, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(65)),
         Player(id="kor-2", name="LEE Hanbeom", positions=["CB"], age=24, height=188, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 50, 70, 40, 50, 65, 65, 60, 60, 65)),
@@ -53,6 +54,7 @@ KOREA_REPUBLIC = Team(
 SOUTH_AFRICA = Team(
     id="rsa",
     name="South Africa",
+    manager="Hugo Broos",
     players=[
         Player(id="rsa-1", name="WILLIAMS Ronwen", positions=["GK"], age=34, height=184, leftFoot=5, rightFoot=2, attributes=GoalkeepingBlock(70)),
         Player(id="rsa-2", name="MATULUDI Thabang", positions=["FB"], age=27, height=189, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 55, 45, 40, 55, 40, 45, 65, 70, 60)),
@@ -85,6 +87,7 @@ SOUTH_AFRICA = Team(
 
 SPAIN = Team(
     id="esp",
+    manager="Luis de la Fuente",
     name="Spain",
     players=[
         Player(id="esp-1", name="David Raya", positions=["GK"], age=30, height=183, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(80)),
@@ -119,6 +122,7 @@ SPAIN = Team(
 FRANCE = Team(
     id="fra",
     name="France",
+    manager="Didier Deschamps",
     players=[
         Player(id="fra-1", name="Brice Samba", positions=["GK"], age=31, height=187, leftFoot=5, rightFoot=3, attributes=GoalkeepingBlock(70)),
         Player(id="fra-2", name="Malo Gusto", positions=["FB", "WB"], age=22, height=179, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 70, 60, 30, 50, 60, 55, 70, 65, 60)),
@@ -151,6 +155,7 @@ FRANCE = Team(
 ENGLAND = Team(
     id="eng",
     name="England",
+    manager="Thomas Tuchel",
     players=[
         Player(id="eng-1", name="Jordan Pickford", positions=["GK"], age=31, height=187, leftFoot=5, rightFoot=3, attributes=GoalkeepingBlock(80)),
         Player(id="eng-2", name="Ezri Konsa", positions=["CB"], age=28, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 70, 25, 65, 70, 70, 75, 80, 70)),
@@ -184,6 +189,7 @@ ENGLAND = Team(
 ARGENTINA = Team(
     id="arg",
     name="Argentina",
+    manager="Lionel Scaloni",
     players=[
         Player(id="arg-1", name="Juan Musso", positions=["GK"], age=32, height=193, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(70)),
         Player(id="arg-2", name="Marcos Senesi", positions=["CB"], age=29, height=185, leftFoot=5, rightFoot=2, attributes=AttributeBlock(65, 60, 75, 30, 55, 65, 55, 75, 75, 75)),
@@ -217,6 +223,7 @@ ARGENTINA = Team(
 BELGIUM = Team(
     id="bel",
     name="Belgium",
+    manager="Rudi García",
     players=[
         Player(id="bel-1", name="Thibaut Courtois", positions=["GK"], age=33, height=200, leftFoot=5, rightFoot=3, attributes=GoalkeepingBlock(90)),
         Player(id="bel-2", name="Zeno Debast", positions=["CB"], age=22, height=191, leftFoot=4, rightFoot=5, attributes=AttributeBlock(75, 70, 60, 35, 50, 80, 80, 60, 60, 65)),
@@ -250,6 +257,7 @@ BELGIUM = Team(
 MOROCCO = Team(
     id="mar",
     name="Morocco",
+    manager="Mohamed Ouahbi",
     players=[
         Player(id="mar-1", name="Yassine Bounou", positions=["GK"], age=34, height=195, leftFoot=5, rightFoot=2, attributes=GoalkeepingBlock(75)),
         Player(id="mar-2", name="Achraf Hakimi", positions=["FB", "WB", "WG"], age=27, height=181, leftFoot=3, rightFoot=5, attributes=AttributeBlock(90, 75, 60, 65, 75, 75, 65, 85, 65, 65)),
@@ -283,6 +291,7 @@ MOROCCO = Team(
 SWITZERLAND = Team(
     id="sui",
     name="Switzerland",
+    manager="Murat Yakin",
     players=[
         Player(id="sui-1", name="Gregor Kobel", positions=["GK"], age=28, height=196, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(80)),
         Player(id="sui-2", name="Miro Muheim", positions=["FB", "WB"], age=28, height=182, leftFoot=5, rightFoot=2, attributes=AttributeBlock(75, 70, 65, 45, 65, 70, 60, 65, 65, 60)),
@@ -316,6 +325,7 @@ SWITZERLAND = Team(
 NORWAY = Team(
     id="nor",
     name="Norway",
+    manager="Ståle Solbakken",
     players=[
         Player(id="nor-1", name="Orjan Nyland", positions=["GK"], age=35, height=192, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(65)),
         Player(id="nor-2", name="Morten Thorsby", positions=["DM", "CM", "AM"], age=29, height=189, leftFoot=2, rightFoot=5, attributes=AttributeBlock(60, 50, 75, 55, 50, 60, 55, 70, 70, 70)),
@@ -349,6 +359,7 @@ NORWAY = Team(
 PORTUGAL = Team(
     id="por",
     name="Portugal",
+    manager="Roberto Martínez",
     players=[
         Player(id="por-1", name="Diogo Costa", positions=["GK"], age=26, height=186, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(80)),
         Player(id="por-2", name="Nelson Semedo", positions=["FB", "WB"], age=32, height=177, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 70, 55, 45, 65, 65, 55, 65, 60, 60)),
