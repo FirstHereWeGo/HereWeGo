@@ -273,10 +273,10 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
         formationId="4-4-2",
         goalkeeperId="arg-23",
         # positions 순서(FB,CB,CB,FB,WG,CM,CM,WG,ST,ST)와 1:1 대응:
-        # 몰리나,로메로,리산드로마르티네스,탈리아피코,시메오네,파레데스,마크알리스테르,엔소페르난데스,메시,알바레스
+        # 몬티엘,로메로,리산드로마르티네스,탈리아피코,데파울,엔소페르난데스,마크알리스테르,니콜라스곤살레스,메시,알바레스
         startingPlayerIds=[
-            "arg-26", "arg-13", "arg-6", "arg-3", "arg-17",
-            "arg-5", "arg-20", "arg-24", "arg-10", "arg-9",
+            "arg-4", "arg-13", "arg-6", "arg-3", "arg-7",
+            "arg-24", "arg-20", "arg-15", "arg-10", "arg-9",
         ],
         tacticConfig=TacticConfig(
             style=TacticStyle(tacticStyle="possession", approach="balanced"),
