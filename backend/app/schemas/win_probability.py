@@ -7,6 +7,7 @@ from app.schemas.tactic import TacticConfig
 class Team(BaseModel):
     id: str
     name: str
+    manager: str | None = None
     players: list[Player] = []
 
 
