@@ -225,3 +225,15 @@ class TeamOutcome(BaseModel):
 class WinProbabilityOutput(BaseModel):
     teamA: TeamOutcome
     teamB: TeamOutcome
+
+
+class MatchEvent(BaseModel):
+    minute: int
+    team: Literal["teamA", "teamB"]
+    scorer: str
+
+
+class MatchSimulationOutput(BaseModel):
+    scoreA: int
+    scoreB: int
+    events: list[MatchEvent]

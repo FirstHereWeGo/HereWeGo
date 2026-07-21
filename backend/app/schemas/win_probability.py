@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 from app.schemas.player import Player, PlayerOverride
@@ -39,3 +41,15 @@ class TeamOutcome(BaseModel):
 class WinProbabilityResponse(BaseModel):
     teamA: TeamOutcome
     teamB: TeamOutcome
+
+
+class MatchEvent(BaseModel):
+    minute: int
+    team: Literal["teamA", "teamB"]
+    scorer: str
+
+
+class MatchSimulationResponse(BaseModel):
+    scoreA: int
+    scoreB: int
+    events: list[MatchEvent]

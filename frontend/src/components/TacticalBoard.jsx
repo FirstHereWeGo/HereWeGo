@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameState, useGameActions } from '../state/GameContext';
 import { postWinProbability } from '../api/client';
-import { slotOrderPlayerIds } from '../utils/autoAssign';
+import { buildMyTeamConfig, buildTeamConfig } from '../utils/matchPayload';
 import Sidebar from './Sidebar';
 import PitchBoard from './PitchBoard';
 import PlayerCard from './PlayerCard';
@@ -13,16 +13,7 @@ const TABS = [
   ['tactics', '전술'],
 ];
 
-function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticConfig) {
-  return {
-    teamId,
-    startingXI: { formationId, goalkeeperId, playerIds },
-    tacticConfig,
-    playerOverrides: [],
-  };
-}
-
-export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams }) {
+export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams, onStartTournament }) {
   const state = useGameState();
   const { loadMatch } = useGameActions();
   const [tab, setTab] = useState('formation');
@@ -31,25 +22,22 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
   const [predictError, setPredictError] = useState(null);
 
   useEffect(() => {
+    // 토너먼트 페이지에 다녀와도 이미 로드된 같은 매치업이면 다시 불러오지 않는다 —
+    // 그렇지 않으면 내가 짜둔 라인업/전술이 기본 프리셋으로 초기화된다.
+    if (state.team?.id === myTeamId && state.oppTeam?.id === oppTeamId) return;
     loadMatch(myTeamId, oppTeamId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function calculateWinProbability() {
-    const formation = state.formations.find(f => f.id === state.formationId);
-    if (!formation) return;
-    const goalkeeperId = Object.keys(state.players).find(id => state.players[id].data.positions.includes('GK'));
-    const outfield = Object.fromEntries(
-      Object.entries(state.players).filter(([id]) => id !== goalkeeperId)
-    );
-    const playerIds = slotOrderPlayerIds(outfield, formation);
-    if (!goalkeeperId || !playerIds) return;
+    const myConfig = buildMyTeamConfig(state);
+    if (!myConfig) return;
 
     setPredicting(true);
     setPredictError(null);
     try {
       const result = await postWinProbability({
-        teamA: buildTeamConfig(state.team.id, formation.id, goalkeeperId, playerIds, state.tacticConfig),
+        teamA: myConfig,
         teamB: buildTeamConfig(
           state.oppTeam.id,
           state.oppTacticPreset.formationId,
@@ -117,6 +105,11 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
                 {predicting ? '계산 중...' : '승률 계산'}
               </button>
             </div>
+          </div>
+          <div className="sim-card glass">
+            <button className="btn-ghost" onClick={onStartTournament}>
+              경기 시뮬레이션
+            </button>
           </div>
           <div className="view-tabs">
             {TABS.map(([key, label]) => (
