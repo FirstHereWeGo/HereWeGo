@@ -68,7 +68,8 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
     for pl in context.field_players:
         attrs = pl.attributes
         # 주 포지션 기준으로 수비/공격 가산치 적용
-        pos_primary = getattr(pl, "positions", [None])[0]
+        positions = getattr(pl, "positions", [])
+        pos_primary = positions[0] if positions else None
         # 핵심 스탯 합산 (ATTR_SCALE로 나눠 1~20 캘리브레이션 기준으로 되돌림)
         pace = getattr(attrs, "pace", 0) / ATTR_SCALE
         agility = getattr(attrs, "agility", 0) / ATTR_SCALE
