@@ -51,6 +51,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
   transition:transform .15s, box-shadow .3s;
 }
 .cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,197,94,.4)}
+.cta:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 .landing-foot{margin-top:1.1rem;font-size:.75rem;color:var(--text-dim)}
 
 /* ===== 팀 선택 ===== */
@@ -60,15 +61,23 @@ input[type=range]{width:100%;accent-color:var(--green)}
     radial-gradient(ellipse 70% 45% at 50% -5%, rgba(34,197,94,.16) 0%, transparent 60%),
     var(--bg);
 }
-.teamselect-inner{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:52rem;width:100%}
-.teamselect-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;width:100%;margin:2rem 0 2.4rem}
-.teamselect-col{display:flex;flex-direction:column;gap:.6rem}
-.teamselect-col .sb-heading{text-align:left;font-size:1.05rem}
+.teamselect-inner{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:78rem;width:100%}
 .view-teamselect .landing-eyebrow{font-size:.9rem}
 .view-teamselect .section-title{font-size:2.4rem}
-.view-teamselect .fm-btn{padding:.9rem .6rem;font-size:1.15rem}
-.view-teamselect .team-btn-flag{width:2.5rem;height:2.5rem}
 .view-teamselect .cta{font-size:1.3rem;padding:1.2rem 3.8rem}
+
+.country-desc{min-height:6rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;margin:1.6rem 0}
+.country-desc-team{font-size:1.6rem;font-weight:900}
+.country-desc-style{color:var(--text-dim);font-size:1.02rem}
+.country-desc-formation{color:var(--gold);font-size:.85rem;font-weight:700;letter-spacing:.05em}
+.country-desc-placeholder{color:var(--text-dim);font-size:.95rem}
+.country-row{display:flex;flex-wrap:wrap;justify-content:center;gap:1.2rem;margin-bottom:2.2rem}
+.country-btn{display:flex;flex-direction:column;align-items:center;gap:.5rem;background:none;border:none;padding:.4rem}
+.country-btn-flag{width:4.4rem;height:4.4rem;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px rgba(255,255,255,.15);transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s}
+.country-btn:hover .country-btn-flag{transform:scale(1.06)}
+.country-btn.selected .country-btn-flag{transform:scale(1.22);box-shadow:0 0 0 3px var(--green-bright),0 0 22px rgba(52,224,122,.45)}
+.country-btn-name{font-size:.78rem;color:var(--text-dim);font-weight:600;transition:color .18s}
+.country-btn.selected .country-btn-name{color:var(--green-bright)}
 
 /* ===== 보드 레이아웃 ===== */
 .view-board{display:flex;flex-direction:column;height:100vh;background:var(--bg)}
@@ -97,23 +106,39 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .score-mid{display:flex;flex-direction:column;align-items:center}
 .score-mid .score{font-size:1.8rem;color:var(--gold);line-height:1}
 .prob-card{padding:.75rem 1.2rem;min-width:440px;flex-shrink:0;border-color:var(--gold-glow);box-shadow:0 0 24px -6px var(--gold-glow)}
-.prob-title{font-size:.78rem;letter-spacing:.16em;color:var(--gold);margin-bottom:.45rem;font-weight:700}
-.prob-row{display:flex;align-items:center;gap:.7rem}
+.prob-panel{width:100%}
+.prob-header-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.6rem}
+.prob-team-label{display:flex;align-items:center;gap:.4rem;font-size:.86rem;font-weight:700;color:var(--text-dim);min-width:0}
+.prob-team-label .dot{width:.5rem;height:.5rem;border-radius:50%;flex-shrink:0}
+.prob-team-label.mine .dot{background:var(--green-bright)}
+.prob-team-label.opp .dot{background:var(--danger)}
+.prob-calc-btn{flex-shrink:0}
+.prob-recalc-btn{
+  width:2.1rem;height:2.1rem;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+  border:1px solid var(--glass-line);color:var(--text-dim);background:rgba(255,255,255,.03);
+}
+.prob-recalc-btn:hover:not(:disabled){border-color:var(--green);color:var(--text)}
+.prob-recalc-btn:disabled{opacity:.6;cursor:not-allowed}
+.prob-recalc-btn.spinning{animation:probSpin .8s linear infinite}
+@keyframes probSpin{to{transform:rotate(360deg)}}
 .prob-bar{flex:1;display:flex;height:42px;border-radius:8px;overflow:hidden;border:1px solid var(--glass-line)}
 .prob-bar .seg{display:flex;align-items:center;justify-content:center;font-family:'Rajdhani';font-weight:700;font-size:1.25rem;color:#04170c;transition:width .6s cubic-bezier(.2,.8,.2,1);min-width:0;overflow:hidden;white-space:nowrap}
 .seg.w{background:var(--green-bright)}
 .seg.d{background:#9aa48b;color:#111}
 .seg.l{background:var(--danger);color:#2a0505}
+.prob-bar-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--text-dim)}
+.prob-delta-row{display:flex;align-items:center;gap:.7rem;margin-top:.55rem;font-size:.78rem;flex-wrap:wrap}
+.prob-delta-label{color:var(--text-dim)}
+.prob-delta-item{font-weight:700}
+.prob-delta-item.up{color:var(--green-bright)}
+.prob-delta-item.down{color:var(--danger)}
+.prob-delta-item.flat{color:var(--text-dim)}
 .xg-mini{font-size:.68rem;color:var(--text-dim);margin-top:.3rem;text-align:center}
-.view-tabs{display:flex;gap:.4rem;flex-shrink:0}
-.tab-btn{padding:.5rem .7rem;border-radius:8px;font-size:.82rem;font-weight:700;color:var(--text-dim);border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
-.tab-btn.on{background:var(--green);color:#04170c;border-color:var(--green)}
-.tab-btn:not(.on):hover{border-color:var(--green);color:var(--text)}
 .phase-text{font-size:.76rem;color:var(--text-dim)}
 .btn-ghost{border:1px solid var(--line);color:var(--text-dim);padding:.5rem .9rem;border-radius:8px;font-size:.86rem;font-weight:500;white-space:nowrap;flex-shrink:0}
 .btn-ghost:hover:not(:disabled){border-color:var(--green);color:var(--text)}
 .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
-.sim-card{padding:.6rem 1rem;flex-shrink:0}
 
 .timeline-panel{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1.1rem;margin:0 1.1rem .7rem}
 .timeline-panel.timeline-error{color:var(--danger);font-size:.86rem}
@@ -124,26 +149,120 @@ input[type=range]{width:100%;accent-color:var(--green)}
 
 .board-body{flex:1;display:grid;grid-template-columns:300px 1fr 360px;gap:.7rem;min-height:0;padding:.7rem}
 
+/* ===== 전술판(팀 분석) ===== */
+.analytics-page{flex:1;overflow-y:auto;padding:1.1rem}
+.analytics-header{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.1rem}
+.analytics-tabs{display:flex;gap:.4rem}
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.analytics-card{padding:1.1rem}
+.analytics-card-title{font-size:.78rem;letter-spacing:.14em;color:var(--text-dim);font-weight:700;margin-bottom:.9rem;text-transform:uppercase}
+.analytics-chip-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.analytics-chip{display:flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border-radius:999px;font-size:.82rem;font-weight:600;border:1px solid var(--glass-line);background:rgba(255,255,255,.03)}
+.analytics-chip.good{color:var(--green-bright);border-color:rgba(52,224,122,.35)}
+.analytics-chip.bad{color:var(--danger);border-color:rgba(239,83,80,.35)}
+.analytics-chip b{font-weight:900}
+.analytics-hero-stat{display:flex;align-items:baseline;gap:.35rem}
+.analytics-hero-stat .num{font-size:2.4rem;color:var(--gold)}
+.analytics-hero-unit{color:var(--text-dim);font-size:.9rem}
+.analytics-empty{color:var(--text-dim);font-size:.85rem;margin-bottom:.6rem}
+
+/* 탭 버튼 — 사이드바 카테고리/전술판 공용 */
+.tab-btn{padding:.5rem .9rem;border-radius:8px;font-size:.84rem;font-weight:700;color:var(--text-dim);border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
+.tab-btn.on{background:var(--green);color:#04170c;border-color:var(--green)}
+.tab-btn:not(.on):hover{border-color:var(--green);color:var(--text)}
+
+/* 오각형(레이더) 차트 */
+.radar-chart{overflow:visible;display:block;margin:0 auto}
+.radar-grid{fill:none;stroke:var(--glass-line);stroke-width:1}
+.radar-spoke{stroke:var(--glass-line);stroke-width:1}
+.radar-axis-label{font-size:11px;fill:var(--text-dim);font-family:'Noto Sans KR',sans-serif;dominant-baseline:middle}
+
+/* 선수 비교 탭 */
+.compare-card{grid-column:1/-1}
+.compare-sides{display:flex;align-items:flex-start;justify-content:center;gap:1.8rem;margin-bottom:1.1rem;flex-wrap:wrap}
+.compare-side{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:11rem}
+.compare-vs{color:var(--text-dim);font-size:.9rem;font-weight:900;letter-spacing:.08em;margin-top:.55rem}
+
+/* 다크 테마 커스텀 드롭다운 (선수 선택) */
+.player-select{position:relative;width:100%}
+.player-select-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);
+  padding:.5rem .7rem;border-radius:8px;font-size:.88rem;font-family:inherit;text-align:left;
+}
+.player-select-btn:hover{border-color:var(--green)}
+.player-select-caret{color:var(--text-dim);font-size:.7rem;flex-shrink:0}
+.player-select-list{
+  position:absolute;top:calc(100% + .3rem);left:0;right:0;z-index:30;
+  max-height:14rem;overflow-y:auto;list-style:none;margin:0;
+  background:var(--panel);border:1px solid var(--glass-line);border-radius:8px;
+  padding:.3rem;box-shadow:0 12px 30px rgba(0,0,0,.5);
+  scrollbar-width:none;
+}
+.player-select-list::-webkit-scrollbar{display:none}
+.player-select-option{
+  width:100%;text-align:left;padding:.45rem .6rem;border-radius:6px;
+  font-size:.85rem;color:var(--text-dim);background:none;border:none;
+}
+.player-select-option:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.player-select-option.on{background:var(--green);color:#04170c;font-weight:700}
+.compare-photo{
+  position:relative;width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;
+  background:rgba(255,255,255,.04);border:2px solid var(--glass-line);
+}
+.compare-side.mine .compare-photo{border-color:var(--green-bright)}
+.compare-side.opp .compare-photo{border-color:var(--danger)}
+.compare-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+.compare-side-name{font-weight:900;font-size:.95rem;text-align:center}
+.compare-table{width:100%;max-width:32rem;margin:1rem auto 0;border-collapse:collapse;font-size:.85rem}
+.compare-table th,.compare-table td{padding:.4rem .6rem;text-align:center;border-bottom:1px solid var(--glass-line)}
+.compare-table th{color:var(--text-dim);font-weight:700;font-size:.76rem;letter-spacing:.06em}
+.compare-table td:first-child,.compare-table th:first-child{text-align:left;color:var(--text-dim)}
+
 /* ===== 토너먼트 브래킷 ===== */
-.bracket-play-btn{margin-right:.6rem}
-.bracket-champion-banner{font-size:.95rem;font-weight:900;color:var(--gold);margin-right:.8rem}
-.bracket-wrap{flex:1;overflow:auto;padding:1.6rem 1.1rem}
-.bracket-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr 1fr;gap:1rem;align-items:center;min-width:1000px;max-width:1400px;margin:0 auto}
-.bracket-col{display:flex;flex-direction:column;gap:2.2rem;justify-content:center;height:100%}
+.bracket-header{text-align:center;padding:1.4rem 1.1rem .2rem}
+.bracket-header-eyebrow{font-family:'Rajdhani';font-weight:700;letter-spacing:.3em;font-size:.85rem;color:var(--gold)}
+.bracket-header-title{font-family:'Rajdhani';font-weight:900;letter-spacing:.04em;font-size:2rem;margin-top:.2rem}
+.bracket-wrap{flex:1;overflow:auto;display:flex;justify-content:center;padding:1.6rem 2rem}
+.bracket-grid{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr 1fr 1.5fr 1fr 1fr;
+  column-gap:4.5rem;
+  align-items:center;width:100%;max-width:1400px;margin:0 auto;
+}
+.bracket-lines{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;z-index:0}
+.bracket-lines path{fill:none;stroke:var(--green-bright);stroke-width:2.5;filter:drop-shadow(0 0 4px rgba(52,224,122,.65))}
+.bracket-col{position:relative;z-index:1;display:flex;flex-direction:column;gap:2.2rem;justify-content:center;height:100%}
 .bracket-col-mid{gap:0}
-.bracket-col-center{align-items:center;text-align:center;gap:.7rem}
+.bracket-col-center{align-items:center;text-align:center;gap:.6rem}
+.bracket-trophy{font-size:3rem;line-height:1;filter:drop-shadow(0 0 14px rgba(52,224,122,.55))}
 .bracket-title{font-family:'Rajdhani';font-weight:700;letter-spacing:.18em;font-size:1rem;color:var(--text-dim)}
 .bracket-bronze-label{font-size:.7rem;letter-spacing:.2em;color:var(--text-dim);margin-top:.6rem}
-.bracket-match{background:var(--glass-bg);border:1px solid var(--glass-line);border-radius:10px;padding:.55rem .7rem;min-width:190px;backdrop-filter:blur(14px)}
+.bracket-match{background:var(--glass-bg);border:1px solid var(--glass-line);border-radius:10px;padding:.9rem 1.1rem;min-width:240px;box-sizing:border-box;backdrop-filter:blur(14px)}
 .bracket-match.played{cursor:pointer}
 .bracket-match.played:hover{border-color:var(--green)}
-.bracket-match-empty{display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-weight:700;min-height:64px}
-.bracket-team{display:flex;align-items:center;gap:.5rem;padding:.2rem 0;opacity:.75}
+.bracket-match-empty{display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-weight:700;min-height:5.2rem}
+.bracket-team{display:flex;align-items:center;gap:.85rem;padding:.35rem 0;opacity:.75}
 .bracket-team.winner{opacity:1;color:var(--green-bright);font-weight:700}
-.bracket-flag{width:1.5rem;height:1.5rem;border-radius:50%;object-fit:cover;flex-shrink:0}
-.bracket-tname{flex:1;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bracket-score{font-family:'Rajdhani';font-weight:700;font-size:1rem}
+.bracket-flag{width:2.4rem;height:2.4rem;border-radius:50%;object-fit:cover;flex-shrink:0}
+.bracket-tname{flex:1;font-size:1.05rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bracket-score{font-family:'Rajdhani';font-weight:700;font-size:1.15rem}
 .bracket-pso{font-size:.68rem;color:var(--gold);text-align:center;margin-top:.3rem}
+@media(max-width:1560px){
+  .bracket-grid{column-gap:2.5rem}
+  .bracket-match{min-width:205px}
+}
+@media(max-width:1300px){
+  .bracket-wrap{padding:1.4rem 1rem}
+  .bracket-grid{column-gap:1.4rem}
+  .bracket-match{min-width:175px;padding:.7rem .85rem}
+  .bracket-team{gap:.6rem}
+}
+
+.bracket-bottom-bar{display:flex;align-items:center;justify-content:center;padding:1.3rem 0 1.8rem}
+.bracket-champion-banner{font-size:1.15rem;font-weight:900;color:var(--gold)}
 
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
 .modal-card{padding:1.4rem;max-width:32rem;width:90%;max-height:80vh;overflow-y:auto}
@@ -161,8 +280,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .fm-btn:not(.on):hover:not(:disabled){border-color:var(--green);color:var(--text)}
 .fm-btn:disabled{opacity:.45;cursor:not-allowed}
 .fm-btn.wide{grid-column:1/-1}
-.team-btn{display:flex;align-items:center;gap:.6rem}
-.team-btn-flag{width:1.8rem;height:1.8rem;object-fit:cover;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.2);flex-shrink:0}
 .slider-group{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:.8rem;margin-bottom:.8rem}
 .slider-head{display:flex;justify-content:space-between;align-items:baseline;font-size:.92rem;font-weight:700;margin-bottom:.5rem}
 .slider-val{color:var(--green-bright);font-size:.84rem}
@@ -175,11 +292,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .inst-btn:not(.on):hover:not(:disabled){border-color:var(--green);color:var(--text)}
 .inst-btn:disabled{opacity:.45;cursor:not-allowed}
 
-/* ===== 전술 상세 페이지 ===== */
-.tactics-page{flex:1;overflow-y:auto;padding:.7rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.7rem;align-content:start}
-.tactics-section{padding:1rem}
-.tactics-section .slider-group,.tactics-section .inst-group{margin-bottom:.7rem}
-.tactics-section .slider-group:last-child,.tactics-section .inst-group:last-child{margin-bottom:0}
+/* ===== 사이드바 카테고리(포메이션/공격/수비/조율) ===== */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:1.1rem}
+.tactic-group:not(:last-child){margin-bottom:.4rem}
 
 /* ===== 중앙 3D + 오버레이 ===== */
 .gl-wrap{position:relative;min-height:0;min-width:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
@@ -189,6 +304,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .cam-btn{font-size:.72rem;font-weight:700;padding:.42rem .75rem;color:var(--text-dim)}
 .cam-btn.on,.cam-btn:hover{border-color:var(--green);color:var(--green-bright)}
 .gl-hint{position:absolute;top:.8rem;right:.8rem;font-size:.66rem;color:var(--text-dim);z-index:10;padding:.35rem .65rem;pointer-events:none}
+.prob-hud{position:absolute;top:.8rem;left:50%;transform:translateX(-50%);z-index:10}
 
 /* 라이브 매치 로그 — 하단 중앙 글래스 */
 .live-log{
@@ -312,7 +428,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
   .tteam .tflag{width:2rem;height:2rem}
   .tteam .tname{font-size:1rem}
   .score-card{gap:.8rem;padding:.5rem .9rem}
-  .tab-btn{padding:.4rem .55rem;font-size:.78rem}
   .btn-ghost{padding:.4rem .7rem;font-size:.8rem}
 }
 @media(max-width:1080px){.board-body{grid-template-columns:260px 1fr 310px}}

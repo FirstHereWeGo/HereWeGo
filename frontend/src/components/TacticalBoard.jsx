@@ -6,20 +6,16 @@ import Sidebar from './Sidebar';
 import PitchBoard from './PitchBoard';
 import PlayerCard from './PlayerCard';
 import BenchList from './BenchList';
-import TacticsPanel from './TacticsPanel';
+import TeamAnalyticsBoard from './TeamAnalyticsBoard';
 
-const TABS = [
-  ['formation', '포메이션'],
-  ['tactics', '전술'],
-];
-
-export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams, onStartTournament }) {
+export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams }) {
   const state = useGameState();
   const { loadMatch } = useGameActions();
-  const [tab, setTab] = useState('formation');
   const [winProb, setWinProb] = useState(null);
+  const [prevWinProb, setPrevWinProb] = useState(null);
   const [predicting, setPredicting] = useState(false);
   const [predictError, setPredictError] = useState(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {
     // 토너먼트 페이지에 다녀와도 이미 로드된 같은 매치업이면 다시 불러오지 않는다 —
@@ -46,6 +42,7 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           state.oppTacticPreset.tacticConfig,
         ),
       });
+      setPrevWinProb(winProb);
       setWinProb(result.teamA);
     } catch (err) {
       setPredictError(err.message);
@@ -76,7 +73,7 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           <div className="brand" role="button" onClick={onHome}>PRIME<span>REWIND</span></div>
         </div>
 
-        <div className="score-card glass">
+        <div className="score-card">
           <div className="tteam home">
             <img className="tflag" src={`/flags/${state.team.id}.png`} alt="" onError={(e) => { e.target.style.display = 'none'; }} />
             <span className="tname">{state.team.name}</span>
@@ -89,54 +86,40 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
         </div>
 
         <div className="topbar-side right">
-          <div className="prob-card glass">
-            <div className="prob-title">예측 승률</div>
-            <div className="prob-row">
-              {winProb ? (
-                <div className="prob-bar">
-                  <div className="seg w" style={{ width: `${winProb.win * 100}%` }}>{Math.round(winProb.win * 100)}%</div>
-                  <div className="seg d" style={{ width: `${winProb.draw * 100}%` }}>{Math.round(winProb.draw * 100)}%</div>
-                  <div className="seg l" style={{ width: `${winProb.loss * 100}%` }}>{Math.round(winProb.loss * 100)}%</div>
-                </div>
-              ) : (
-                <div className="prob-bar">{predictError ? `예측 실패: ${predictError}` : '아직 계산 전'}</div>
-              )}
-              <button className="btn-ghost" disabled={predicting} onClick={calculateWinProbability}>
-                {predicting ? '계산 중...' : '승률 계산'}
-              </button>
-            </div>
-          </div>
-          <div className="sim-card glass">
-            <button className="btn-ghost" onClick={onStartTournament}>
-              경기 시뮬레이션
-            </button>
-          </div>
-          <div className="view-tabs">
-            {TABS.map(([key, label]) => (
-              <button
-                key={key}
-                className={`tab-btn ${tab === key ? 'on' : ''}`}
-                onClick={() => setTab(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {!showAnalytics && (
+            <button className="btn-ghost" onClick={() => setShowAnalytics(true)}>전술판</button>
+          )}
           <button className="btn-ghost" onClick={onChangeTeams}>팀 변경</button>
         </div>
       </div>
 
-      {tab === 'formation' ? (
+      {showAnalytics ? (
+        <TeamAnalyticsBoard
+          team={state.team}
+          oppTeam={state.oppTeam}
+          players={state.players}
+          winProb={winProb}
+          prevWinProb={prevWinProb}
+          predicting={predicting}
+          predictError={predictError}
+          onCalculateWinProbability={calculateWinProbability}
+          onBack={() => setShowAnalytics(false)}
+        />
+      ) : (
         <div className="board-body">
           <Sidebar />
-          <PitchBoard />
+          <PitchBoard
+            winProb={winProb}
+            prevWinProb={prevWinProb}
+            predicting={predicting}
+            predictError={predictError}
+            onCalculateWinProbability={calculateWinProbability}
+          />
           <aside className="rightbar glass">
             <PlayerCard />
             <BenchList />
           </aside>
         </div>
-      ) : (
-        <TacticsPanel />
       )}
     </section>
   );

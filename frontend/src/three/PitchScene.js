@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { jerseyNumber } from '../utils/playerDisplay';
+import { KIT_COLORS } from '../data/kitColors';
 
 const PITCH_L = 105, PITCH_W = 68;
 const pctToWorld = (x, y) => ({ x: (x - 50) / 100 * PITCH_W, z: (y - 50) / 100 * PITCH_L });
@@ -234,12 +235,15 @@ function makeStaffFigure({ suit = 0x1a2440, height = 178 }) {
   return grp;
 }
 
-const KIT = {
-  kor:   { jersey: 0xd7261d, shorts: 0x111111, socks: 0xd7261d },
-  korGk: { jersey: 0x9aa0a6, shorts: 0x1a1a1a, socks: 0x9aa0a6 },
-  rsa:   { jersey: 0xf2c94c, shorts: 0x1d7a3f, socks: 0xf2c94c },
-  rsaGk: { jersey: 0x17171c, shorts: 0x17171c, socks: 0x17171c },
-};
+// 골키퍼는 국가별 데이터가 없어 팀 컬러와 겹치지 않는 공용 배색을 쓴다.
+const GK_KIT = { jersey: '#9aa0a6', shorts: '#1a1a1a', socks: '#9aa0a6' };
+const DEFAULT_KIT = { jersey: '#666666', shorts: '#222222', socks: '#666666' };
+
+function getFieldKit(teamId) {
+  const c = KIT_COLORS[teamId?.toUpperCase()];
+  if (!c) return DEFAULT_KIT;
+  return { jersey: c.shirt, shorts: c.shorts, socks: c.shirt };
+}
 
 export class PitchScene {
   constructor(canvas, { onSelectPlayer, onDragPlayer, myTeamId, oppTeamId, myManagerName, oppManagerName } = {}) {
@@ -445,7 +449,7 @@ export class PitchScene {
   // ================= 선수 =================
   spawnPlayer(id, p) {
     const gk = p.data.positions.includes('GK');
-    const kit = gk ? KIT.korGk : KIT.kor;
+    const kit = gk ? GK_KIT : getFieldKit(this.myTeamId);
     const fig = makePlayerFigure({ ...kit, prime: p.prime, height: p.data.height });
     const w = pctToWorld(p.x, p.y);
     fig.position.set(w.x, 0, w.z);
@@ -491,7 +495,7 @@ export class PitchScene {
     this.oppMeshes.forEach(m => this.scene.remove(m));
     this.oppMeshes = [];
     oppList.forEach(o => {
-      const kit = o.gk ? KIT.rsaGk : KIT.rsa;
+      const kit = o.gk ? GK_KIT : getFieldKit(this.oppTeamId);
       const fig = makePlayerFigure({ ...kit, height: 181 });
       const w = pctToWorld(o.x, o.y);
       fig.position.set(w.x, 0, w.z);

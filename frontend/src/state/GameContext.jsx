@@ -18,7 +18,7 @@ const initialState = {
   players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY} }
   selected: null,          // 피치에서 선택된 선수(교체 시 "나가는" 선수) id
   viewedId: null,          // PlayerCard에 표시 중인 선수 id — 벤치 선수 클릭 시엔 이것만 바뀜
-  tacticConfig: null,      // 내 팀 현재 TacticConfig (Sidebar/TacticsPanel이 수정)
+  tacticConfig: null,      // 내 팀 현재 TacticConfig (Sidebar가 수정)
   editable: true,
 };
 

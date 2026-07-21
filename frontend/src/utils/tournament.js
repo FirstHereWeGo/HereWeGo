@@ -11,18 +11,17 @@ function shuffle(arr) {
 }
 
 /**
- * 8강 대진을 짠다 — 내가 고른 두 팀은 반드시 8강 1경기에서 맞붙고,
- * 나머지 6팀(내 팀/상대 팀 제외 중 랜덤으로 뽑음)이 남은 3경기를 채운다.
+ * 8강 대진을 짠다 — 내가 고른 팀은 반드시 8강 1경기에 나오고,
+ * 나머지 7팀(내 팀 제외 중 랜덤으로 뽑음)이 그 상대와 남은 3경기를 채운다.
  */
-export function buildInitialBracket(allTeams, myTeamId, oppTeamId) {
+export function buildInitialBracket(allTeams, myTeamId) {
   const myTeam = allTeams.find(t => t.id === myTeamId);
-  const oppTeam = allTeams.find(t => t.id === oppTeamId);
-  const rest = allTeams.filter(t => t.id !== myTeamId && t.id !== oppTeamId);
-  const randomSix = shuffle(rest).slice(0, 6);
+  const rest = shuffle(allTeams.filter(t => t.id !== myTeamId)).slice(0, 7);
+  const [oppTeam, ...others] = rest;
 
   const qf = [{ home: myTeam, away: oppTeam, result: null }];
-  for (let i = 0; i < randomSix.length; i += 2) {
-    qf.push({ home: randomSix[i], away: randomSix[i + 1], result: null });
+  for (let i = 0; i < others.length; i += 2) {
+    qf.push({ home: others[i], away: others[i + 1], result: null });
   }
   return { qf, sf: null, final: null, bronze: null };
 }

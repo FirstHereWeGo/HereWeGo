@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
-import { getTeams, getTactics } from '../api/client';
+import { getTeams, getTactics, getFormations } from '../api/client';
+import { describeTeamStyle } from '../utils/teamStyle';
 
-export default function TeamSelect({ onConfirm }) {
+export default function TeamSelect({ onStartTournament }) {
   const [teams, setTeams] = useState([]);
+  const [tacticByTeam, setTacticByTeam] = useState({});
+  const [formationById, setFormationById] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [myTeamId, setMyTeamId] = useState(null);
-  const [oppTeamId, setOppTeamId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [allTeams, tactics] = await Promise.all([getTeams(), getTactics()]);
-        // 전술 프리셋(기본 선발/포메이션)이 없는 팀은 라인업을 구성할 수 없으므로 제외
-        const presetTeamIds = new Set(tactics.map(t => t.teamId));
-        const selectable = allTeams.filter(t => presetTeamIds.has(t.id));
+        const [allTeams, tactics, formations] = await Promise.all([getTeams(), getTactics(), getFormations()]);
+        // 전술 프리셋(기본 선발/포메이션)이 없는 팀은 토너먼트에 낼 수 없으므로 제외
+        const presetById = Object.fromEntries(tactics.map(t => [t.teamId, t]));
+        const selectable = allTeams.filter(t => presetById[t.id]);
         setTeams(selectable);
-        if (selectable.length >= 2) {
-          setMyTeamId(selectable[0].id);
-          setOppTeamId(selectable[1].id);
-        }
+        setTacticByTeam(presetById);
+        setFormationById(Object.fromEntries(formations.map(f => [f.id, f])));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -28,20 +28,9 @@ export default function TeamSelect({ onConfirm }) {
     })();
   }, []);
 
-  function handleConfirm() {
-    if (!myTeamId || !oppTeamId || myTeamId === oppTeamId) return;
-    onConfirm(myTeamId, oppTeamId);
-  }
-
-  // 상대팀에서 이미 고른 팀을 내 팀으로(또는 그 반대로) 클릭하면 두 슬롯을 맞바꾼다.
-  function selectMyTeam(id) {
-    if (id === oppTeamId) setOppTeamId(myTeamId);
-    setMyTeamId(id);
-  }
-  function selectOppTeam(id) {
-    if (id === myTeamId) setMyTeamId(oppTeamId);
-    setOppTeamId(id);
-  }
+  const selectedTeam = teams.find(t => t.id === selectedId);
+  const selectedPreset = selectedId ? tacticByTeam[selectedId] : null;
+  const selectedFormation = selectedPreset ? formationById[selectedPreset.formationId] : null;
 
   if (loading) {
     return (
@@ -61,44 +50,45 @@ export default function TeamSelect({ onConfirm }) {
   return (
     <section className="view-teamselect">
       <div className="teamselect-inner">
-        <div className="landing-eyebrow">TEAM SELECT</div>
-        <h2 className="section-title">내 팀과 상대 팀을 선택하세요</h2>
+        <div className="landing-eyebrow">TOURNAMENT ENTRY</div>
+        <h2 className="section-title">국가를 선택하세요</h2>
 
-        <div className="teamselect-cols">
-          <div className="teamselect-col">
-            <div className="sb-heading">내 팀</div>
-            {teams.map(t => (
-              <button
-                key={t.id}
-                className={`fm-btn wide team-btn ${myTeamId === t.id ? 'on' : ''}`}
-                onClick={() => selectMyTeam(t.id)}
-              >
-                <img className="team-btn-flag" src={`/flags/${t.id}.png`} alt="" onError={(e) => { e.target.style.display = 'none'; }} />
-                {t.name}
-              </button>
-            ))}
-          </div>
-          <div className="teamselect-col">
-            <div className="sb-heading">상대 팀</div>
-            {teams.map(t => (
-              <button
-                key={t.id}
-                className={`fm-btn wide team-btn ${oppTeamId === t.id ? 'on' : ''}`}
-                onClick={() => selectOppTeam(t.id)}
-              >
-                <img className="team-btn-flag" src={`/flags/${t.id}.png`} alt="" onError={(e) => { e.target.style.display = 'none'; }} />
-                {t.name}
-              </button>
-            ))}
-          </div>
+        <div className="country-desc">
+          {selectedTeam ? (
+            <>
+              <div className="country-desc-team">{selectedTeam.name}</div>
+              <div className="country-desc-style">{describeTeamStyle(selectedPreset.tacticConfig)}</div>
+              {selectedFormation && <div className="country-desc-formation">대표 포메이션 {selectedFormation.name}</div>}
+            </>
+          ) : (
+            <div className="country-desc-placeholder">국기를 선택하면 팀 스타일이 표시됩니다</div>
+          )}
+        </div>
+
+        <div className="country-row">
+          {teams.map(t => (
+            <button
+              key={t.id}
+              className={`country-btn ${selectedId === t.id ? 'selected' : ''}`}
+              onClick={() => setSelectedId(t.id)}
+            >
+              <img
+                className="country-btn-flag"
+                src={`/flags/${t.id}.png`}
+                alt={t.name}
+                onError={(e) => { e.target.style.visibility = 'hidden'; }}
+              />
+              <span className="country-btn-name">{t.name}</span>
+            </button>
+          ))}
         </div>
 
         <button
           className="cta"
-          disabled={!myTeamId || !oppTeamId || myTeamId === oppTeamId}
-          onClick={handleConfirm}
+          disabled={!selectedId}
+          onClick={() => onStartTournament(selectedId)}
         >
-          전술 짜러 가기
+          토너먼트 시작
         </button>
       </div>
     </section>

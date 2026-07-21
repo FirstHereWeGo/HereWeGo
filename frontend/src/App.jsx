@@ -11,8 +11,14 @@ function AppInner() {
   const [boardKey, setBoardKey] = useState(0);
   const [teams, setTeams] = useState(null); // { myTeamId, oppTeamId }
 
-  function startMatch(myTeamId, oppTeamId) {
-    setTeams({ myTeamId, oppTeamId });
+  function startTournament(myTeamId) {
+    setTeams({ myTeamId, oppTeamId: null });
+    setView('tournament');
+  }
+
+  // 토너먼트 화면의 "포메이션으로"에서 넘어올 때 — 8강 1경기 상대를 연습 상대로 삼는다.
+  function goToBoard(oppTeamId) {
+    setTeams(t => ({ ...t, oppTeamId }));
     setBoardKey(k => k + 1); // TacticalBoard를 새 상태로 다시 마운트
     setView('board');
   }
@@ -20,22 +26,20 @@ function AppInner() {
   return (
     <>
       {view === 'landing' && <Landing onEnter={() => setView('teamSelect')} />}
-      {view === 'teamSelect' && <TeamSelect onConfirm={startMatch} />}
-      {view === 'board' && teams && (
+      {view === 'teamSelect' && <TeamSelect onStartTournament={startTournament} />}
+      {view === 'board' && teams?.oppTeamId && (
         <TacticalBoard
           key={boardKey}
           myTeamId={teams.myTeamId}
           oppTeamId={teams.oppTeamId}
           onHome={() => setView('landing')}
           onChangeTeams={() => setView('teamSelect')}
-          onStartTournament={() => setView('tournament')}
         />
       )}
       {view === 'tournament' && teams && (
         <Tournament
           myTeamId={teams.myTeamId}
-          oppTeamId={teams.oppTeamId}
-          onBack={() => setView('board')}
+          onBack={goToBoard}
         />
       )}
     </>

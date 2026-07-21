@@ -3,6 +3,7 @@ import { PitchScene } from '../three/PitchScene';
 import { useGameState, useGameActions } from '../state/GameContext';
 import { layoutFormation, GK_COORD } from '../data/formationLayout';
 import { jerseyNumber } from '../utils/playerDisplay';
+import WinProbabilityPanel from './WinProbabilityPanel';
 
 const CAM_LABELS = [
   ['broadcast', '중계 캠'],
@@ -29,7 +30,7 @@ function buildOppLineup(oppTeam, oppTacticPreset, formations) {
   return lineup;
 }
 
-export default function PitchBoard() {
+export default function PitchBoard({ winProb, prevWinProb, predicting, predictError, onCalculateWinProbability }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const pitchRef = useRef(null);
@@ -94,6 +95,18 @@ export default function PitchBoard() {
   return (
     <div className="gl-wrap" id="glWrap" ref={wrapRef}>
       <canvas className="gl-canvas" ref={canvasRef} />
+
+      <div className="prob-hud">
+        <WinProbabilityPanel
+          myTeamName={state.team.name}
+          oppTeamName={state.oppTeam.name}
+          winProb={winProb}
+          prevWinProb={prevWinProb}
+          predicting={predicting}
+          predictError={predictError}
+          onCalculate={onCalculateWinProbability}
+        />
+      </div>
 
       <div className="cam-hud">
         {CAM_LABELS.map(([key, label]) => (

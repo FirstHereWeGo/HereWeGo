@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGameState } from '../state/GameContext';
 import { getTactics, getTeams, postMatchSimulation } from '../api/client';
 import { buildMyTeamConfig, buildPresetTeamConfig } from '../utils/matchPayload';
 import { buildInitialBracket, losersFromMatches, nextRoundPairs, simulatePenalties } from '../utils/tournament';
+import BracketLines from './BracketLines';
 
-const STAGE_LABEL = { qf: '8강 시작', sf: '4강 시작', final: '결승 & 3위전 시작' };
+const STAGE_TITLE = { qf: 'QUARTER-FINALS', sf: 'SEMI-FINALS', final: 'FINAL', done: 'CHAMPION' };
 
 function TeamRow({ team, won, score }) {
   return (
@@ -28,7 +29,7 @@ function MatchBox({ match, onOpenDetail }) {
   );
 }
 
-export default function Tournament({ myTeamId, oppTeamId, onBack }) {
+export default function Tournament({ myTeamId, onBack }) {
   const state = useGameState();
   const [pool, setPool] = useState(null); // { teams, tactics }
   const [bracket, setBracket] = useState(null);
@@ -37,17 +38,22 @@ export default function Tournament({ myTeamId, oppTeamId, onBack }) {
   const [error, setError] = useState(null);
   const [detail, setDetail] = useState(null);
 
+  const gridRef = useRef(null);
+  const qfRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const sfRefs = [useRef(null), useRef(null)];
+  const finalRef = useRef(null);
+
   useEffect(() => {
     (async () => {
       try {
         const [teams, tactics] = await Promise.all([getTeams(), getTactics()]);
         setPool({ teams, tactics });
-        setBracket(buildInitialBracket(teams, myTeamId, oppTeamId));
+        setBracket(buildInitialBracket(teams, myTeamId));
       } catch (err) {
         setError(err.message);
       }
     })();
-  }, [myTeamId, oppTeamId]);
+  }, [myTeamId]);
 
   function configFor(team) {
     if (team.id === myTeamId) {
@@ -70,33 +76,47 @@ export default function Tournament({ myTeamId, oppTeamId, onBack }) {
     return { ...match, result: { scoreA: sim.scoreA, scoreB: sim.scoreB, events: sim.events, pso, winnerId } };
   }
 
+  /** 현재 라운드를 시뮬레이션하고, 그 라운드에서 내 팀이 뛴 경기를 반환한다(탈락 후엔 null). */
   async function playRound() {
-    if (!bracket || simulating) return;
+    if (!bracket || simulating) return null;
     setSimulating(true);
     setError(null);
     try {
+      let roundMatches = [];
       if (stage === 'qf') {
         const played = await Promise.all(bracket.qf.map(simulateOneMatch));
-        setBracket({ ...bracket, qf: played, sf: nextRoundPairs(played) });
+        setBracket(b => ({ ...b, qf: played, sf: nextRoundPairs(played) }));
         setStage('sf');
+        roundMatches = played;
       } else if (stage === 'sf') {
         const played = await Promise.all(bracket.sf.map(simulateOneMatch));
         const [loserA, loserB] = losersFromMatches(played);
-        setBracket({ ...bracket, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } });
+        setBracket(b => ({ ...b, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } }));
         setStage('final');
+        roundMatches = played;
       } else if (stage === 'final') {
         const [finalPlayed, bronzePlayed] = await Promise.all([
           simulateOneMatch(bracket.final),
           simulateOneMatch(bracket.bronze),
         ]);
-        setBracket({ ...bracket, final: finalPlayed, bronze: bronzePlayed });
+        setBracket(b => ({ ...b, final: finalPlayed, bronze: bronzePlayed }));
         setStage('done');
+        roundMatches = [finalPlayed, bronzePlayed];
       }
+      return roundMatches.find(m => m.home.id === myTeamId || m.away.id === myTeamId) ?? null;
     } catch (err) {
       setError(err.message);
+      return null;
     } finally {
       setSimulating(false);
     }
+  }
+
+  async function handleStartMatch() {
+    const myMatch = await playRound();
+    if (!myMatch) return; // 시뮬레이션 실패 또는 이미 탈락 — 대진표만 갱신하고 화면 전환은 하지 않는다
+    const rivalId = myMatch.home.id === myTeamId ? myMatch.away.id : myMatch.home.id;
+    onBack(rivalId);
   }
 
   if (error && !bracket) {
@@ -117,50 +137,60 @@ export default function Tournament({ myTeamId, oppTeamId, onBack }) {
   const championTeam = stage === 'done'
     ? (bracket.final.result.winnerId === bracket.final.home.id ? bracket.final.home : bracket.final.away)
     : null;
+  // 브랜드 로고 클릭 시 쓸 연습 상대 — 8강 1경기(내 팀 경기)의 상대팀으로 삼는다.
+  const goToBoard = () => onBack(bracket.qf[0].away.id);
 
   return (
     <section className="view-board">
       <div className="topbar">
         <div className="topbar-side left">
-          <div className="brand" role="button" onClick={onBack}>PRIME<span>REWIND</span></div>
+          <div className="brand" role="button" onClick={goToBoard}>PRIME<span>REWIND</span></div>
         </div>
-        <div className="topbar-side right">
-          {stage !== 'done' ? (
-            <button className="btn-ghost bracket-play-btn" disabled={simulating} onClick={playRound}>
-              {simulating ? '시뮬레이션 중...' : STAGE_LABEL[stage]}
-            </button>
-          ) : (
-            <div className="bracket-champion-banner">🏆 {championTeam.name} 우승</div>
-          )}
-          <button className="btn-ghost" onClick={onBack}>포메이션으로</button>
-        </div>
+      </div>
+
+      <div className="bracket-header">
+        <div className="bracket-header-eyebrow">WORLD CUP</div>
+        <div className="bracket-header-title">{STAGE_TITLE[stage]}</div>
       </div>
 
       {error && <div className="timeline-panel glass timeline-error">시뮬레이션 실패: {error}</div>}
 
       <div className="bracket-wrap">
-        <div className="bracket-grid">
+        <div className="bracket-grid" ref={gridRef}>
+          <BracketLines containerRef={gridRef} qfRefs={qfRefs} sfRefs={sfRefs} finalRef={finalRef} watch={bracket} />
+
           <div className="bracket-col">
-            <MatchBox match={bracket.qf[0]} onOpenDetail={setDetail} />
-            <MatchBox match={bracket.qf[1]} onOpenDetail={setDetail} />
+            <div ref={qfRefs[0]}><MatchBox match={bracket.qf[0]} onOpenDetail={setDetail} /></div>
+            <div ref={qfRefs[1]}><MatchBox match={bracket.qf[1]} onOpenDetail={setDetail} /></div>
           </div>
           <div className="bracket-col bracket-col-mid">
-            <MatchBox match={bracket.sf?.[0]} onOpenDetail={setDetail} />
+            <div ref={sfRefs[0]}><MatchBox match={bracket.sf?.[0]} onOpenDetail={setDetail} /></div>
           </div>
           <div className="bracket-col bracket-col-center">
+            <div className="bracket-trophy">🏆</div>
             <div className="bracket-title">WORLD CHAMPION</div>
-            <MatchBox match={bracket.final} onOpenDetail={setDetail} />
+            <div ref={finalRef}><MatchBox match={bracket.final} onOpenDetail={setDetail} /></div>
             <div className="bracket-bronze-label">BRONZE FINAL</div>
             <MatchBox match={bracket.bronze} onOpenDetail={setDetail} />
           </div>
           <div className="bracket-col bracket-col-mid">
-            <MatchBox match={bracket.sf?.[1]} onOpenDetail={setDetail} />
+            <div ref={sfRefs[1]}><MatchBox match={bracket.sf?.[1]} onOpenDetail={setDetail} /></div>
           </div>
           <div className="bracket-col">
-            <MatchBox match={bracket.qf[2]} onOpenDetail={setDetail} />
-            <MatchBox match={bracket.qf[3]} onOpenDetail={setDetail} />
+            <div ref={qfRefs[2]}><MatchBox match={bracket.qf[2]} onOpenDetail={setDetail} /></div>
+            <div ref={qfRefs[3]}><MatchBox match={bracket.qf[3]} onOpenDetail={setDetail} /></div>
           </div>
         </div>
+      </div>
+
+      <div className="bracket-bottom-bar">
+        {stage !== 'done' ? (
+          <button className="cta" disabled={simulating} onClick={handleStartMatch}>
+            {simulating ? '시뮬레이션 중...' : '경기 시작'}
+          </button>
+        ) : (
+          <div className="bracket-champion-banner">🏆 {championTeam.name} 우승</div>
+        )}
       </div>
 
       {detail && (
