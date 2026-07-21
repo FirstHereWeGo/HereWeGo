@@ -113,8 +113,43 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .btn-ghost{border:1px solid var(--line);color:var(--text-dim);padding:.5rem .9rem;border-radius:8px;font-size:.86rem;font-weight:500;white-space:nowrap;flex-shrink:0}
 .btn-ghost:hover:not(:disabled){border-color:var(--green);color:var(--text)}
 .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+.sim-card{padding:.6rem 1rem;flex-shrink:0}
+
+.timeline-panel{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1.1rem;margin:0 1.1rem .7rem}
+.timeline-panel.timeline-error{color:var(--danger);font-size:.86rem}
+.timeline-chip{font-size:.82rem;font-weight:700;padding:.35rem .7rem;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);white-space:nowrap}
+.timeline-chip.home{color:var(--green-bright);border-color:rgba(52,224,122,.35)}
+.timeline-chip.away{color:var(--gold);border-color:rgba(242,193,78,.35)}
+.timeline-empty{font-size:.82rem;color:var(--text-dim)}
 
 .board-body{flex:1;display:grid;grid-template-columns:300px 1fr 360px;gap:.7rem;min-height:0;padding:.7rem}
+
+/* ===== 토너먼트 브래킷 ===== */
+.bracket-play-btn{margin-right:.6rem}
+.bracket-champion-banner{font-size:.95rem;font-weight:900;color:var(--gold);margin-right:.8rem}
+.bracket-wrap{flex:1;overflow:auto;padding:1.6rem 1.1rem}
+.bracket-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr 1fr;gap:1rem;align-items:center;min-width:1000px;max-width:1400px;margin:0 auto}
+.bracket-col{display:flex;flex-direction:column;gap:2.2rem;justify-content:center;height:100%}
+.bracket-col-mid{gap:0}
+.bracket-col-center{align-items:center;text-align:center;gap:.7rem}
+.bracket-title{font-family:'Rajdhani';font-weight:700;letter-spacing:.18em;font-size:1rem;color:var(--text-dim)}
+.bracket-bronze-label{font-size:.7rem;letter-spacing:.2em;color:var(--text-dim);margin-top:.6rem}
+.bracket-match{background:var(--glass-bg);border:1px solid var(--glass-line);border-radius:10px;padding:.55rem .7rem;min-width:190px;backdrop-filter:blur(14px)}
+.bracket-match.played{cursor:pointer}
+.bracket-match.played:hover{border-color:var(--green)}
+.bracket-match-empty{display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-weight:700;min-height:64px}
+.bracket-team{display:flex;align-items:center;gap:.5rem;padding:.2rem 0;opacity:.75}
+.bracket-team.winner{opacity:1;color:var(--green-bright);font-weight:700}
+.bracket-flag{width:1.5rem;height:1.5rem;border-radius:50%;object-fit:cover;flex-shrink:0}
+.bracket-tname{flex:1;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bracket-score{font-family:'Rajdhani';font-weight:700;font-size:1rem}
+.bracket-pso{font-size:.68rem;color:var(--gold);text-align:center;margin-top:.3rem}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal-card{padding:1.4rem;max-width:32rem;width:90%;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:1.15rem;font-weight:900;text-align:center;margin-bottom:.5rem}
+.modal-pso{font-size:.85rem;color:var(--gold);text-align:center;margin-bottom:.8rem}
+.modal-timeline{margin:0 0 1rem;padding:0}
 
 /* ===== 좌측 전술 패널 ===== */
 .sidebar{padding:1.1rem;overflow-y:auto}

@@ -27,3 +27,7 @@ export function getTactics() {
 export function postWinProbability(payload) {
   return request('/api/win-probability', { method: 'POST', body: JSON.stringify(payload) });
 }
+
+export function postMatchSimulation(payload) {
+  return request('/api/match-simulation', { method: 'POST', body: JSON.stringify(payload) });
+}

@@ -3,10 +3,11 @@ import { GameProvider } from './state/GameContext';
 import Landing from './components/Landing';
 import TeamSelect from './components/TeamSelect';
 import TacticalBoard from './components/TacticalBoard';
+import Tournament from './components/Tournament';
 import './styles/global.css';
 
 function AppInner() {
-  const [view, setView] = useState('landing'); // landing | teamSelect | board
+  const [view, setView] = useState('landing'); // landing | teamSelect | board | tournament
   const [boardKey, setBoardKey] = useState(0);
   const [teams, setTeams] = useState(null); // { myTeamId, oppTeamId }
 
@@ -27,6 +28,14 @@ function AppInner() {
           oppTeamId={teams.oppTeamId}
           onHome={() => setView('landing')}
           onChangeTeams={() => setView('teamSelect')}
+          onStartTournament={() => setView('tournament')}
+        />
+      )}
+      {view === 'tournament' && teams && (
+        <Tournament
+          myTeamId={teams.myTeamId}
+          oppTeamId={teams.oppTeamId}
+          onBack={() => setView('board')}
         />
       )}
     </>
