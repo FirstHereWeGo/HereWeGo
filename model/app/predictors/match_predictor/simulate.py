@@ -59,9 +59,9 @@ def _sample_events(context: TeamContext, lam: float, team: str) -> list[MatchEve
 
 
 def simulate_match(payload: WinProbabilityInput) -> MatchSimulationOutput:
-    rating_a = team_rating(payload.teamA)
-    rating_b = team_rating(payload.teamB)
-    lambda_a, lambda_b = _expected_goals(rating_a, rating_b)
+    rating_a_total = team_rating(payload.teamA)["total"]
+    rating_b_total = team_rating(payload.teamB)["total"]
+    lambda_a, lambda_b = _expected_goals(rating_a_total, rating_b_total)
 
     context_a = build_context(payload.teamA)
     context_b = build_context(payload.teamB)
