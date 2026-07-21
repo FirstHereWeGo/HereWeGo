@@ -37,14 +37,16 @@ def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutpu
     반환한다. (프론트/백엔드의 기대와 일치하도록 0~1 범위를 유지)
     """
     setattr(TeamContext, "_last_penalty_codes", [])
-    rating_a = team_rating(payload.teamA)
+    rating_a_details = team_rating(payload.teamA)
     penalties_a = list(getattr(TeamContext, "_last_penalty_codes", []))
 
     setattr(TeamContext, "_last_penalty_codes", [])
-    rating_b = team_rating(payload.teamB)
+    rating_b_details = team_rating(payload.teamB)
     penalties_b = list(getattr(TeamContext, "_last_penalty_codes", []))
 
-    return ratings_to_output(rating_a, rating_b, penalties_a, penalties_b)
+    return ratings_to_output(
+        rating_a_details["total"], rating_b_details["total"], penalties_a, penalties_b
+    )
 
 
 def _load_model():
