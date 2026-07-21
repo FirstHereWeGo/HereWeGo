@@ -86,11 +86,12 @@ def apply_style(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment -= 40.0 # Penalty
 
     elif style.approach == "balanced":
-        all_stats = []
-        for p in context.field_players:
-            all_stats.extend([p.passing, p.vision, p.agility, p.pace, p.tackling, p.marking, p.strength, p.finishing, p.positioning, p.dribbling])
+        stat_names = ["passing", "vision", "agility", "pace", "tackling", "marking", "strength", "finishing", "positioning", "dribbling"]
         
-        low_stat_players = [p for p in context.field_players if any(s < 10 for s in [p.passing, p.vision, p.agility, p.pace, p.tackling, p.marking, p.strength, p.finishing, p.positioning, p.dribbling])]
+        low_stat_players = [
+            p for p in context.field_players 
+            if any(attr(p, s) < 10 for s in stat_names)
+        ]
         
         if not low_stat_players:
             rating_adjustment += 10.0  # Synergy
