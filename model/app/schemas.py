@@ -215,6 +215,11 @@ class WinProbabilityInput(BaseModel):
     teamB: TeamMatchInput
 
 
+class MatchSimulationInput(WinProbabilityInput):
+    durationMinutes: int = 90  # 정규시간 90분 / 연장전후반 30분
+    minuteOffset: int = 0  # 이벤트 표시용 시각 오프셋 (연장전후반은 90)
+
+
 class TeamOutcome(BaseModel):
     win: float
     draw: float

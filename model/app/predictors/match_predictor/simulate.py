@@ -13,7 +13,7 @@ from app.predictors.match_predictor.weights import AVG_GOALS_PER_TEAM, MIN_LAMBD
 from app.predictors.win_predictor.context import TeamContext, attr, build_context
 from app.predictors.win_predictor.probability import SCALE
 from app.predictors.win_predictor.team_rating import team_rating
-from app.schemas import MatchEvent, MatchSimulationOutput, Player, WinProbabilityInput
+from app.schemas import MatchEvent, MatchSimulationInput, MatchSimulationOutput, Player
 
 # 득점자 추첨 가중치: 포지션별로 finishing/positioning을 얼마나 반영할지
 _SCORER_WEIGHT_FLOOR = 0.5  # 어떤 필드 플레이어든 최소한의 득점 가능성은 남겨둠
@@ -36,21 +36,24 @@ def _scorer_weight(player: Player) -> float:
     return max(base, _SCORER_WEIGHT_FLOOR)
 
 
-def _expected_goals(rating_a: float, rating_b: float) -> tuple[float, float]:
+def _expected_goals(rating_a: float, rating_b: float, duration_minutes: int) -> tuple[float, float]:
     strength = math.tanh((rating_a - rating_b) / SCALE)  # -1..1
-    lambda_a = AVG_GOALS_PER_TEAM * (1 + STRENGTH_SWING * strength)
-    lambda_b = AVG_GOALS_PER_TEAM * (1 - STRENGTH_SWING * strength)
-    return max(lambda_a, MIN_LAMBDA), max(lambda_b, MIN_LAMBDA)
+    scale = duration_minutes / 90
+    lambda_a = AVG_GOALS_PER_TEAM * scale * (1 + STRENGTH_SWING * strength)
+    lambda_b = AVG_GOALS_PER_TEAM * scale * (1 - STRENGTH_SWING * strength)
+    return max(lambda_a, MIN_LAMBDA * scale), max(lambda_b, MIN_LAMBDA * scale)
 
 
-def _sample_events(context: TeamContext, lam: float, team: str) -> list[MatchEvent]:
+def _sample_events(
+    context: TeamContext, lam: float, team: str, duration_minutes: int, minute_offset: int
+) -> list[MatchEvent]:
     n_goals = int(np.random.poisson(lam))
     if n_goals == 0 or not context.field_players:
         return []
 
     weights = [_scorer_weight(p) for p in context.field_players]
     scorers = random.choices(context.field_players, weights=weights, k=n_goals)
-    minutes = [random.randint(1, 90) for _ in range(n_goals)]
+    minutes = [minute_offset + random.randint(1, duration_minutes) for _ in range(n_goals)]
 
     return [
         MatchEvent(minute=minute, team=team, scorer=scorer.name)
@@ -58,15 +61,17 @@ def _sample_events(context: TeamContext, lam: float, team: str) -> list[MatchEve
     ]
 
 
-def simulate_match(payload: WinProbabilityInput) -> MatchSimulationOutput:
+def simulate_match(payload: MatchSimulationInput) -> MatchSimulationOutput:
     rating_a_total = team_rating(payload.teamA)["total"]
     rating_b_total = team_rating(payload.teamB)["total"]
-    lambda_a, lambda_b = _expected_goals(rating_a_total, rating_b_total)
+    lambda_a, lambda_b = _expected_goals(rating_a_total, rating_b_total, payload.durationMinutes)
 
     context_a = build_context(payload.teamA)
     context_b = build_context(payload.teamB)
 
-    events = _sample_events(context_a, lambda_a, "teamA") + _sample_events(context_b, lambda_b, "teamB")
+    events = _sample_events(
+        context_a, lambda_a, "teamA", payload.durationMinutes, payload.minuteOffset
+    ) + _sample_events(context_b, lambda_b, "teamB", payload.durationMinutes, payload.minuteOffset)
     events.sort(key=lambda e: e.minute)
 
     score_a = sum(1 for e in events if e.team == "teamA")

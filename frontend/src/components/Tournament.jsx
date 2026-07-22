@@ -64,16 +64,30 @@ export default function Tournament({ myTeamId, onBack }) {
   }
 
   async function simulateOneMatch(match) {
-    const sim = await postMatchSimulation({ teamA: configFor(match.home), teamB: configFor(match.away) });
+    const teamA = configFor(match.home);
+    const teamB = configFor(match.away);
+
+    const reg = await postMatchSimulation({ teamA, teamB });
+    let scoreA = reg.scoreA;
+    let scoreB = reg.scoreB;
+    let events = reg.events;
     let pso = null;
+
+    if (scoreA === scoreB) {
+      const et = await postMatchSimulation({ teamA, teamB, durationMinutes: 30, minuteOffset: 90 });
+      scoreA += et.scoreA;
+      scoreB += et.scoreB;
+      events = [...events, ...et.events];
+    }
+
     let winnerId;
-    if (sim.scoreA === sim.scoreB) {
+    if (scoreA === scoreB) {
       pso = simulatePenalties();
       winnerId = pso.scoreA > pso.scoreB ? match.home.id : match.away.id;
     } else {
-      winnerId = sim.scoreA > sim.scoreB ? match.home.id : match.away.id;
+      winnerId = scoreA > scoreB ? match.home.id : match.away.id;
     }
-    return { ...match, result: { scoreA: sim.scoreA, scoreB: sim.scoreB, events: sim.events, pso, winnerId } };
+    return { ...match, result: { scoreA, scoreB, events, pso, winnerId } };
   }
 
   /** 현재 라운드를 시뮬레이션하고, 그 라운드에서 내 팀이 뛴 경기를 반환한다(탈락 후엔 null). */

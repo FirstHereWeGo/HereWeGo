@@ -5,7 +5,11 @@ import { jerseyNumber } from '../utils/playerDisplay';
 export default function PlayerCard() {
   const state = useGameState();
   const id = state.viewedId;
-  const d = id ? (state.players[id]?.data ?? state.team?.players.find(p => p.id === id)) : null;
+  const d = id
+    ? (state.players[id]?.data
+      ?? state.team?.players.find(p => p.id === id)
+      ?? state.oppTeam?.players.find(p => p.id === id))
+    : null;
 
   if (!d) {
     return (
@@ -50,6 +54,8 @@ export default function PlayerCard() {
           <div className="bio-row">
             <span className="bio-chip">{d.height}cm</span>
             <span className="bio-chip">{d.age}세</span>
+            <span className="bio-chip">왼발 {d.leftFoot}/5</span>
+            <span className="bio-chip">오른발 {d.rightFoot}/5</span>
           </div>
         </div>
       </div>
