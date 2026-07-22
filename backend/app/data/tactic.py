@@ -125,8 +125,8 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
         # positions 순서(FB,CB,CB,FB,DM,AM,AM,WG,ST,WG)와 1:1 대응:
         # 포로,쿠바르시,라포르트,쿠쿠레야,로드리,올모,파비안,야말,오야르사발,바에나
         startingPlayerIds=[
-            "esp-12", "esp-22", "esp-14", "esp-24", "esp-16",
-            "esp-10", "esp-8", "esp-19", "esp-21", "esp-15",
+            "esp-12", "esp-22", "esp-14", "esp-24", "esp-10",
+            "esp-16", "esp-8", "esp-19", "esp-21", "esp-15",
         ],
         tacticConfig=TacticConfig(
             style=TacticStyle(tacticStyle="possession", approach="attacking"),
