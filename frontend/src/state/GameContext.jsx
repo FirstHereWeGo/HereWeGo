@@ -52,16 +52,20 @@ function reducer(state, action) {
       return { ...state, loading: false, error: action.error };
     case 'LOAD_SUCCESS': {
       const { team, oppTeam, formations, tacticPreset, oppTacticPreset } = action;
-      const formation = formations.find(f => f.id === tacticPreset.formationId) || formations[0];
-      const players = buildFromPreset(team, formation, tacticPreset);
+      // 같은 내 팀으로 토너먼트를 이어가는 중이면(상대만 바뀜) 직전 경기에서 수정한
+      // 포메이션/라인업/전술을 그대로 이어간다 — 매 라운드 기본 프리셋으로 리셋하지 않는다.
+      const carryOver = state.team?.id === team.id && state.players && Object.keys(state.players).length > 0;
+      const formationId = carryOver ? state.formationId : (formations.find(f => f.id === tacticPreset.formationId) || formations[0]).id;
+      const players = carryOver ? state.players : buildFromPreset(team, formations.find(f => f.id === formationId) || formations[0], tacticPreset);
+      const tacticConfig = carryOver ? state.tacticConfig : tacticPreset.tacticConfig;
       return {
         ...state,
         loading: false,
         error: null,
         team, oppTeam, formations, tacticPreset, oppTacticPreset,
-        formationId: formation.id,
+        formationId,
         players,
-        tacticConfig: tacticPreset.tacticConfig,
+        tacticConfig,
         selected: null,
         viewedId: null,
       };

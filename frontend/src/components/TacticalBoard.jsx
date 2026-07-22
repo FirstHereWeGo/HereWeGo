@@ -8,7 +8,7 @@ import PlayerCard from './PlayerCard';
 import BenchList from './BenchList';
 import TeamAnalyticsBoard from './TeamAnalyticsBoard';
 
-export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams }) {
+export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams, onTournament }) {
   const state = useGameState();
   const { loadMatch } = useGameActions();
   const [winProb, setWinProb] = useState(null);
@@ -87,8 +87,9 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
 
         <div className="topbar-side right">
           {!showAnalytics && (
-            <button className="btn-ghost" onClick={() => setShowAnalytics(true)}>전술판</button>
+            <button className="btn-ghost" onClick={() => setShowAnalytics(true)}>분석</button>
           )}
+          <button className="btn-ghost" onClick={onTournament}>토너먼트로</button>
           <button className="btn-ghost" onClick={onChangeTeams}>팀 변경</button>
         </div>
       </div>

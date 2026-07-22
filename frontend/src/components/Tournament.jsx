@@ -112,11 +112,16 @@ export default function Tournament({ myTeamId, onBack }) {
     }
   }
 
+  /** 아직 열리지 않은(result 없는) 현재 라운드의 내 경기 상대 id — 탈락했거나 우승했으면 null. */
+  function myUpcomingOpponentId() {
+    const stageMatches = stage === 'qf' ? bracket.qf : stage === 'sf' ? (bracket.sf ?? []) : stage === 'final' ? [bracket.final] : [];
+    const mine = stageMatches.find(m => m && !m.result && (m.home.id === myTeamId || m.away.id === myTeamId));
+    if (!mine) return null;
+    return mine.home.id === myTeamId ? mine.away.id : mine.home.id;
+  }
+
   async function handleStartMatch() {
-    const myMatch = await playRound();
-    if (!myMatch) return; // 시뮬레이션 실패 또는 이미 탈락 — 대진표만 갱신하고 화면 전환은 하지 않는다
-    const rivalId = myMatch.home.id === myTeamId ? myMatch.away.id : myMatch.home.id;
-    onBack(rivalId);
+    await playRound(); // 대진표만 갱신 — 화면 전환은 "전술 수정" 버튼에서만 한다
   }
 
   if (error && !bracket) {
@@ -137,14 +142,13 @@ export default function Tournament({ myTeamId, onBack }) {
   const championTeam = stage === 'done'
     ? (bracket.final.result.winnerId === bracket.final.home.id ? bracket.final.home : bracket.final.away)
     : null;
-  // 브랜드 로고 클릭 시 쓸 연습 상대 — 8강 1경기(내 팀 경기)의 상대팀으로 삼는다.
-  const goToBoard = () => onBack(bracket.qf[0].away.id);
+  const upcomingOpponentId = myUpcomingOpponentId();
 
   return (
     <section className="view-board">
       <div className="topbar">
         <div className="topbar-side left">
-          <div className="brand" role="button" onClick={goToBoard}>PRIME<span>REWIND</span></div>
+          <div className="brand">PRIME<span>REWIND</span></div>
         </div>
       </div>
 
@@ -185,9 +189,14 @@ export default function Tournament({ myTeamId, onBack }) {
 
       <div className="bracket-bottom-bar">
         {stage !== 'done' ? (
-          <button className="cta" disabled={simulating} onClick={handleStartMatch}>
-            {simulating ? '시뮬레이션 중...' : '경기 시작'}
-          </button>
+          <>
+            <button className="btn-ghost" disabled={!upcomingOpponentId} onClick={() => onBack(upcomingOpponentId)}>
+              전술 수정
+            </button>
+            <button className="cta" disabled={simulating} onClick={handleStartMatch}>
+              {simulating ? '시뮬레이션 중...' : '경기 시작'}
+            </button>
+          </>
         ) : (
           <div className="bracket-champion-banner">🏆 {championTeam.name} 우승</div>
         )}
