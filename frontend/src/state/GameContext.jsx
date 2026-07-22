@@ -74,14 +74,25 @@ function reducer(state, action) {
       return { ...state, selected: action.id, viewedId: action.id };
     case 'VIEW_PLAYER':
       return { ...state, viewedId: action.id };
-    case 'MOVE_PLAYER': {
+    case 'DESELECT_PLAYER':
+      return { ...state, selected: null };
+    case 'SWAP_PLAYERS': {
       if (!state.editable) return state;
-      const p = state.players[action.id];
-      if (!p) return state;
-      let x = Math.max(3, Math.min(97, action.x));
-      let y = Math.max(3, Math.min(97, action.y));
-      if (isGk(p.data)) { y = Math.max(78, y); x = Math.max(25, Math.min(75, x)); }
-      return { ...state, players: { ...state.players, [action.id]: { ...p, x, y } } };
+      const { idA, idB } = action;
+      const a = state.players[idA];
+      const b = state.players[idB];
+      if (!a || !b) return state;
+      if (isGk(a.data) !== isGk(b.data)) return state; // GK는 GK끼리만
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          [idA]: { ...a, x: b.x, y: b.y },
+          [idB]: { ...b, x: a.x, y: a.y },
+        },
+        selected: null,
+        viewedId: idB,
+      };
     }
     case 'SET_PLAYER_POS_BULK': {
       if (!state.editable) return state;
@@ -177,7 +188,8 @@ export function useGameActions() {
     loadMatch,
     selectPlayer: useCallback((id) => dispatch({ type: 'SELECT_PLAYER', id }), [dispatch]),
     viewPlayer: useCallback((id) => dispatch({ type: 'VIEW_PLAYER', id }), [dispatch]),
-    movePlayer: useCallback((id, x, y) => dispatch({ type: 'MOVE_PLAYER', id, x, y }), [dispatch]),
+    deselectPlayer: useCallback(() => dispatch({ type: 'DESELECT_PLAYER' }), [dispatch]),
+    swapPlayers: useCallback((idA, idB) => dispatch({ type: 'SWAP_PLAYERS', idA, idB }), [dispatch]),
     setPlayerPosBulk: useCallback((updates) => dispatch({ type: 'SET_PLAYER_POS_BULK', updates }), [dispatch]),
     restoreHome: useCallback(() => dispatch({ type: 'RESTORE_HOME' }), [dispatch]),
     applyFormation: useCallback((formationId) => dispatch({ type: 'APPLY_FORMATION', formationId }), [dispatch]),

@@ -4,7 +4,6 @@ import { KIT_COLORS } from '../data/kitColors';
 
 const PITCH_L = 105, PITCH_W = 68;
 const pctToWorld = (x, y) => ({ x: (x - 50) / 100 * PITCH_W, z: (y - 50) / 100 * PITCH_L });
-const worldToPct = (wx, wz) => ({ x: wx / PITCH_W * 100 + 50, y: wz / PITCH_L * 100 + 50 });
 
 // 선수 스케일(≈2.5x 실물) 기준 골대: 키(≈4.7) + 머리 하나(≈0.8) ≈ 5.5, 폭은 실제 비율(×3)
 const GOAL_H = 5.5;
@@ -246,10 +245,9 @@ function getFieldKit(teamId) {
 }
 
 export class PitchScene {
-  constructor(canvas, { onSelectPlayer, onDragPlayer, myTeamId, oppTeamId, myManagerName, oppManagerName } = {}) {
+  constructor(canvas, { onSelectPlayer, myTeamId, oppTeamId, myManagerName, oppManagerName } = {}) {
     this.canvas = canvas;
     this.onSelectPlayer = onSelectPlayer || (() => {});
-    this.onDragPlayer = onDragPlayer || (() => {});
     this.myTeamId = myTeamId;
     this.oppTeamId = oppTeamId;
     this.myManagerName = myManagerName;
@@ -287,16 +285,13 @@ export class PitchScene {
     this.playerMeshes = {};
     this.oppMeshes = [];
     this.flashMeshes = [];
-    this.editable = true;
     this.liveAmbient = false;
     this._ambient = { carrier: null, carrierIsKor: true, nextPassAt: 0 };
     this._teamShift = 0;
     this._buildWorld();
 
     this.raycaster = new THREE.Raycaster();
-    this.groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     this.selected = null;
-    this._dragKey = null;
     this._orbiting = false;
     this._lastPX = 0; this._lastPY = 0;
     this._script = null;
@@ -479,13 +474,6 @@ export class PitchScene {
     for (const k in this.playerMeshes) this.scene.remove(this.playerMeshes[k]);
     this.playerMeshes = {};
   }
-  syncPlayerWorldPos(id, xPct, yPct) {
-    const mesh = this.playerMeshes[id];
-    if (!mesh) return;
-    const w = pctToWorld(xPct, yPct);
-    mesh.position.x = w.x; mesh.position.z = w.z;
-    mesh.userData.tx = w.x; mesh.userData.tz = w.z;
-  }
   setSelected(id) {
     this.selected = id;
     this.selectRing.visible = !!id;
@@ -499,6 +487,7 @@ export class PitchScene {
       const fig = makePlayerFigure({ ...kit, height: 181 });
       const w = pctToWorld(o.x, o.y);
       fig.position.set(w.x, 0, w.z);
+      fig.userData.key = o.id;
       fig.userData.isKor = false;
       fig.userData.tx = w.x; fig.userData.tz = w.z;
       fig.userData.wanderPhase = Math.random() * Math.PI * 2;
@@ -553,19 +542,14 @@ export class PitchScene {
   }
   _pickPlayer(ev) {
     const ray = this._pick(ev);
-    const hits = ray.intersectObjects(Object.values(this.playerMeshes), true);
+    const meshes = [...Object.values(this.playerMeshes), ...this.oppMeshes];
+    const hits = ray.intersectObjects(meshes, true);
     for (const h of hits) {
       let o = h.object;
       while (o && !o.userData.key) o = o.parent;
-      if (o) return o.userData.key;
+      if (o) return { id: o.userData.key, isOpp: !o.userData.isKor };
     }
     return null;
-  }
-  _pickGround(ev) {
-    const ray = this._pick(ev);
-    const pt = new THREE.Vector3();
-    ray.ray.intersectPlane(this.groundPlane, pt);
-    return pt;
   }
   _bindInput() {
     const cv = this.canvas;
@@ -574,14 +558,10 @@ export class PitchScene {
       ev.preventDefault();
       cv.setPointerCapture(ev.pointerId);
       this._lastPX = ev.clientX; this._lastPY = ev.clientY;
-      const key = this.editable ? this._pickPlayer(ev) : null;
-      if (key) {
-        this._dragKey = key;
-        this.setSelected(key);
-        this.onSelectPlayer(key);
+      const pick = this._pickPlayer(ev);
+      if (pick) {
+        this.onSelectPlayer(pick.id, pick.isOpp);
       } else {
-        const viewKey = !this.editable ? this._pickPlayer(ev) : null;
-        if (viewKey) { this.setSelected(viewKey); this.onSelectPlayer(viewKey); }
         this._orbiting = true;
         cv.classList.add('dragging');
       }
@@ -589,19 +569,14 @@ export class PitchScene {
     this._onMove = (ev) => {
       const dx = ev.clientX - this._lastPX, dy = ev.clientY - this._lastPY;
       this._lastPX = ev.clientX; this._lastPY = ev.clientY;
-      if (this._dragKey) {
-        const pt = this._pickGround(ev);
-        if (!pt) return;
-        const pct = worldToPct(pt.x, pt.z);
-        this.onDragPlayer(this._dragKey, pct.x, pct.y);
-      } else if (this._orbiting && this.camMode === 'orbit') {
+      if (this._orbiting && this.camMode === 'orbit') {
         this.cam.az -= dx * 0.005;
         this.cam.pol = Math.max(this.cam.minPol, Math.min(this.cam.maxPol, this.cam.pol - dy * 0.004));
         this.camAnim = null;
         this._applyCam();
       }
     };
-    this._onUp = () => { this._dragKey = null; this._orbiting = false; cv.classList.remove('dragging'); };
+    this._onUp = () => { this._orbiting = false; cv.classList.remove('dragging'); };
     this._onWheel = (ev) => { ev.preventDefault(); this.zoom(ev.deltaY * 0.06); };
     cv.addEventListener('pointerdown', this._onDown);
     cv.addEventListener('pointermove', this._onMove);
@@ -612,7 +587,7 @@ export class PitchScene {
 
   // ================= 시퀀스 재생 =================
   playSequence(sequence, korIds, { onComplete, followBall = true } = {}) {
-    this._dragKey = null; this._orbiting = false;
+    this._orbiting = false;
     this.canvas.classList.remove('dragging');
     this.setSelected(null);
     this._script = {

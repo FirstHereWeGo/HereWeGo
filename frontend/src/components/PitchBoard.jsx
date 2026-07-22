@@ -20,12 +20,12 @@ function buildOppLineup(oppTeam, oppTacticPreset, formations) {
   const lineup = [];
 
   const gk = playersById[oppTacticPreset.goalkeeperId];
-  if (gk) lineup.push({ x: GK_COORD.x, y: 100 - GK_COORD.y, gk: true, no: jerseyNumber(gk.id) });
+  if (gk) lineup.push({ id: gk.id, x: GK_COORD.x, y: 100 - GK_COORD.y, gk: true, no: jerseyNumber(gk.id) });
 
   oppTacticPreset.startingPlayerIds.forEach((id, i) => {
     const p = playersById[id];
     if (!p) return;
-    lineup.push({ x: coords[i].x, y: 100 - coords[i].y, gk: false, no: jerseyNumber(p.id) });
+    lineup.push({ id: p.id, x: coords[i].x, y: 100 - coords[i].y, gk: false, no: jerseyNumber(p.id) });
   });
   return lineup;
 }
@@ -36,8 +36,18 @@ export default function PitchBoard({ winProb, prevWinProb, predicting, predictEr
   const pitchRef = useRef(null);
   const prevPlayersRef = useRef({});
   const state = useGameState();
-  const { selectPlayer, movePlayer } = useGameActions();
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const { selectPlayer, viewPlayer, deselectPlayer, swapPlayers } = useGameActions();
   const [activeCam, setActiveCam] = useState('broadcast');
+
+  function handlePlayerClick(id, isOpp) {
+    if (isOpp) { viewPlayer(id); return; }
+    const { selected } = stateRef.current;
+    if (selected === id) { deselectPlayer(); return; }
+    if (selected) { swapPlayers(selected, id); return; }
+    selectPlayer(id);
+  }
 
   useEffect(() => {
     const pitch = new PitchScene(canvasRef.current, {
@@ -45,16 +55,11 @@ export default function PitchBoard({ winProb, prevWinProb, predicting, predictEr
       oppTeamId: state.oppTeam.id,
       myManagerName: state.team.manager,
       oppManagerName: state.oppTeam.manager,
-      onSelectPlayer: (id) => selectPlayer(id),
-      onDragPlayer: (id, x, y) => {
-        pitch.syncPlayerWorldPos(id, x, y);
-        movePlayer(id, x, y);
-      },
+      onSelectPlayer: (id, isOpp) => handlePlayerClick(id, isOpp),
     });
     pitchRef.current = pitch;
     pitch.resize();
     pitch.setCamPreset('broadcast');
-    pitch.editable = true;
     pitch.spawnOpp(buildOppLineup(state.oppTeam, state.oppTacticPreset, state.formations));
 
     const ro = new ResizeObserver(() => pitch.resize());
@@ -121,7 +126,7 @@ export default function PitchBoard({ winProb, prevWinProb, predicting, predictEr
       </div>
 
       <div className="gl-hint glass">
-        선수 드래그 배치 · 빈 곳 드래그 회전 · 휠 줌
+        선수 클릭 후 다른 선수 클릭 시 위치 교체 · 빈 곳 드래그 회전 · 휠 줌
       </div>
 
       <div className="zoom-hud">
