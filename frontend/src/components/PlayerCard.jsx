@@ -32,7 +32,9 @@ export default function PlayerCard() {
       ?? state.oppTeam?.players.find(p => p.id === d.id.replace(/^prime/, '')))
     : null;
   const positions = isPrime ? (basePlayer?.positions ?? []) : d.positions;
-  const photoId = isPrime ? d.id.replace(/^prime/, '') : d.id;
+  // prime 선수는 전용 사진(/players/{prime id}.png)을 우선 쓰고, 없으면 기준 선수 사진으로 대체한다.
+  const photoId = d.id;
+  const photoFallbackId = isPrime ? d.id.replace(/^prime/, '') : null;
 
   const no = jerseyNumber(d.id);
   const isGk = isPrime ? 'overall' in d.attributes : d.positions.includes('GK');
@@ -53,7 +55,14 @@ export default function PlayerCard() {
               objectFit: 'cover', zIndex: 999, backgroundColor: '#1a1a1a',
             }}
             onLoad={(e) => { e.target.style.display = 'block'; }}
-            onError={(e) => { e.target.style.display = 'none'; }}
+            onError={(e) => {
+              if (photoFallbackId && !e.target.dataset.fallback) {
+                e.target.dataset.fallback = '1';
+                e.target.src = `/players/${photoFallbackId}.png`;
+                return;
+              }
+              e.target.style.display = 'none';
+            }}
           />
         </div>
 
@@ -74,7 +83,7 @@ export default function PlayerCard() {
 
       {isGk ? (
         <div className="stat-grid">
-          <div className="statline keystat">
+          <div className="statline keystat gk-overall">
             <span className="sname">종합 능력치</span>
             <div className="sbar">
               <div className="sfill" style={{ width: `${(d.attributes.overall / 100) * 100}%` }} />
