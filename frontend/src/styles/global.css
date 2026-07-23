@@ -270,6 +270,36 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .modal-pso{font-size:.85rem;color:var(--gold);text-align:center;margin-bottom:.8rem}
 .modal-timeline{margin:0 0 1rem;padding:0}
 
+.livematch-card{max-width:54rem;width:94vw}
+.livematch-phase-label{font-size:.82rem;font-weight:700;color:var(--gold);text-align:center;letter-spacing:.04em;margin-bottom:.8rem}
+.livematch-sections{display:flex;flex-direction:column;gap:.7rem;margin-bottom:1rem}
+.livematch-section{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:.7rem 1.1rem}
+.livematch-section-title{font-size:.78rem;font-weight:700;color:var(--text-dim);letter-spacing:.06em;text-align:center;margin-bottom:.5rem}
+.livematch-row{padding:.3rem 0}
+.livematch-row-label{font-size:.72rem;color:var(--text-dim);text-align:center;margin-bottom:.25rem}
+.livematch-row-bar{display:flex;align-items:center;gap:.7rem}
+.livematch-row-bar .livematch-val{font-weight:700;font-size:.88rem;width:2.6rem;flex-shrink:0}
+.livematch-row-bar .livematch-val:first-child{text-align:right}
+.livematch-row-bar .livematch-val:last-child{text-align:left}
+.livematch-track{flex:1;display:flex;height:8px}
+.livematch-half{flex:1;height:100%;background:rgba(255,255,255,.07);display:flex;overflow:hidden}
+.livematch-half.home{justify-content:flex-end;border-radius:4px 0 0 4px;margin-right:2px}
+.livematch-half.away{justify-content:flex-start;border-radius:0 4px 4px 0;margin-left:2px}
+.livematch-half .livematch-fill{height:100%}
+.livematch-half.home .livematch-fill{background:var(--home);border-radius:4px 0 0 4px}
+.livematch-half.away .livematch-fill{background:var(--away);border-radius:0 4px 4px 0}
+
+.livematch-possession-row{display:flex;align-items:center;gap:.7rem}
+.livematch-possession-row .livematch-val{font-weight:700;font-size:.88rem;flex-shrink:0}
+.livematch-possession-track{flex:1;display:flex;height:8px;border-radius:4px;overflow:hidden}
+.livematch-possession-track .seg{height:100%}
+.livematch-possession-track .seg.a{background:var(--home)}
+.livematch-possession-track .seg.contested{background:#3b6ce0}
+.livematch-possession-track .seg.b{background:var(--away)}
+.livematch-possession-contested{font-size:.7rem;color:var(--text-dim);text-align:center;margin-top:.3rem}
+
+.livematch-actions{display:flex;justify-content:center;gap:1rem}
+
 /* ===== 좌측 전술 패널 ===== */
 .sidebar{padding:1.1rem;overflow-y:auto}
 .sb-heading{font-size:.82rem;letter-spacing:.2em;color:var(--text-dim);font-weight:700;margin:.3rem 0 .6rem}

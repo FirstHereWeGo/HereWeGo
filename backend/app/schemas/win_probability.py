@@ -58,3 +58,22 @@ class MatchSimulationResponse(BaseModel):
     scoreA: int
     scoreB: int
     events: list[MatchEvent]
+
+
+class MatchStatsRequest(WinProbabilityRequest):
+    durationMinutes: int = 90  # 이 구간(하이드레이션 브레이크 사이)의 길이
+
+
+class StatRow(BaseModel):
+    label: str
+    a: float
+    b: float
+
+
+class StatSection(BaseModel):
+    title: str
+    rows: list[StatRow]
+
+
+class MatchStatsResponse(BaseModel):
+    sections: list[StatSection]

@@ -95,7 +95,7 @@ SPAIN = Team(
         Player(id="esp-3", name="Alejandro Grimaldo", positions=["FB", "WB", "WG"], age=30, height=171, leftFoot=5, rightFoot=2, attributes=AttributeBlock(65, 75, 50, 65, 75, 80, 80, 80, 55, 50)),
         Player(id="esp-4", name="Eric García", positions=["FB", "CB", "DM"], age=24, height=182, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 60, 70, 45, 60, 75, 70, 80, 70, 70)),
         Player(id="esp-5", name="Marcos Llorente", positions=["FB", "DM", "WB", "CM", "WG"], age=30, height=184, leftFoot=3, rightFoot=5, attributes=AttributeBlock(75, 70, 70, 60, 60, 65, 65, 65, 70, 55)),
-        Player(id="esp-6", name="Mikel Merino", positions=["DM", "CM"], age=29, height=187, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 65, 80, 65, 70, 75, 75, 70, 65, 70)),
+        Player(id="esp-6", name="Mikel Merino", positions=["DM", "CM", "ST"], age=29, height=187, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 65, 80, 65, 70, 75, 75, 70, 65, 70)),
         Player(id="esp-7", name="Ferran Torres", positions=["WG", "ST"], age=25, height=184, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 80, 60, 65, 70, 60, 65, 90, 50, 35)),
         Player(id="esp-8", name="Fabián", positions=["DM", "CM", "AM"], age=29, height=189, leftFoot=5, rightFoot=3, attributes=AttributeBlock(60, 60, 65, 70, 75, 80, 75, 75, 70, 65)),
         Player(id="esp-9", name="Gavi", positions=["DM", "CM", "AM"], age=21, height=173, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 75, 70, 55, 70, 75, 75, 80, 70, 60)),

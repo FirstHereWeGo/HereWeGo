@@ -31,3 +31,7 @@ export function postWinProbability(payload) {
 export function postMatchSimulation(payload) {
   return request('/api/match-simulation', { method: 'POST', body: JSON.stringify(payload) });
 }
+
+export function postMatchStats(payload) {
+  return request('/api/match-stats', { method: 'POST', body: JSON.stringify(payload) });
+}
