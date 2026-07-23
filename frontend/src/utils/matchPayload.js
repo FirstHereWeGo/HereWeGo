@@ -1,13 +1,29 @@
 import { slotOrderPlayerIds } from './autoAssign';
 
+/** backend는 prime(예: "primekor-7")를 모르므로 실제 로스터 id("kor-7")로 되돌린다. */
+function realId(id) {
+  return id.startsWith('prime') ? id.slice(5) : id;
+}
+
 /** win-probability / match-simulation 요청의 TeamMatchConfig 하나를 만든다. */
-export function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticConfig) {
+export function buildTeamConfig(teamId, formationId, goalkeeperId, playerIds, tacticConfig, playerOverrides = []) {
   return {
     teamId,
     startingXI: { formationId, goalkeeperId, playerIds },
     tacticConfig,
-    playerOverrides: [],
+    playerOverrides,
   };
+}
+
+/** 피치 위 프라임 선수들을 실제 선수 id에 대한 PlayerOverride(스탯/나이)로 변환한다. */
+function buildPrimeOverrides(players, ids) {
+  return ids
+    .filter(id => players[id]?.prime)
+    .map(id => ({
+      playerId: realId(id),
+      attributeOverrides: { ...players[id].data.attributes },
+      ageOverride: players[id].data.age,
+    }));
 }
 
 /** GameContext의 현재 편집 상태(state)로부터 "내 팀" TeamMatchConfig를 만든다. 슬롯 수가 안 맞으면 null. */
@@ -20,7 +36,16 @@ export function buildMyTeamConfig(state) {
   );
   const playerIds = slotOrderPlayerIds(outfield, formation);
   if (!goalkeeperId || !playerIds) return null;
-  return buildTeamConfig(state.team.id, formation.id, goalkeeperId, playerIds, state.tacticConfig);
+
+  const playerOverrides = buildPrimeOverrides(state.players, [goalkeeperId, ...playerIds]);
+  return buildTeamConfig(
+    state.team.id,
+    formation.id,
+    realId(goalkeeperId),
+    playerIds.map(realId),
+    state.tacticConfig,
+    playerOverrides,
+  );
 }
 
 /** 팀의 기본 TeamTacticPreset(/api/tactics)으로 TeamMatchConfig를 만든다. */

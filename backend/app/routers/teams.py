@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-from app.data.player_presets import PRESETS
+from app.data.prime_player import PRESETS
 from app.data.teams import TEAMS
-from app.schemas.player import PlayerPreset
+from app.schemas.player import PrimePlayer
 from app.schemas.win_probability import Team
 
 router = APIRouter(prefix="/api")
@@ -14,5 +14,5 @@ def list_teams() -> list[Team]:
 
 
 @router.get("/players/presets")
-def list_player_presets() -> list[PlayerPreset]:
+def list_player_presets() -> list[PrimePlayer]:
     return PRESETS

@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
-import { getFormations, getTactics, getTeams } from '../api/client';
+import { getFormations, getPlayerPresets, getTactics, getTeams } from '../api/client';
 import { layoutFormation, GK_COORD } from '../data/formationLayout';
 
 /**
@@ -11,11 +11,12 @@ const initialState = {
   error: null,
   team: null,          // 내 팀 Team (id, name, players)
   oppTeam: null,        // 상대 팀 Team
+  primePlayers: [],       // PrimePlayer[] (전성기 프리셋, teamId로 소속팀 필터링)
   formations: [],        // Formation[]
   tacticPreset: null,     // 내 팀 TeamTacticPreset
   oppTacticPreset: null,   // 상대 팀 TeamTacticPreset
   formationId: null,
-  players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY} }
+  players: {},           // GK 포함 11명: { [id]: {data: Player, x, y, homeX, homeY, prime?} }
   selected: null,          // 피치에서 선택된 선수(교체 시 "나가는" 선수) id
   viewedId: null,          // PlayerCard에 표시 중인 선수 id — 벤치 선수 클릭 시엔 이것만 바뀜
   tacticConfig: null,      // 내 팀 현재 TacticConfig (Sidebar가 수정)
@@ -24,6 +25,11 @@ const initialState = {
 
 function isGk(player) {
   return player.positions.includes('GK');
+}
+
+/** "primekor-7" -> "kor-7". 프라임이 아니면 그대로 반환. */
+function baseId(id) {
+  return id.startsWith('prime') ? id.slice(5) : id;
 }
 
 function buildFromPreset(team, formation, preset) {
@@ -51,7 +57,7 @@ function reducer(state, action) {
     case 'LOAD_ERROR':
       return { ...state, loading: false, error: action.error };
     case 'LOAD_SUCCESS': {
-      const { team, oppTeam, formations, tacticPreset, oppTacticPreset } = action;
+      const { team, oppTeam, primePlayers, formations, tacticPreset, oppTacticPreset } = action;
       // 같은 내 팀으로 토너먼트를 이어가는 중이면(상대만 바뀜) 직전 경기에서 수정한
       // 포메이션/라인업/전술을 그대로 이어간다 — 매 라운드 기본 프리셋으로 리셋하지 않는다.
       const carryOver = state.team?.id === team.id && state.players && Object.keys(state.players).length > 0;
@@ -62,7 +68,7 @@ function reducer(state, action) {
         ...state,
         loading: false,
         error: null,
-        team, oppTeam, formations, tacticPreset, oppTacticPreset,
+        team, oppTeam, primePlayers, formations, tacticPreset, oppTacticPreset,
         formationId,
         players,
         tacticConfig,
@@ -120,7 +126,23 @@ function reducer(state, action) {
       const outId = state.selected;
       if (state.players[benchId]) return state; // 이미 선발이면 무시
       if (!outId || !state.players[outId]) return state;
-      const inPlayer = state.team.players.find(p => p.id === benchId);
+
+      const primePreset = state.primePlayers.find(p => p.id === benchId);
+      // 프라임 선수는 같은 실제 선수 자리로만 들어갈 수 있다 (예: 손흥민 프라임은 손흥민 자리에만).
+      if (primePreset && baseId(outId) !== baseId(benchId)) return state;
+      // 같은 선수(현역/프라임)가 이미 다른 자리에 나가 있으면 그 자리로만 교체할 수 있다 - 아니면
+      // 원래 자리를 비운 채로 중복 출전하게 된다.
+      const siblingSlot = Object.keys(state.players).find(pid => pid !== outId && baseId(pid) === baseId(benchId));
+      if (siblingSlot) return state;
+
+      let inPlayer;
+      if (primePreset) {
+        const basePlayer = state.team.players.find(p => p.id === baseId(benchId));
+        if (!basePlayer) return state;
+        inPlayer = { ...primePreset, positions: basePlayer.positions };
+      } else {
+        inPlayer = state.team.players.find(p => p.id === benchId);
+      }
       if (!inPlayer) return state;
 
       const outPlayer = state.players[outId];
@@ -129,7 +151,7 @@ function reducer(state, action) {
       const cur = outPlayer;
       const players = { ...state.players };
       delete players[outId];
-      players[benchId] = { data: inPlayer, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY };
+      players[benchId] = { data: inPlayer, x: cur.x, y: cur.y, homeX: cur.homeX, homeY: cur.homeY, prime: !!primePreset };
       return { ...state, players, selected: benchId, viewedId: benchId };
     }
     case 'SET_TACTIC_CONFIG':
@@ -171,14 +193,14 @@ export function useGameActions() {
   const loadMatch = useCallback(async (myTeamId, oppTeamId) => {
     dispatch({ type: 'LOAD_START' });
     try {
-      const [teams, formations, tactics] = await Promise.all([getTeams(), getFormations(), getTactics()]);
+      const [teams, primePlayers, formations, tactics] = await Promise.all([getTeams(), getPlayerPresets(), getFormations(), getTactics()]);
       const team = teams.find(t => t.id === myTeamId);
       const oppTeam = teams.find(t => t.id === oppTeamId);
       const tacticPreset = tactics.find(t => t.teamId === myTeamId);
       const oppTacticPreset = tactics.find(t => t.teamId === oppTeamId);
       if (!team || !tacticPreset) throw new Error(`선택한 내 팀(${myTeamId})의 데이터를 찾지 못했습니다`);
       if (!oppTeam || !oppTacticPreset) throw new Error(`선택한 상대 팀(${oppTeamId})의 데이터를 찾지 못했습니다`);
-      dispatch({ type: 'LOAD_SUCCESS', team, oppTeam, formations, tacticPreset, oppTacticPreset });
+      dispatch({ type: 'LOAD_SUCCESS', team, oppTeam, primePlayers, formations, tacticPreset, oppTacticPreset });
     } catch (err) {
       dispatch({ type: 'LOAD_ERROR', error: err.message });
     }
