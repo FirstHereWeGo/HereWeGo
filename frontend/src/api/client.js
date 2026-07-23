@@ -24,6 +24,10 @@ export function getTactics() {
   return request('/api/tactics');
 }
 
+export function getPlayerPresets() {
+  return request('/api/players/presets');
+}
+
 export function postWinProbability(payload) {
   return request('/api/win-probability', { method: 'POST', body: JSON.stringify(payload) });
 }

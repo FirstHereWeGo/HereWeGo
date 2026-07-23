@@ -5,10 +5,12 @@ import { jerseyNumber } from '../utils/playerDisplay';
 export default function PlayerCard() {
   const state = useGameState();
   const id = state.viewedId;
+  const primeMatch = id ? state.primePlayers.find(p => p.id === id) : null;
   const d = id
     ? (state.players[id]?.data
       ?? state.team?.players.find(p => p.id === id)
-      ?? state.oppTeam?.players.find(p => p.id === id))
+      ?? state.oppTeam?.players.find(p => p.id === id)
+      ?? primeMatch)
     : null;
 
   if (!d) {
@@ -23,19 +25,28 @@ export default function PlayerCard() {
     );
   }
 
+  const isPrime = !!primeMatch;
+  // PrimePlayer에는 positions가 없어서 기준이 된 원래 선수(teams.py의 kor-7 등)에서 가져온다.
+  const basePlayer = isPrime
+    ? (state.team?.players.find(p => p.id === d.id.replace(/^prime/, ''))
+      ?? state.oppTeam?.players.find(p => p.id === d.id.replace(/^prime/, '')))
+    : null;
+  const positions = isPrime ? (basePlayer?.positions ?? []) : d.positions;
+  const photoId = isPrime ? d.id.replace(/^prime/, '') : d.id;
+
   const no = jerseyNumber(d.id);
-  const isGk = d.positions.includes('GK');
-  const keySet = new Set(KEY_ATTRS[d.positions[0]] || []);
+  const isGk = isPrime ? 'overall' in d.attributes : d.positions.includes('GK');
+  const keySet = new Set(KEY_ATTRS[positions[0]] || []);
 
   return (
-    <div className="pcard">
+    <div className={`pcard ${isPrime ? 'prime-active' : ''}`}>
       <div className="pcard-top">
         <div className="photo-ph" style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111' }}>
           <span className="photo-no num">{no}</span>
           <span className="photo-note">PHOTO</span>
           <img
-            key={d.id}
-            src={`/players/${d.id}.png`}
+            key={photoId}
+            src={`/players/${photoId}.png`}
             alt={d.name}
             style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -49,9 +60,10 @@ export default function PlayerCard() {
         <div className="pcard-head">
           <div className="pcard-name">{d.name}</div>
           <div className="pcard-pos">
-            NO.{no} · {d.positions.join('/')}
+            NO.{no} · {positions.join('/')}
           </div>
           <div className="bio-row">
+            {isPrime && <span className="bio-chip prime">⭐ {d.label}</span>}
             <span className="bio-chip">{d.height}cm</span>
             <span className="bio-chip">{d.age}세</span>
             <span className="bio-chip">왼발 {d.leftFoot}/5</span>

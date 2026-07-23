@@ -401,6 +401,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .bio-chip{font-size:.78rem;font-weight:700;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:5px;padding:.24rem .55rem;color:var(--text-dim)}
 .bio-chip.fit-ok{color:var(--green-bright);border-color:rgba(52,224,122,.4)}
 .bio-chip.fit-bad{color:var(--danger);border-color:rgba(239,83,80,.4)}
+.bio-chip.prime{color:var(--gold);border-color:rgba(242,193,78,.45);background:rgba(242,193,78,.08)}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
 .statline{display:flex;align-items:center;gap:.45rem}
 .statline .sname{width:3.8rem;font-size:.78rem;color:var(--text-dim);flex-shrink:0}
@@ -418,13 +419,18 @@ input[type=range]{width:100%;accent-color:var(--green)}
 
 /* 벤치 */
 .bench{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:1rem}
-.bench h4{font-size:.82rem;letter-spacing:.18em;color:var(--text-dim);margin-bottom:.45rem}
+.bench h4{font-size:.82rem;letter-spacing:.18em;color:var(--text-dim);margin-bottom:0}
+.bench-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.45rem}
+.btn-prime-toggle{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--gold);background:rgba(242,193,78,.08);border:1px solid rgba(242,193,78,.4);border-radius:999px;padding:.3rem .7rem;flex-shrink:0}
+.btn-prime-toggle:hover{background:rgba(242,193,78,.16)}
+.btn-prime-toggle.on{background:var(--gold);color:#211500;box-shadow:0 0 14px rgba(242,193,78,.35)}
 .subs-left{font-size:.86rem;font-weight:700;color:var(--gold);margin-bottom:.5rem}
 .bench-hint{font-size:.78rem;color:var(--text-dim);margin-bottom:.6rem;line-height:1.55}
 .bench-item{display:flex;align-items:center;gap:.65rem;padding:.48rem .5rem;border-radius:8px;margin-bottom:.3rem;cursor:pointer}
 .bench-item:hover{background:rgba(255,255,255,.03)}
 .bench-item.viewed{background:rgba(52,224,122,.08);border:1px solid rgba(52,224,122,.35)}
 .bench-item .bdisc{width:32px;height:32px;border-radius:50%;background:rgba(215,38,29,.25);border:1px solid rgba(215,38,29,.5);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani';font-weight:700;font-size:.9rem;flex-shrink:0}
+.bench-item .bdisc.prime{background:rgba(242,193,78,.18);border-color:rgba(242,193,78,.55);color:var(--gold)}
 .bench-item .bname{flex:1;font-size:.92rem;font-weight:500;min-width:0}
 .bench-item .bstatus{font-size:.74rem;color:var(--text-dim)}
 .btn-sub{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--green-bright);font-size:.8rem;font-weight:700;padding:.36rem .65rem;border-radius:6px}

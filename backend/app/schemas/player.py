@@ -86,15 +86,16 @@ class Player(BaseModel):
     attributes: Union[GoalkeepingBlock, AttributeBlock]
 
 
-class PlayerPreset(BaseModel):
+class PrimePlayer(BaseModel):
     id: str
+    teamId: str  # 소속 국가대표팀 (예: primekor-7 -> teams.py의 kor-7 선수에 소속)
+    name: str
     label: str
     age: int
     height: int  # cm
-    weight: int  # kg
     leftFoot: int  # 1~5
     rightFoot: int  # 1~5
-    attributes: AttributeBlock
+    attributes: Union[GoalkeepingBlock, AttributeBlock]
 
 
 class PlayerOverride(BaseModel):
