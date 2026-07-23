@@ -28,3 +28,7 @@ async def call_win_probability(payload: dict) -> dict:
 
 async def call_match_simulation(payload: dict) -> dict:
     return await _post("/match-simulation", payload)
+
+
+async def call_match_stats(payload: dict) -> dict:
+    return await _post("/match-stats", payload)

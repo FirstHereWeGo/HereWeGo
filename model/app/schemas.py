@@ -242,3 +242,22 @@ class MatchSimulationOutput(BaseModel):
     scoreA: int
     scoreB: int
     events: list[MatchEvent]
+
+
+class MatchStatsInput(WinProbabilityInput):
+    durationMinutes: int = 90  # 이 구간(하이드레이션 브레이크 사이)의 길이 - match-simulation과 동일한 개념
+
+
+class StatRow(BaseModel):
+    label: str
+    a: float
+    b: float
+
+
+class StatSection(BaseModel):
+    title: str
+    rows: list[StatRow]
+
+
+class MatchStatsOutput(BaseModel):
+    sections: list[StatSection]

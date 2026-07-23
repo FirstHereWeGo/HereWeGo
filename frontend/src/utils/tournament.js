@@ -40,6 +40,66 @@ export function losersFromMatches(playedMatches) {
   return playedMatches.map(m => (m.result.winnerId === m.home.id ? m.away : m.home));
 }
 
+/**
+ * 하이드레이션 브레이크 구간표 — /api/match-simulation·/api/match-stats에
+ * durationMinutes/minuteOffset(또는 durationMinutes)으로 그대로 넘긴다.
+ * 각 구간은 그 시점의 최신 전술로 그 구간만 새로 계산되고(선행 계산 없음),
+ * breakLabel은 구간이 끝난 직후 보여줄 브레이크 화면 제목이다.
+ */
+export const MATCH_PHASES = [
+  { phase: 'REG_1A', duration: 25, offset: 0, breakLabel: '전반 25분 · 하이드레이션 브레이크' },
+  { phase: 'REG_1B', duration: 20, offset: 25, breakLabel: '전반 종료' },
+  { phase: 'REG_2A', duration: 25, offset: 45, breakLabel: '후반 25분 · 하이드레이션 브레이크' },
+  { phase: 'REG_2B', duration: 20, offset: 70, breakLabel: '경기 종료' },
+];
+
+export const EXTRA_TIME_PHASES = [
+  { phase: 'ET_1', duration: 15, offset: 90, breakLabel: '연장 전반 종료' },
+  { phase: 'ET_2', duration: 15, offset: 105, breakLabel: '연장 후반 종료' },
+];
+
+/**
+ * 구간별 통계 델타를 누적한다. "점유"는 누적 카운트가 아니라 그 구간의 순간값이라
+ * 합산하지 않고 최신 구간 값으로 교체한다. 섹션/행 순서는 model이 항상 같은
+ * 순서로 만들어주므로(match_stats.py) 인덱스로 매칭한다.
+ */
+export function mergeMatchStats(prevStats, delta) {
+  if (!prevStats) return delta;
+  return {
+    sections: delta.sections.map((section, si) => {
+      const prevSection = prevStats.sections[si];
+      return {
+        title: section.title,
+        rows: section.rows.map((row, ri) => {
+          const prevRow = prevSection?.rows[ri];
+          if (!prevRow || row.label === '점유') return row;
+          return { label: row.label, a: prevRow.a + row.a, b: prevRow.b + row.b };
+        }),
+      };
+    }),
+  };
+}
+
+/**
+ * 골은 team_rating 기반 포아송으로, "슈팅" 통계는 완전히 별도의 랜덤값으로 생성되다 보니
+ * 우연히 골 수보다 온 타겟 슈팅 수가 적게 나올 수 있다 — 골이 나려면 최소 그만큼의
+ * 온 타겟 슈팅이 있었어야 하므로 누적 스코어를 하한선으로 보정한다.
+ */
+export function clampShotsToGoals(stats, scoreA, scoreB) {
+  return {
+    sections: stats.sections.map(section => {
+      if (section.title !== '슈팅') return section;
+      return {
+        title: section.title,
+        rows: section.rows.map(row => {
+          if (row.label !== '온 타겟') return row;
+          return { label: row.label, a: Math.max(row.a, scoreA), b: Math.max(row.b, scoreB) };
+        }),
+      };
+    }),
+  };
+}
+
 /** 승부차기 - 팀 체급과 무관하게 고정 확률(75%)로만 진행되는 순수 랜덤 승부. */
 export function simulatePenalties() {
   let scoreA = 0;

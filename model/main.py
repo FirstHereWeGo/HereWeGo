@@ -4,13 +4,14 @@ composite index 계산(속성->합성등급, 전술->지표)과 확률 공식은
 """
 from fastapi import FastAPI
 
-from app.routers import match_simulation, win_probability, xg
+from app.routers import match_simulation, match_stats, win_probability, xg
 
 app = FastAPI()
 
 app.include_router(xg.router)
 app.include_router(win_probability.router)
 app.include_router(match_simulation.router)
+app.include_router(match_stats.router)
 
 
 @app.get("/health")

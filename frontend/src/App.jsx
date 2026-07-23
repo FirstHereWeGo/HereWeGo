@@ -45,6 +45,7 @@ function AppInner() {
           <Tournament
             myTeamId={teams.myTeamId}
             onBack={goToBoard}
+            onHome={() => setView('landing')}
           />
         </div>
       )}
