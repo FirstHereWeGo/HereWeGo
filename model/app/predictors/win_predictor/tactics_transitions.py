@@ -40,12 +40,12 @@ def apply_transitions(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 12.0
         else:
             # 패널티: 역압박을 수행할 전방/중원 자원의 속도·민첩성·위치선정이 부족함
-            _record_penalty(context, "TR_PRESS_AFTER_LOSS_WEAK")
+            _record_penalty(context, "역압박을 수행할 전방/중원 자원의 속도·민첩성·위치선정이 부족함")
             rating_adjustment -= 32.0
         # 체력/연령 페널티
         if age_avg >= 32 or strength_avg <= 9:
             # 패널티: 고령화되었거나 몸싸움이 약해 역압박 유지가 어려움
-            _record_penalty(context, "TR_PRESS_AFTER_LOSS_STAMINA_WEAK")
+            _record_penalty(context, "고령화되었거나 몸싸움이 약해 역압박 유지가 어려움")
             rating_adjustment *= 0.8
 
     if counter_after_win:
@@ -55,7 +55,7 @@ def apply_transitions(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 10.0
         else:
             # 패널티: 역습 전환에 필요한 공격수의 주력/위치선정이 부족함
-            _record_penalty(context, "TR_COUNTER_AFTER_WIN_WEAK")
+            _record_penalty(context, "역습 전환에 필요한 공격수의 주력/위치선정이 부족함")
             rating_adjustment -= 12.0
 
     if gk_distribution_quick:
@@ -67,7 +67,7 @@ def apply_transitions(tc: TacticConfig, context: TeamContext) -> float:
                 rating_adjustment += 1.8
             else:
                 # 패널티: 짧은 배급을 소화할 골키퍼/센터백의 안정성과 패스가 부족함
-                _record_penalty(context, "TR_GK_SHORT_DISTRIBUTION_WEAK")
+                _record_penalty(context, "짧은 배급을 소화할 골키퍼/센터백의 안정성과 패스가 부족함")
                 rating_adjustment -= 20.0
         else:  # 롱 배급
             st_height_avg = avg(lambda p: getattr(p, "height", 0), attackers)
@@ -75,7 +75,7 @@ def apply_transitions(tc: TacticConfig, context: TeamContext) -> float:
             long_dist_score = (st_height_avg - 180) * 0.02 + (st_strength_avg - 10) * 0.12
             if long_dist_score < 0:
                 # 패널티: 롱 배급을 받을 공격수의 제공권/몸싸움이 부족함
-                _record_penalty(context, "TR_GK_LONG_DISTRIBUTION_WEAK")
+                _record_penalty(context, "롱 배급을 받을 공격수의 제공권/몸싸움이 부족함")
                 rating_adjustment += long_dist_score * 6.0
             else:
                 rating_adjustment += long_dist_score

@@ -27,27 +27,20 @@ POSITION_COMPATIBILITY = {
 }
 
 
+def _record_penalty(context: TeamContext, code: str) -> None:
+    penalties = getattr(context, "penalty_codes", None)
+    if penalties is None:
+        penalties = []
+        setattr(context, "penalty_codes", penalties)
+    penalties.append(code)
+    setattr(TeamContext, "_last_penalty_codes", list(penalties))
+
+
 def _position_mismatch_penalty(slot_pos: str, player_positions: list[str]) -> float:
     """포지션 미스매치를 3단계로 나눠 반영한다."""
     if slot_pos in player_positions:
         return 0.0
-
-    same_family_penalty = WEIGHTS.get("mismatch_penalty_same_family", 14.0)
-    adjacent_line_penalty = WEIGHTS.get("mismatch_penalty_adjacent_line", 34.0)
-    wrong_role_penalty = WEIGHTS.get("mismatch_penalty_wrong_role", 48.0)
-
-    compat = POSITION_COMPATIBILITY.get(slot_pos, {})
-    for pos in player_positions:
-        if pos in compat.get("same_family", set()):
-            return same_family_penalty
-        if pos in compat.get("adjacent_line", set()):
-            return adjacent_line_penalty
-
-    primary = player_positions[0] if player_positions else None
-    if primary is not None and POSITION_GROUPS.get(primary) == POSITION_GROUPS.get(slot_pos):
-        return same_family_penalty
-
-    return wrong_role_penalty
+    return 96.0
 
 
 def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> float:
@@ -123,7 +116,10 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         for i, pos in enumerate(formation_positions):
             if i < len(team_input.players):
                 p = team_input.players[i]
-                rating -= _position_mismatch_penalty(pos, list(getattr(p, "positions", [])))
+                penalty = _position_mismatch_penalty(pos, list(getattr(p, "positions", [])))
+                if penalty > 0:
+                    rating -= penalty
+                    _record_penalty(context, "선수의 주 포지션이 아니어서 제 기량을 발휘하기 어려움")
     except Exception:
         pass
 

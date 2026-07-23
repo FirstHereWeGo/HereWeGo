@@ -155,6 +155,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .analytics-tabs{display:flex;gap:.4rem}
 .analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
 .analytics-card{padding:1.1rem}
+.analytics-card-large{grid-column:span 2;min-height:200px}
 .analytics-card-title{font-size:.78rem;letter-spacing:.14em;color:var(--text-dim);font-weight:700;margin-bottom:.9rem;text-transform:uppercase}
 .analytics-chip-list{display:flex;flex-wrap:wrap;gap:.5rem}
 .analytics-chip{display:flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border-radius:999px;font-size:.82rem;font-weight:600;border:1px solid var(--glass-line);background:rgba(255,255,255,.03)}

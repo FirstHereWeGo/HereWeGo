@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { computeTeamAnalytics } from '../utils/teamAnalytics';
 import { ATTRIBUTE_LABELS } from '../data/positionLabels';
+import { TACTIC_GROUPS } from '../data/tacticFields';
 import { jerseyNumber } from '../utils/playerDisplay';
 import RadarChart from './RadarChart';
 import WinProbabilityPanel from './WinProbabilityPanel';
@@ -14,6 +15,13 @@ const TABS = [
 const PLAYER_A_COLOR = '#34e07a'; // 팀 분석 탭의 공격력 레이더 색
 const MY_COLOR = '#34e07a';
 const OPP_COLOR = '#ef5350';
+
+const TACTIC_LABELS = Object.values(TACTIC_GROUPS)
+  .flatMap(group => group.flatMap(subgroup => subgroup.fields))
+  .reduce((acc, field) => {
+    acc[field.key] = field.label;
+    return acc;
+  }, {});
 
 function AttrChips({ title, items, tone }) {
   return (
@@ -30,10 +38,41 @@ function AttrChips({ title, items, tone }) {
   );
 }
 
+function PenaltyChips({ title, items, tone }) {
+  if (!items || items.length === 0) {
+    return (
+      <div className="analytics-card glass analytics-card-large">
+        <div className="analytics-card-title">{title}</div>
+        <div className="analytics-empty">분석 데이터가 없습니다. 먼저 예측 승률을 계산해주세요.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="analytics-card glass analytics-card-large">
+      <div className="analytics-card-title">{title}</div>
+      <span className="analytics-chip-list">
+        {items.map(p => (
+          <span key={p.key} className={`analytics-chip ${tone}`}>
+            {p.label}
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 function TeamAnalysisTab({ players, myTeamName, oppTeamName, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability }) {
   const { attack, defense, strengths, weaknesses, gkOverall, max } = computeTeamAnalytics(players);
   const toAxes = arr => arr.map(s => ({ key: s.key, label: s.label }));
   const toValues = arr => Object.fromEntries(arr.map(s => [s.key, s.value]));
+
+  const topPenalties = winProb?.penalties
+    ? [...winProb.penalties]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 2)
+        .map(penalty => ({ key: penalty, label: penalty }))
+    : [];
 
   return (
     <div className="analytics-grid">
@@ -74,6 +113,7 @@ function TeamAnalysisTab({ players, myTeamName, oppTeamName, winProb, prevWinPro
 
       <AttrChips title="강점 TOP 3" items={strengths} tone="good" />
       <AttrChips title="약점 TOP 3" items={weaknesses} tone="bad" />
+      <PenaltyChips title="전술적 결함" items={topPenalties} tone="bad" />
     </div>
   );
 }
@@ -163,6 +203,13 @@ function PlayerCompareTab({ team, oppTeam }) {
 
 export default function TeamAnalyticsBoard({ team, oppTeam, players, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability, onBack }) {
   const [tab, setTab] = useState('team');
+
+  useEffect(() => {
+    if (!winProb) {
+      onCalculateWinProbability();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="analytics-page">

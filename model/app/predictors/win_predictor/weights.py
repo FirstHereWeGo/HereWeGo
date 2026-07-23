@@ -12,7 +12,4 @@ WEIGHTS = {
     "marking_w": 0.75,
     "gk_w": 1.6,
     "foot_w": 0.075,  # 발(왼발/오른발) 능력치 1개당 가중치 (1..5)
-    "mismatch_penalty_same_family": 14.0,
-    "mismatch_penalty_adjacent_line": 34.0,
-    "mismatch_penalty_wrong_role": 48.0,
 }

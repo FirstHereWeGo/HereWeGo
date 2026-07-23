@@ -37,7 +37,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 12.0
         else:
             # 패널티: 공중 경합을 받을 타깃 스트라이커의 신장/몸싸움이 부족함
-            _record_penalty(context, "OH_HIGH_CROSS_TARGET_WEAK")
+            _record_penalty(context, "공중 경합을 받을 타깃 스트라이커의 신장/몸싸움이 부족함")
             rating_adjustment -= 16.0
 
     # 로우 크로싱 -> 주력/민첩성/위치선정/골결정력
@@ -50,7 +50,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
         low_cross_score = st_pace_avg + st_agility_avg + st_pos_avg + st_fin_avg - 40
         if low_cross_score < 0:
             # 패널티: 로우 크로스에 필요한 침투/결정력이 부족함
-            _record_penalty(context, "OH_LOW_CROSS_FINISHER_WEAK")
+            _record_penalty(context, "로우 크로스에 필요한 침투/결정력이 부족함")
             rating_adjustment += low_cross_score * 0.48
         else:
             rating_adjustment += low_cross_score * 0.12
@@ -65,7 +65,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 1.8 + (st_pace_avg - 10) * 0.05
         else:
             # 패널티: 얼리 크로스를 넣을 측면 전개와 박스 침투 타이밍이 부족함
-            _record_penalty(context, "OH_EARLY_CROSS_SUPPORT_WEAK")
+            _record_penalty(context, "얼리 크로스를 넣을 측면 전개와 박스 침투 타이밍이 부족함")
             rating_adjustment -= 16.0
 
     # 드리블 위주 플레이
@@ -76,7 +76,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 12.0
         else:
             # 패널티: 드리블 전개를 맡기기엔 공격진의 드리블/민첩성이 부족함
-            _record_penalty(context, "OH_DRIBBLE_MORE_WEAK")
+            _record_penalty(context, "드리블 전개를 맡기기엔 공격진의 드리블/민첩성이 부족함")
             rating_adjustment -= 28.0
 
     # 침착한 플레이
@@ -89,7 +89,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
         else:
             # 점유율은 늘지만 결정력은 낮음 -> rating_adjustment을 낮춰 무승부 경향을 높임
             # 패널티: 침착한 전개에 필요한 시야/패스/위치선정이 부족함
-            _record_penalty(context, "OH_PLAY_CALMLY_CREATION_WEAK")
+            _record_penalty(context, "침착한 전개에 필요한 시야/패스/위치선정이 부족함")
             rating_adjustment -= 16.0
 
     # 자유로운 플레이
@@ -100,7 +100,7 @@ def apply_opponent_half(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment *= 1.12
         else:
             # 패널티: 자유로운 전술을 받쳐줄 전체 시야/위치선정 수준이 부족함
-            _record_penalty(context, "OH_PLAY_FOR_FREEDOM_STRUCTURE_WEAK")
+            _record_penalty(context, "자유로운 전술을 받쳐줄 전체 시야/위치선정 수준이 부족함")
             rating_adjustment -= 56.0
 
     return rating_adjustment
