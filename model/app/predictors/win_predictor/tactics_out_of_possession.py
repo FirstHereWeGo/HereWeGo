@@ -39,7 +39,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
     if dline > 70 and pressing > 70:
         if cb_pace_avg <= 11 or cb_agil_avg <= 11:
             # 패널티: 높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함
-            _record_penalty(context, "OOP_HIGH_LINE_SLOW_CB")
+            _record_penalty(context, "높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함")
             rating_adjustment -= 64.0
         else:
             rating_adjustment += 10.0
@@ -50,7 +50,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 8.0
         else:
             # 패널티: 낮은 블록을 유지할 센터백 몸싸움/신장/마킹이 부족함
-            _record_penalty(context, "OOP_LOW_BLOCK_WEAK_CB")
+            _record_penalty(context, "낮은 블록을 유지할 센터백 몸싸움/신장/마킹이 부족함")
             rating_adjustment -= 24.0
 
     # 압박 강도 효과
@@ -62,7 +62,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
         pressing_score = press_tackle + press_pos + press_pace - 30
         # 패널티: 강한 압박을 걸기엔 중원/수비의 태클·위치선정·주력이 부족함
         if pressing_score < 0:
-            _record_penalty(context, "OOP_PRESSING_CORE_WEAK")
+            _record_penalty(context, "강한 압박을 걸기엔 중원/수비의 태클·위치선정·주력이 부족함")
             rating_adjustment += pressing_score * 0.48
         else:
             rating_adjustment += pressing_score * 0.12
@@ -75,7 +75,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 8.0
         else:
             # 패널티: 강한 태클 지시를 소화할 전체 태클/몸싸움이 부족함
-            _record_penalty(context, "OOP_HARD_TACKLE_WEAK")
+            _record_penalty(context, "강한 태클 지시를 소화할 전체 태클/몸싸움이 부족함")
             rating_adjustment -= 24.0
     else:  # 서서 버티기(stay_on_feet)
         team_pos_avg = avg(lambda p: attr(p, "positioning"), field_players)
@@ -83,7 +83,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
         stay_score = team_pos_avg + team_mark_avg - 20
         # 패널티: 서서 버티기 전술인데 전체 위치선정/마킹이 부족함
         if stay_score < 0:
-            _record_penalty(context, "OOP_STAY_ON_FEET_WEAK")
+            _record_penalty(context, "서서 버티기 전술인데 전체 위치선정/마킹이 부족함")
             rating_adjustment += stay_score * 0.28
         else:
             rating_adjustment += stay_score * 0.07
@@ -94,7 +94,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 12.0
         else:
             # 패널티: 오프사이드 트랩을 운영할 센터백 위치선정/시야가 부족함
-            _record_penalty(context, "OOP_OFFSIDE_TRAP_WEAK")
+            _record_penalty(context, "오프사이드 트랩을 운영할 센터백 위치선정/시야가 부족함")
             rating_adjustment -= 48.0
 
     # 수비 형태 & 크로스 허용
@@ -103,7 +103,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 10.0
         else:
             # 패널티: 좁은 수비 형태에서 크로스를 허용했을 때 제공권 대응이 약함
-            _record_penalty(context, "OOP_NARROW_SHAPE_CROSS_WEAK")
+            _record_penalty(context, "좁은 수비 형태에서 크로스를 허용했을 때 제공권 대응이 약함")
             rating_adjustment -= 16.0
 
     if defensive_shape == "wide" and not allow_crosses:
@@ -115,7 +115,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             rating_adjustment += 8.0
         else:
             # 패널티: 넓은 수비 형태와 크로스 차단을 소화할 측면 수비 자원이 부족함
-            _record_penalty(context, "OOP_WIDE_SHAPE_CROSS_STOP_WEAK")
+            _record_penalty(context, "넓은 수비 형태와 크로스 차단을 소화할 측면 수비 자원이 부족함")
             rating_adjustment -= 24.0
 
     return rating_adjustment
