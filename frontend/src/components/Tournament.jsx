@@ -12,7 +12,15 @@ import {
   mergeMatchStats,
   clampShotsToGoals,
 } from '../utils/tournament';
+import { buildStatGroups } from '../utils/liveMatchStats';
 import BracketLines from './BracketLines';
+import LiveMatchDashboard from './LiveMatchDashboard';
+
+// 대시보드는 실제 유니폼 색 대신, 국가 조합에 따라 우연히 색이 겹쳐도(예: 둘 다 빨강 계열)
+// 항상 구분되도록 "내 팀=초록/상대=빨강" 고정 팔레트를 쓴다 - WinProbabilityPanel의
+// .mine/.opp 점 색상과 동일한 값이다.
+const MY_COLOR = '#34e07a';
+const OPP_COLOR = '#ef5350';
 
 const STAGE_TITLE = { qf: 'QUARTER-FINALS', sf: 'SEMI-FINALS', final: 'FINAL', done: 'CHAMPION' };
 
@@ -25,64 +33,22 @@ async function simulatePhase(teamA, teamB, phaseDef) {
   return { sim, stats };
 }
 
-function continueLabel(lm) {
-  if (lm.finished) return '다음 경기로';
+function continueLabel(lm, stage, myTeamId) {
+  if (lm.finished) {
+    const winnerId = lm.pso
+      ? (lm.pso.scoreA > lm.pso.scoreB ? lm.match.home.id : lm.match.away.id)
+      : (lm.scoreA > lm.scoreB ? lm.match.home.id : lm.match.away.id);
+    const iWon = winnerId === myTeamId;
+    if (stage === 'qf') return iWon ? '4강으로' : '다음 경기로';
+    if (stage === 'sf') return iWon ? '결승으로' : '3,4위전으로';
+    return '다음 경기로';
+  }
   const atEndOfRegular = lm.phaseIndex === MATCH_PHASES.length - 1 && lm.phases.length === MATCH_PHASES.length;
   if (atEndOfRegular && lm.scoreA === lm.scoreB) return '연장전 시작';
   return '계속 진행';
 }
 
-/** "슈팅" 섹션의 전체 슈팅 수 = 온 타겟 + 오프 타겟 (저장하지 않고 표시할 때만 계산). */
-function shotsTotal(section) {
-  const onTarget = section.rows.find(r => r.label === '온 타겟');
-  const offTarget = section.rows.find(r => r.label === '오프 타겟');
-  return { a: (onTarget?.a ?? 0) + (offTarget?.a ?? 0), b: (onTarget?.b ?? 0) + (offTarget?.b ?? 0) };
-}
-
 /** a:b를 각자 절반 트랙 기준 채움 비율(%)로 바꾼다 — "7:3이면 끝을 10으로 본 7:3 비율". */
-function barPct(a, b) {
-  const total = a + b;
-  if (total <= 0) return { left: 0, right: 0 };
-  return { left: (a / total) * 100, right: (b / total) * 100 };
-}
-
-function StatBarRow({ label, a, b }) {
-  const { left, right } = barPct(a, b);
-  return (
-    <div className="livematch-row">
-      <div className="livematch-row-label">{label}</div>
-      <div className="livematch-row-bar">
-        <span className="livematch-val">{a}</span>
-        <div className="livematch-track">
-          <div className="livematch-half home"><div className="livematch-fill" style={{ width: `${left}%` }} /></div>
-          <div className="livematch-half away"><div className="livematch-fill" style={{ width: `${right}%` }} /></div>
-        </div>
-        <span className="livematch-val">{b}</span>
-      </div>
-    </div>
-  );
-}
-
-/** 점유 전용 바 - A%/경합%/B%가 하나로 이어진 풀폭 바(사이드바 끝까지)로 표시된다. */
-function PossessionBar({ a, b }) {
-  const contested = Math.max(0, 100 - a - b);
-  return (
-    <div className="livematch-row livematch-possession">
-      <div className="livematch-row-label">점유</div>
-      <div className="livematch-possession-row">
-        <span className="livematch-val">{a}%</span>
-        <div className="livematch-possession-track">
-          <div className="seg a" style={{ width: `${a}%` }} />
-          <div className="seg contested" style={{ width: `${contested}%` }} />
-          <div className="seg b" style={{ width: `${b}%` }} />
-        </div>
-        <span className="livematch-val">{b}%</span>
-      </div>
-      <div className="livematch-possession-contested">{contested}% 경합 상황</div>
-    </div>
-  );
-}
-
 function TeamRow({ team, won, score }) {
   return (
     <div className={`bracket-team ${won ? 'winner' : ''}`}>
@@ -115,6 +81,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
   const [detail, setDetail] = useState(null);
   const [liveMatch, setLiveMatch] = useState(null); // 사용자 팀 경기가 구간별로 진행 중일 때만 값이 있음
   const [pendingOthers, setPendingOthers] = useState([]); // 같은 라운드의 다른 경기 결과 - 내 경기가 끝나야 대진표에 함께 반영
+  const [flowHistory, setFlowHistory] = useState([]); // 대시보드 모멘텀 스파크라인용 - 구간마다 그 시점 누적 점유율 스냅샷
 
   const gridRef = useRef(null);
   const qfRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -196,6 +163,12 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     }
   }
 
+  /** 대시보드 흐름 추이 스파크라인용 - 이 시점까지 누적된 점유율 스냅샷. */
+  function possessionSnapshot(stats, minute) {
+    const possession = buildStatGroups(stats).flow.find(r => r.label === '점유');
+    return { minute, possessionA: possession?.a ?? 0, possessionB: possession?.b ?? 0 };
+  }
+
   /** "경기 시작" - 내 경기가 아닌 매치는 기존처럼 즉시 끝내고, 내 경기는 구간별 진행을 시작한다. */
   async function handleStartMatch() {
     if (!bracket || simulating || liveMatch) return;
@@ -218,6 +191,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       const teamA = configFor(mine.home);
       const teamB = configFor(mine.away);
       const { sim, stats } = await simulatePhase(teamA, teamB, MATCH_PHASES[0]);
+      const clampedStats = clampShotsToGoals(stats, sim.scoreA, sim.scoreB);
       setLiveMatch({
         match: mine,
         phases: MATCH_PHASES,
@@ -225,10 +199,11 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         scoreA: sim.scoreA,
         scoreB: sim.scoreB,
         events: sim.events,
-        stats: clampShotsToGoals(stats, sim.scoreA, sim.scoreB),
+        stats: clampedStats,
         finished: false,
         pso: null,
       });
+      setFlowHistory([possessionSnapshot(clampedStats, MATCH_PHASES[0].offset + MATCH_PHASES[0].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -275,6 +250,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         scoreA: newScoreA, scoreB: newScoreB, events: newEvents, stats: newStats,
         finished, pso,
       });
+      setFlowHistory(h => [...h, possessionSnapshot(newStats, phases[nextIndex].offset + phases[nextIndex].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -291,6 +267,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     const mineResult = { ...match, result: { scoreA, scoreB, events, pso, winnerId } };
     const matches = currentStageMatches();
     setLiveMatch(null);
+    setFlowHistory([]);
     finalizeRound(matches, mineResult, pendingOthers);
     setPendingOthers([]);
   }
@@ -322,6 +299,9 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     ? (bracket.final.result.winnerId === bracket.final.home.id ? bracket.final.home : bracket.final.away)
     : null;
   const upcomingOpponentId = myUpcomingOpponentId();
+  const homeIsMine = liveMatch?.match.home.id === myTeamId;
+  const homeGoals = liveMatch?.events.filter(e => e.team === 'teamA') ?? [];
+  const awayGoals = liveMatch?.events.filter(e => e.team === 'teamB') ?? [];
 
   return (
     <section className="view-board">
@@ -369,7 +349,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       <div className="bracket-bottom-bar">
         {stage !== 'done' ? (
           <>
-            <button className="btn-ghost" disabled={!upcomingOpponentId} onClick={() => onBack(upcomingOpponentId)}>
+            <button className="cta" disabled={!upcomingOpponentId} onClick={() => onBack(upcomingOpponentId)}>
               전술 수정
             </button>
             <button className="cta" disabled={simulating || !!liveMatch} onClick={handleStartMatch}>
@@ -406,42 +386,46 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       {liveMatch && (
         <div className="modal-backdrop">
           <div className="modal-card glass livematch-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">
-              {liveMatch.match.home.name} {liveMatch.scoreA} : {liveMatch.scoreB} {liveMatch.match.away.name}
+            <div className="livematch-scoreboard">
+              <div className={`livematch-scoreboard-team ${homeIsMine ? 'mine' : 'opp'}`}>{liveMatch.match.home.name}</div>
+              <div className="livematch-scoreboard-score num">{liveMatch.scoreA} : {liveMatch.scoreB}</div>
+              <div className={`livematch-scoreboard-team ${homeIsMine ? 'opp' : 'mine'}`}>{liveMatch.match.away.name}</div>
             </div>
-            <div className="timeline-panel modal-timeline">
-              {liveMatch.events.length === 0 && <div className="timeline-empty">득점 기록 없음</div>}
-              {liveMatch.events.map((e, i) => (
-                <div key={i} className={`timeline-chip ${e.team === 'teamA' ? 'home' : 'away'}`}>
-                  {e.minute}' ⚽ {e.scorer} ({e.team === 'teamA' ? liveMatch.match.home.id.toUpperCase() : liveMatch.match.away.id.toUpperCase()})
+            {liveMatch.events.length === 0 ? (
+              <div className="timeline-panel modal-timeline"><div className="timeline-empty">득점 기록 없음</div></div>
+            ) : (
+              <div className="livematch-goals">
+                <div className="livematch-goals-col home">
+                  {homeGoals.map((e, i) => (
+                    <div key={i} className={`timeline-chip ${homeIsMine ? 'mine' : 'opp'}`}>{e.minute}' ⚽ {e.scorer}</div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <div className="livematch-goals-col away">
+                  {awayGoals.map((e, i) => (
+                    <div key={i} className={`timeline-chip ${homeIsMine ? 'opp' : 'mine'}`}>{e.minute}' ⚽ {e.scorer}</div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="livematch-phase-label">{liveMatch.phases[liveMatch.phaseIndex].breakLabel}</div>
             {liveMatch.pso && (
               <div className="modal-pso">승부차기 {liveMatch.pso.scoreA} : {liveMatch.pso.scoreB}</div>
             )}
 
-            <div className="livematch-sections">
-              {liveMatch.stats.sections.map(section => (
-                <div className="livematch-section" key={section.title}>
-                  <div className="livematch-section-title">{section.title}</div>
-                  {section.title === '슈팅' && (
-                    <StatBarRow label="전체" a={shotsTotal(section).a} b={shotsTotal(section).b} />
-                  )}
-                  {section.rows.map(row => (
-                    row.label === '점유'
-                      ? <PossessionBar key={row.label} a={row.a} b={row.b} />
-                      : <StatBarRow key={row.label} label={row.label} a={row.a} b={row.b} />
-                  ))}
-                </div>
-              ))}
-            </div>
+            <LiveMatchDashboard
+              stats={liveMatch.stats}
+              events={liveMatch.events}
+              flowHistory={flowHistory}
+              colorA={liveMatch.match.home.id === myTeamId ? MY_COLOR : OPP_COLOR}
+              colorB={liveMatch.match.away.id === myTeamId ? MY_COLOR : OPP_COLOR}
+              teamAName={liveMatch.match.home.name}
+              teamBName={liveMatch.match.away.name}
+            />
 
             <div className="livematch-actions">
               {!liveMatch.finished && (
                 <button
-                  className="btn-ghost"
+                  className="cta"
                   onClick={() => onBack(liveMatch.match.home.id === myTeamId ? liveMatch.match.away.id : liveMatch.match.home.id)}
                 >
                   전술 수정
@@ -452,7 +436,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
                 disabled={simulating}
                 onClick={liveMatch.finished ? finishLiveMatch : continueLiveMatch}
               >
-                {simulating ? '계산 중...' : continueLabel(liveMatch)}
+                {simulating ? '계산 중...' : continueLabel(liveMatch, stage, myTeamId)}
               </button>
             </div>
           </div>
@@ -461,3 +445,4 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     </section>
   );
 }
+

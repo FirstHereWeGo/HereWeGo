@@ -1,0 +1,63 @@
+import RadarChart from './RadarChart';
+import StatTornadoRow from './StatTornadoRow';
+import PitchZoneMap from './PitchZoneMap';
+import StatMomentumSpark from './StatMomentumSpark';
+import { buildStatGroups, buildChannelIntensity, buildStyleAxes } from '../utils/liveMatchStats';
+
+const GROUP_TITLES = { flow: '경기 흐름', shooting: '슈팅', duel: '경합' };
+
+export default function LiveMatchDashboard({ stats, events, flowHistory, colorA, colorB, teamAName, teamBName }) {
+  if (!stats) {
+    return <div className="dash-skeleton">지표를 불러오는 중...</div>;
+  }
+
+  const groups = buildStatGroups(stats);
+  const channels = buildChannelIntensity(stats);
+  const style = buildStyleAxes(stats);
+
+  return (
+    <div className="livematch-dashboard">
+      <div className="dash-col dash-space">
+        <div className="dash-panel-title">공간 <span className="dash-panel-sub">최종 3선 진입 · 채널 강도</span></div>
+        <PitchZoneMap channels={channels} colorA={colorA} colorB={colorB} />
+      </div>
+
+      <div className="dash-col dash-center">
+        <div className="dash-panel-title">지표 대결</div>
+        {Object.entries(groups).map(([key, rows]) => (
+          <div className="tornado-group" key={key}>
+            <div className="tornado-group-title">{GROUP_TITLES[key]}</div>
+            {rows.map(row => (
+              <StatTornadoRow key={row.label} label={row.label} a={row.a} b={row.b} unit={row.unit ?? ''} colorA={colorA} colorB={colorB} />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="dash-col dash-side">
+        <div className="dash-panel-title">팀 성향</div>
+        <RadarChart
+          axes={style.axes}
+          max={style.max}
+          size={200}
+          series={[
+            { name: teamAName, color: colorA, values: style.a },
+            { name: teamBName, color: colorB, values: style.b },
+          ]}
+        />
+        <div className="dash-radar-legend">
+          <span><i style={{ background: colorA }} />{teamAName}</span>
+          <span><i style={{ background: colorB }} />{teamBName}</span>
+        </div>
+
+        <div className="dash-panel-title dash-panel-title-spaced">흐름 추이 <span className="dash-panel-sub">점유율 · 구간별</span></div>
+        <StatMomentumSpark history={flowHistory} events={events} colorA={colorA} colorB={colorB} />
+
+        <div className="coach-placeholder glass">
+          <div className="coach-placeholder-title">전술 코치</div>
+          <div className="coach-placeholder-body">AI 전술 코치는 추후 제공 예정입니다.</div>
+        </div>
+      </div>
+    </div>
+  );
+}

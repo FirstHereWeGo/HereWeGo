@@ -145,7 +145,22 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .timeline-chip{font-size:.82rem;font-weight:700;padding:.35rem .7rem;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);white-space:nowrap}
 .timeline-chip.home{color:var(--green-bright);border-color:rgba(52,224,122,.35)}
 .timeline-chip.away{color:var(--gold);border-color:rgba(242,193,78,.35)}
+.timeline-chip.mine{color:var(--green-bright);border-color:rgba(52,224,122,.35)}
+.timeline-chip.opp{color:var(--danger);border-color:rgba(239,83,80,.35)}
 .timeline-empty{font-size:.82rem;color:var(--text-dim)}
+
+/* 라이브 경기 모달 - 중앙 스코어보드 + 팀별 득점 기록 2열 */
+.livematch-scoreboard{display:flex;align-items:baseline;justify-content:center;gap:1.1rem;margin-bottom:.6rem}
+.livematch-scoreboard-team{flex:1;min-width:0;font-size:1.05rem;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.livematch-scoreboard-team:first-child{text-align:right}
+.livematch-scoreboard-team:last-child{text-align:left}
+.livematch-scoreboard-team.mine{color:var(--green-bright)}
+.livematch-scoreboard-team.opp{color:var(--danger)}
+.livematch-scoreboard-score{flex-shrink:0;font-size:1.3rem;font-weight:700;letter-spacing:.04em}
+.livematch-goals{display:flex;justify-content:space-between;gap:1rem;padding:0 1.1rem;margin:0 0 .7rem}
+.livematch-goals-col{display:flex;flex-direction:row;flex-wrap:wrap;gap:.35rem;flex:1;min-width:0}
+.livematch-goals-col.home{justify-content:flex-start}
+.livematch-goals-col.away{justify-content:flex-end}
 
 .board-body{flex:1;display:grid;grid-template-columns:300px 1fr 360px;gap:.7rem;min-height:0;padding:.7rem}
 
@@ -225,7 +240,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .bracket-header{text-align:center;padding:1.4rem 1.1rem .2rem}
 .bracket-header-eyebrow{font-family:'Rajdhani';font-weight:700;letter-spacing:.3em;font-size:.85rem;color:var(--gold)}
 .bracket-header-title{font-family:'Rajdhani';font-weight:900;letter-spacing:.04em;font-size:2rem;margin-top:.2rem}
-.bracket-wrap{flex:1;overflow:auto;display:flex;justify-content:center;padding:1.6rem 2rem}
+.bracket-wrap{flex:1;overflow:auto;display:flex;justify-content:center;align-items:center;padding:1.6rem 2rem}
 .bracket-grid{
   position:relative;
   display:grid;
@@ -271,33 +286,64 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .modal-pso{font-size:.85rem;color:var(--gold);text-align:center;margin-bottom:.8rem}
 .modal-timeline{margin:0 0 1rem;padding:0}
 
-.livematch-card{max-width:54rem;width:94vw}
-.livematch-phase-label{font-size:.82rem;font-weight:700;color:var(--gold);text-align:center;letter-spacing:.04em;margin-bottom:.8rem}
-.livematch-sections{display:flex;flex-direction:column;gap:.7rem;margin-bottom:1rem}
-.livematch-section{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:.7rem 1.1rem}
-.livematch-section-title{font-size:.78rem;font-weight:700;color:var(--text-dim);letter-spacing:.06em;text-align:center;margin-bottom:.5rem}
-.livematch-row{padding:.3rem 0}
-.livematch-row-label{font-size:.72rem;color:var(--text-dim);text-align:center;margin-bottom:.25rem}
-.livematch-row-bar{display:flex;align-items:center;gap:.7rem}
-.livematch-row-bar .livematch-val{font-weight:700;font-size:.88rem;width:2.6rem;flex-shrink:0}
-.livematch-row-bar .livematch-val:first-child{text-align:right}
-.livematch-row-bar .livematch-val:last-child{text-align:left}
-.livematch-track{flex:1;display:flex;height:8px}
-.livematch-half{flex:1;height:100%;background:rgba(255,255,255,.07);display:flex;overflow:hidden}
-.livematch-half.home{justify-content:flex-end;border-radius:4px 0 0 4px;margin-right:2px}
-.livematch-half.away{justify-content:flex-start;border-radius:0 4px 4px 0;margin-left:2px}
-.livematch-half .livematch-fill{height:100%}
-.livematch-half.home .livematch-fill{background:var(--home);border-radius:4px 0 0 4px}
-.livematch-half.away .livematch-fill{background:var(--away);border-radius:0 4px 4px 0}
+.livematch-card{max-width:88rem;width:96vw;max-height:94vh}
+.livematch-phase-label{font-size:.82rem;font-weight:700;color:var(--gold);text-align:center;letter-spacing:.04em;margin-bottom:.7rem}
 
-.livematch-possession-row{display:flex;align-items:center;gap:.7rem}
-.livematch-possession-row .livematch-val{font-weight:700;font-size:.88rem;flex-shrink:0}
-.livematch-possession-track{flex:1;display:flex;height:8px;border-radius:4px;overflow:hidden}
-.livematch-possession-track .seg{height:100%}
-.livematch-possession-track .seg.a{background:var(--home)}
-.livematch-possession-track .seg.contested{background:#3b6ce0}
-.livematch-possession-track .seg.b{background:var(--away)}
-.livematch-possession-contested{font-size:.7rem;color:var(--text-dim);text-align:center;margin-top:.3rem}
+/* ===== 라이브 경기 대시보드 (3열: 공간 / 지표 대결 / 팀 성향·흐름) ===== */
+.livematch-dashboard{display:grid;grid-template-columns:minmax(190px,220px) minmax(320px,1fr) minmax(210px,250px);gap:1rem;margin-bottom:1rem;align-items:start}
+.dash-col{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:.85rem}
+.dash-panel-title{font-size:.76rem;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-align:center;margin-bottom:.6rem}
+.dash-panel-title-spaced{margin-top:.9rem}
+.dash-panel-sub{font-weight:500;color:var(--text-dim);opacity:.7;letter-spacing:0;font-size:.68rem;display:block;margin-top:.15rem}
+.dash-skeleton{padding:2.4rem 1rem;text-align:center;color:var(--text-dim);font-size:.85rem}
+
+/* 공간 패널 - 5채널 진입 강도 */
+.zonemap-wrap{display:flex;flex-direction:column;gap:.5rem;align-items:center}
+.zonemap-svg{max-width:11rem}
+.zonemap-outline{fill:rgba(52,224,122,.04);stroke:var(--line);stroke-width:1.5}
+.zonemap-box{fill:none;stroke:rgba(255,255,255,.14);stroke-width:1}
+.zonemap-lane-div{stroke:rgba(255,255,255,.07);stroke-width:1}
+.zonemap-arrow{transition:opacity .3s}
+.zonemap-legend{width:100%;display:flex;flex-direction:column;gap:.28rem}
+.zonemap-legend-item{display:flex;justify-content:space-between;align-items:center;font-size:.68rem;color:var(--text-dim)}
+.zonemap-legend-vals{font-family:'Rajdhani';font-weight:700;font-size:.78rem}
+
+/* 지표 대결 - 토네이도(중앙 라벨) 행 */
+.tornado-group{margin-bottom:.7rem}
+.tornado-group:last-child{margin-bottom:0}
+.tornado-group-title{font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.14em;margin-bottom:.35rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+.tornado-row{display:flex;align-items:center;gap:.6rem;padding:.28rem 0;border-radius:6px;transition:background .3s}
+.tornado-row.significant{background:rgba(255,255,255,.035)}
+.tornado-val{width:2.6rem;flex-shrink:0;font-family:'Rajdhani';font-weight:700;font-size:.92rem;color:var(--text-dim);text-align:center;transition:color .3s}
+.tornado-val.lead{color:var(--text)}
+.tornado-val:first-child{text-align:right}
+.tornado-val:last-child{text-align:left}
+.tornado-bar{flex:1;display:flex;align-items:center;gap:.5rem;min-width:0}
+.tornado-half{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:3px;display:flex;overflow:hidden}
+.tornado-half.left{justify-content:flex-end}
+.tornado-half.right{justify-content:flex-start}
+.tornado-fill{height:100%;transition:width .4s cubic-bezier(.2,.8,.2,1), opacity .3s}
+.tornado-half.left .tornado-fill{border-radius:3px 0 0 3px}
+.tornado-half.right .tornado-fill{border-radius:0 3px 3px 0}
+.tornado-label{flex-shrink:0;font-size:.72rem;color:var(--text-dim);text-align:center;min-width:5.4rem}
+
+/* 팀 성향 레이더 + 흐름 추이 */
+.dash-side .radar-chart{margin:0 auto;display:block}
+.dash-radar-legend{display:flex;justify-content:center;gap:.9rem;font-size:.68rem;color:var(--text-dim);margin-top:.2rem}
+.dash-radar-legend span{display:flex;align-items:center;gap:.32rem}
+.dash-radar-legend i{width:.55rem;height:.55rem;border-radius:50%;display:inline-block}
+.momentum-svg{display:block}
+.momentum-mid{stroke:rgba(255,255,255,.08);stroke-width:1}
+.momentum-empty{font-size:.7rem;color:var(--text-dim);text-align:center;padding:1.6rem 0}
+.momentum-goal{filter:drop-shadow(0 0 3px currentColor)}
+
+.coach-placeholder{margin-top:.9rem;padding:.7rem .8rem;border-radius:8px}
+.coach-placeholder-title{font-size:.72rem;font-weight:700;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.3rem}
+.coach-placeholder-body{font-size:.74rem;color:var(--text-dim);line-height:1.5;opacity:.75}
+
+@media(max-width:1000px){
+  .livematch-dashboard{grid-template-columns:1fr}
+}
 
 .livematch-actions{display:flex;justify-content:center;gap:1rem}
 
@@ -404,7 +450,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .bio-chip.prime{color:var(--gold);border-color:rgba(242,193,78,.45);background:rgba(242,193,78,.08)}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
 .statline{display:flex;align-items:center;gap:.45rem}
-.statline .sname{width:3.8rem;font-size:.78rem;color:var(--text-dim);flex-shrink:0}
+.statline .sname{width:3.8rem;font-size:.78rem;color:var(--text-dim);flex-shrink:0;white-space:nowrap}
+.statline.gk-overall{grid-column:1/-1}
+.statline.gk-overall .sname{width:auto}
 .statline .sbar{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
 .statline .sfill{height:100%;background:var(--green);border-radius:3px;transition:width .4s, background .3s}
 .statline.keystat .sname{color:var(--green-bright);font-weight:700}
@@ -484,7 +532,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .rightbar,
 .sidebar,
 .bench,
-.bench-list {
+.bench-list,
+.livematch-card {
   /* IE, Edge, Firefox */
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -494,7 +543,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .rightbar::-webkit-scrollbar,
 .sidebar::-webkit-scrollbar,
 .bench::-webkit-scrollbar,
-.bench-list::-webkit-scrollbar {
+.bench-list::-webkit-scrollbar,
+.livematch-card::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
