@@ -140,25 +140,58 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     return [];
   }
 
-  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 대진표를 갱신하고 다음 라운드로 넘어간다. */
-  function finalizeRound(matches, mineResult, othersPlayed) {
+  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 다음 라운드의 bracket/stage를 계산한다(상태는 바꾸지 않는 순수 함수). */
+  function computeNextRound(curBracket, curStage, matches, mineResult, othersPlayed) {
     const played = matches.map(m => {
       if (mineResult && m.home.id === mineResult.home.id && m.away.id === mineResult.away.id) return mineResult;
       return othersPlayed.find(o => o.home.id === m.home.id && o.away.id === m.away.id);
     });
 
-    if (stage === 'qf') {
-      setBracket(b => ({ ...b, qf: played, sf: nextRoundPairs(played) }));
-      setStage('sf');
-    } else if (stage === 'sf') {
-      const [loserA, loserB] = losersFromMatches(played);
-      setBracket(b => ({ ...b, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } }));
-      setStage('final');
-    } else if (stage === 'final') {
-      const [finalPlayed, bronzePlayed] = played;
-      setBracket(b => ({ ...b, final: finalPlayed, bronze: bronzePlayed }));
-      setStage('done');
+    if (curStage === 'qf') {
+      return { bracket: { ...curBracket, qf: played, sf: nextRoundPairs(played) }, stage: 'sf' };
     }
+    if (curStage === 'sf') {
+      const [loserA, loserB] = losersFromMatches(played);
+      return {
+        bracket: { ...curBracket, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } },
+        stage: 'final',
+      };
+    }
+    if (curStage === 'final') {
+      const [finalPlayed, bronzePlayed] = played;
+      return { bracket: { ...curBracket, final: finalPlayed, bronze: bronzePlayed }, stage: 'done' };
+    }
+    return { bracket: curBracket, stage: curStage };
+  }
+
+  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 대진표를 갱신하고 다음 라운드로 넘어간다. */
+  function finalizeRound(matches, mineResult, othersPlayed) {
+    const next = computeNextRound(bracket, stage, matches, mineResult, othersPlayed);
+    setBracket(next.bracket);
+    setStage(next.stage);
+  }
+
+  /** 내가 이미 탈락한 상태 - 남은 라운드(들)를 우승팀이 나올 때까지 자동으로 전부 시뮬레이션한다. */
+  async function simulateRemainingRounds(matches, othersPlayed) {
+    let curBracket = bracket;
+    let curStage = stage;
+    let curMatches = matches;
+    let curPlayed = othersPlayed;
+
+    while (true) {
+      const next = computeNextRound(curBracket, curStage, curMatches, null, curPlayed);
+      curBracket = next.bracket;
+      curStage = next.stage;
+      if (curStage === 'done') break;
+
+      curMatches = curStage === 'qf' ? curBracket.qf
+        : curStage === 'sf' ? (curBracket.sf ?? [])
+        : [curBracket.final, curBracket.bronze].filter(Boolean);
+      curPlayed = await Promise.all(curMatches.map(simulateOneMatch));
+    }
+
+    setBracket(curBracket);
+    setStage(curStage);
   }
 
   /** "경기 시작" - 내 경기가 아닌 매치는 기존처럼 즉시 끝내고, 내 경기는 구간별 진행을 시작한다. */
@@ -174,8 +207,8 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       const playedOthers = await Promise.all(others.map(simulateOneMatch));
 
       if (!mine) {
-        // 내가 이번 라운드에 없음(이미 탈락) - 바로 다음 라운드로 전환
-        finalizeRound(matches, null, playedOthers);
+        // 내가 이번 라운드에 없음(이미 탈락) - 우승팀이 나올 때까지 남은 라운드를 전부 자동 진행
+        await simulateRemainingRounds(matches, playedOthers);
         return;
       }
 
