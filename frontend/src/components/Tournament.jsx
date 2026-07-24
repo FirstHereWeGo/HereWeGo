@@ -12,7 +12,6 @@ import {
   mergeMatchStats,
   clampShotsToGoals,
 } from '../utils/tournament';
-import { buildStatGroups } from '../utils/liveMatchStats';
 import BracketLines from './BracketLines';
 import LiveMatchDashboard from './LiveMatchDashboard';
 
@@ -81,7 +80,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
   const [detail, setDetail] = useState(null);
   const [liveMatch, setLiveMatch] = useState(null); // 사용자 팀 경기가 구간별로 진행 중일 때만 값이 있음
   const [pendingOthers, setPendingOthers] = useState([]); // 같은 라운드의 다른 경기 결과 - 내 경기가 끝나야 대진표에 함께 반영
-  const [flowHistory, setFlowHistory] = useState([]); // 대시보드 모멘텀 스파크라인용 - 구간마다 그 시점 누적 점유율 스냅샷
 
   const gridRef = useRef(null);
   const qfRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -163,12 +161,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     }
   }
 
-  /** 대시보드 흐름 추이 스파크라인용 - 이 시점까지 누적된 점유율 스냅샷. */
-  function possessionSnapshot(stats, minute) {
-    const possession = buildStatGroups(stats).flow.find(r => r.label === '점유');
-    return { minute, possessionA: possession?.a ?? 0, possessionB: possession?.b ?? 0 };
-  }
-
   /** "경기 시작" - 내 경기가 아닌 매치는 기존처럼 즉시 끝내고, 내 경기는 구간별 진행을 시작한다. */
   async function handleStartMatch() {
     if (!bracket || simulating || liveMatch) return;
@@ -203,7 +195,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         finished: false,
         pso: null,
       });
-      setFlowHistory([possessionSnapshot(clampedStats, MATCH_PHASES[0].offset + MATCH_PHASES[0].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -230,7 +221,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       const newScoreA = scoreA + sim.scoreA;
       const newScoreB = scoreB + sim.scoreB;
       const newEvents = [...events, ...sim.events];
-      const newStats = clampShotsToGoals(mergeMatchStats(stats, deltaStats), newScoreA, newScoreB);
+      const newStats = clampShotsToGoals(mergeMatchStats(stats, deltaStats, phases[nextIndex].offset), newScoreA, newScoreB);
 
       const isLastPhase = nextIndex === phases.length - 1;
       const wentToExtraTime = phases.length > MATCH_PHASES.length;
@@ -250,7 +241,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         scoreA: newScoreA, scoreB: newScoreB, events: newEvents, stats: newStats,
         finished, pso,
       });
-      setFlowHistory(h => [...h, possessionSnapshot(newStats, phases[nextIndex].offset + phases[nextIndex].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -267,7 +257,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     const mineResult = { ...match, result: { scoreA, scoreB, events, pso, winnerId } };
     const matches = currentStageMatches();
     setLiveMatch(null);
-    setFlowHistory([]);
     finalizeRound(matches, mineResult, pendingOthers);
     setPendingOthers([]);
   }
@@ -415,11 +404,12 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
             <LiveMatchDashboard
               stats={liveMatch.stats}
               events={liveMatch.events}
-              flowHistory={flowHistory}
+              momentum={liveMatch.stats.momentum}
               colorA={liveMatch.match.home.id === myTeamId ? MY_COLOR : OPP_COLOR}
               colorB={liveMatch.match.away.id === myTeamId ? MY_COLOR : OPP_COLOR}
               teamAName={liveMatch.match.home.name}
               teamBName={liveMatch.match.away.name}
+              mineIsA={homeIsMine}
             />
 
             <div className="livematch-actions">

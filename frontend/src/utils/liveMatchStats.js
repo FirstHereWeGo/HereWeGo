@@ -18,10 +18,9 @@ function sumRows(stats, sectionTitle) {
   return rows.reduce((acc, r) => ({ a: acc.a + r.a, b: acc.b + r.b }), { a: 0, b: 0 });
 }
 
-/** "경기 흐름 / 슈팅 / 경합" 3그룹으로 재구성한다. */
+/** "경기 흐름 / 슈팅 / 패스 / 경합" 4그룹으로 재구성한다. */
 export function buildStatGroups(stats) {
   const possession = findRow(stats, '공격', '점유');
-  const passSuccess = findRow(stats, '볼 배급', '성공한 패스 수');
   const finalThirdTotal = sumRows(stats, '파이널 서드 진입');
 
   const onTarget = findRow(stats, '슈팅', '온 타겟');
@@ -29,27 +28,39 @@ export function buildStatGroups(stats) {
   const inBox = findRow(stats, '슈팅', '페널티 구역 안쪽');
   const shotsTotal = { label: '전체 슈팅', a: onTarget.a + offTarget.a, b: onTarget.b + offTarget.b };
 
+  const passesTotal = findRow(stats, '볼 배급', '패스');
+  const passSuccess = findRow(stats, '볼 배급', '성공한 패스 수');
+  const crosses = findRow(stats, '볼 배급', '크로스');
+  const crossSuccess = findRow(stats, '볼 배급', '성공한 크로스 수');
+
+  const press = findRow(stats, '수비', '압박 시도 횟수');
   const recoveries = findRow(stats, '수비', '수비가 의도한 볼탈취');
   // "피파울"은 "당한 파울" 기준(a=상대 반칙수)이라, 우리가 보여줄 "파울"(범한 파울)은 좌우를 바꿔 읽는다.
   const suffered = findRow(stats, '경고', '피파울');
   const fouls = { label: '파울', a: suffered.b, b: suffered.a };
-  const assists = findRow(stats, '공격', '도움');
+  const offside = findRow(stats, '경고', '오프사이드');
 
   return {
     flow: [
       { label: '점유', a: possession.a, b: possession.b, unit: '%' },
-      { label: '패스 성공', a: passSuccess.a, b: passSuccess.b },
-      { label: '최종 3선 진입', a: finalThirdTotal.a, b: finalThirdTotal.b },
+      { label: '파이널 서드 진입', a: finalThirdTotal.a, b: finalThirdTotal.b },
     ],
     shooting: [
       { label: '전체 슈팅', a: shotsTotal.a, b: shotsTotal.b },
       { label: '유효 슈팅', a: onTarget.a, b: onTarget.b },
       { label: '박스 안 슈팅', a: inBox.a, b: inBox.b },
     ],
+    passing: [
+      { label: '패스', a: passesTotal.a, b: passesTotal.b },
+      { label: '패스 성공', a: passSuccess.a, b: passSuccess.b },
+      { label: '크로스', a: crosses.a, b: crosses.b },
+      { label: '성공한 크로스', a: crossSuccess.a, b: crossSuccess.b },
+    ],
     duel: [
-      { label: '볼 회수', a: recoveries.a, b: recoveries.b },
+      { label: '압박 시도', a: press.a, b: press.b },
+      { label: '볼 탈취', a: recoveries.a, b: recoveries.b },
       { label: '파울', a: fouls.a, b: fouls.b },
-      { label: '도움', a: assists.a, b: assists.b },
+      { label: '오프사이드', a: offside.a, b: offside.b },
     ],
   };
 }
@@ -62,6 +73,19 @@ export function buildChannelIntensity(stats) {
   return {
     a: CHANNEL_LABELS.map((_, i) => rows[i]?.a ?? 0),
     b: CHANNEL_LABELS.map((_, i) => rows[i]?.b ?? 0),
+  };
+}
+
+export const ZONE_LABELS = ['전방', '중간', '후방'];
+
+/** 피치를 가로로 3등분해 "전방/중간/후방에서 받은 패스 수"를 보여주는 용도. */
+export function buildPassZones(stats) {
+  const front = findRow(stats, '볼 배급', '전방');
+  const mid = findRow(stats, '볼 배급', '중간');
+  const rear = findRow(stats, '볼 배급', '후방');
+  return {
+    a: [front.a, mid.a, rear.a],
+    b: [front.b, mid.b, rear.b],
   };
 }
 

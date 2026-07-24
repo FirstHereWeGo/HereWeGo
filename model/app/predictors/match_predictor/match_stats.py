@@ -23,7 +23,7 @@ import numpy as np
 
 from app.predictors.win_predictor.context import TeamContext
 from app.predictors.win_predictor.team_rating import team_rating
-from app.schemas import MatchStatsInput, MatchStatsOutput, StatRow, StatSection, TeamMatchInput
+from app.schemas import MatchStatsInput, MatchStatsOutput, MomentumPoint, StatRow, StatSection, TeamMatchInput
 
 SCALE = 400.0  # win_predictor.probability와 동일한 기준
 
@@ -92,6 +92,23 @@ def _completion_rate(base: float, spread: float, lo: float = 0.5, hi: float = 0.
     return max(lo, min(hi, base + np.random.uniform(-spread, spread)))
 
 
+def _generate_momentum(strength: float, duration_minutes: int) -> list[MomentumPoint]:
+    """이 구간 동안의 분 단위 순간 우세도(-1=팀B 우세 ~ 1=팀A 우세). 이 구간의 다른 모든
+    통계(슈팅, 진입 수 등)를 정하는 것과 같은 strength로 평균을 편향시킨 평균회귀
+    랜덤워크라, "이 구간엔 어느 팀이 우세했나"의 방향성은 나머지 통계와 어긋나지 않는다.
+    분 번호는 이 구간 기준 상대값(1..duration_minutes)이고, 절대 분(하이드레이션 브레이크
+    오프셋)으로 바꾸는 건 프런트 몫이다 - 이 구간의 tacticConfig만 반영하면 되는
+    match_stats 전체 원칙과 동일하게 여기서도 이전 구간의 값을 몰라도 된다.
+    """
+    points: list[MomentumPoint] = []
+    value = strength * 0.4
+    for minute in range(1, max(duration_minutes, 0) + 1):
+        value += (strength - value) * 0.12 + np.random.normal(0, 0.22)
+        value = max(-1.0, min(1.0, value))
+        points.append(MomentumPoint(minute=minute, value=round(value, 3)))
+    return points
+
+
 def generate_match_stats(payload: MatchStatsInput) -> MatchStatsOutput:
     rating_a, pen_a = _rating_with_penalties(payload.teamA)
     rating_b, pen_b = _rating_with_penalties(payload.teamB)
@@ -138,10 +155,8 @@ def generate_match_stats(payload: MatchStatsInput) -> MatchStatsOutput:
     remaining = 100 - contested_pct
     possession_a = round(remaining * raw_share_a)
     possession_b = remaining - possession_a
-    assists = pair(1.1)
     sections.append(StatSection(title="공격", rows=[
         StatRow(label="점유", a=possession_a, b=possession_b),
-        row("도움", *assists),
     ]))
 
     # 파이널 서드 진입 (5채널) — 총량은 share_a + 팀 스타일(다이렉트/역습일수록 진입 수 자체가 증가).
@@ -183,7 +198,6 @@ def generate_match_stats(payload: MatchStatsInput) -> MatchStatsOutput:
         row("온 타겟", on_target_a, on_target_b),
         row("오프 타겟", shots_total[0] - on_target_a, shots_total[1] - on_target_b),
         row("페널티 구역 안쪽", in_box_a, in_box_b),
-        row("페널티 구역 바깥쪽", shots_total[0] - in_box_a, shots_total[1] - in_box_b),
     ]))
 
     def channel_split(total: int, width: float, left_bonus: float, right_bonus: float, suppress_wide: bool) -> list[int]:
@@ -214,54 +228,13 @@ def generate_match_stats(payload: MatchStatsInput) -> MatchStatsOutput:
         )
     ]))
 
-    # 받을 패스 수 — 총량은 share_a + 팀 스타일(점유일수록 증가, 다이렉트/역습일수록 감소)
-    sections.append(StatSection(title="받을 패스 수", rows=[
-        row("후방", *pass_pair(240.0)),
-        row("중간", *pass_pair(390.0)),
-        row("전방", *pass_pair(290.0)),
-    ]))
-    sections.append(StatSection(title="빌드업 루트", rows=[
-        row("상대 미드필드와 수비라인 사이에서 패스받은 횟수", *pass_pair(225.0)),
-        row("상대 수비 뒷공간에서 패스받은 횟수", *pass_pair(24.0)),
-    ]))
-
-    # 라인 브레이크 — 시도는 share_a, 성공률(질)만 자기 팀 빌드업 적합도 + 상대 수비라인 적합도로 조정
-    lb_attempt = pair(470.0)
-    lb_rate_a = _completion_rate(
-        0.68 + 0.1 * strength
-        - (0.15 if "IP_SHORT_BUILDUP_MIDFIELD_WEAK" in pen_a else 0.0)
-        + (0.10 if "OOP_HIGH_LINE_SLOW_CB" in pen_b else 0.0),
-        0.06, lo=0.3, hi=0.9,
-    )
-    lb_rate_b = _completion_rate(
-        0.68 - 0.1 * strength
-        - (0.15 if "IP_SHORT_BUILDUP_MIDFIELD_WEAK" in pen_b else 0.0)
-        + (0.10 if "OOP_HIGH_LINE_SLOW_CB" in pen_a else 0.0),
-        0.06, lo=0.3, hi=0.9,
-    )
-    dlb_attempt = pair(47.0)
-    dlb_rate_a = _completion_rate(0.55, 0.08)
-    dlb_rate_b = _completion_rate(0.55, 0.08)
-    sections.append(StatSection(title="라인 브레이크", rows=[
-        row("라인 브레이크 시도", *lb_attempt),
-        ratio_row("라인 브레이크 성공", lb_attempt, lb_rate_a, lb_rate_b),
-        row("수비 라인 브레이크 시도", *dlb_attempt),
-        ratio_row("수비 라인 브레이크 성공", dlb_attempt, dlb_rate_a, dlb_rate_b),
-    ]))
-
     # 경고 (파울은 상대 입장에서 "피파울"이 됨)
     fouls_a, fouls_b = pair(8.0, bias=(-0.1 if op_a.tackling == "hard_tackle" else 0.0) - (-0.1 if op_b.tackling == "hard_tackle" else 0.0))
-    yellow_a = int(np.random.poisson(fouls_a * 0.14 * (1.6 if op_a.tackling == "hard_tackle" else 1.0)))
-    yellow_b = int(np.random.poisson(fouls_b * 0.14 * (1.6 if op_b.tackling == "hard_tackle" else 1.0)))
-    red_a = 1 if np.random.random() < 0.01 * k and op_a.tackling == "hard_tackle" else 0
-    red_b = 1 if np.random.random() < 0.01 * k and op_b.tackling == "hard_tackle" else 0
     # 오프사이드 트랩을 걸었어도 그걸 받쳐줄 CB가 없으면(OOP_OFFSIDE_TRAP_WEAK) 실제로는 잘 안 걸림
     trap_bonus_b = (0.1 if "OOP_OFFSIDE_TRAP_WEAK" not in pen_b else 0.02) if op_b.offsideTrap == "in" else 0.0
     trap_bonus_a = (0.1 if "OOP_OFFSIDE_TRAP_WEAK" not in pen_a else 0.02) if op_a.offsideTrap == "in" else 0.0
     offside_a, offside_b = pair(1.2, bias=trap_bonus_b - trap_bonus_a)
     sections.append(StatSection(title="경고", rows=[
-        row("옐로우 카드", yellow_a, yellow_b),
-        row("레드 카드", red_a, red_b),
         row("피파울", fouls_b, fouls_a),
         row("오프사이드", offside_a, offside_b),
     ]))
@@ -278,29 +251,20 @@ def generate_match_stats(payload: MatchStatsInput) -> MatchStatsOutput:
         ratio_row("성공한 패스 수", passes, pass_rate_a, pass_rate_b),
         row("크로스", *crosses),
         ratio_row("성공한 크로스 수", crosses, cross_rate_a, cross_rate_b),
-        row("플레이 위치 변경 성공 횟수", *pair(4.0)),
-    ]))
-
-    # 세트피스 — 프리킥은 "피파울"과 같은 사건이라 재사용, 코너킥은 크로스 물량에서 파생시킨다
-    # (페널티킥 득점은 오픈플레이 시뮬레이션 대상이 아니라 항상 0)
-    corners_a = int(np.random.poisson(max(crosses[0] * 0.35, 0.0)))
-    corners_b = int(np.random.poisson(max(crosses[1] * 0.35, 0.0)))
-    sections.append(StatSection(title="세트피스", rows=[
-        row("코너킥", corners_a, corners_b),
-        row("프리킥", fouls_b, fouls_a),
-        row("페널티킥 득점", 0, 0),
+        row("후방", *pass_pair(240.0)),
+        row("중간", *pass_pair(390.0)),
+        row("전방", *pass_pair(290.0)),
     ]))
 
     # 수비 — 압박 시도(총량)는 pressingIntensity에 직접 비례, 볼탈취 성공률(질)만 압박 적합도로 조정
-    # (자책골은 이 시뮬레이션에서 다루지 않아 항상 0)
     press_a = int(np.random.poisson(max(372.0 * (op_a.pressingIntensity / 50) * k, 0.0)))
     press_b = int(np.random.poisson(max(372.0 * (op_b.pressingIntensity / 50) * k, 0.0)))
     recovery_rate_a = _completion_rate(0.55 - (0.15 if "OOP_PRESSING_CORE_WEAK" in pen_a else 0.0), 0.06, lo=0.3, hi=0.75)
     recovery_rate_b = _completion_rate(0.55 - (0.15 if "OOP_PRESSING_CORE_WEAK" in pen_b else 0.0), 0.06, lo=0.3, hi=0.75)
     sections.append(StatSection(title="수비", rows=[
-        row("자책골", 0, 0),
         row("수비가 의도한 볼탈취", round(press_a * recovery_rate_a), round(press_b * recovery_rate_b)),
         row("압박 시도 횟수", press_a, press_b),
     ]))
 
-    return MatchStatsOutput(sections=sections)
+    momentum = _generate_momentum(strength, payload.durationMinutes)
+    return MatchStatsOutput(sections=sections, momentum=momentum)
