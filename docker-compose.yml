@@ -21,6 +21,8 @@ services:
     environment:
       - MODEL_URL=http://model:8000
       - FRONTEND_ORIGIN=http://localhost:5173
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-lite-latest}
     depends_on:
       - model
     networks:

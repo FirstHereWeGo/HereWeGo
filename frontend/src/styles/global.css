@@ -181,6 +181,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .analytics-hero-stat .num{font-size:2.4rem;color:var(--gold)}
 .analytics-hero-unit{color:var(--text-dim);font-size:.9rem}
 .analytics-empty{color:var(--text-dim);font-size:.85rem;margin-bottom:.6rem}
+.ai-suggestion-text{white-space:pre-line;font-size:.88rem;line-height:1.7;color:var(--text);margin-top:.9rem}
 
 /* 탭 버튼 — 사이드바 카테고리/전술판 공용 */
 .tab-btn{padding:.5rem .9rem;border-radius:8px;font-size:.84rem;font-weight:700;color:var(--text-dim);border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}

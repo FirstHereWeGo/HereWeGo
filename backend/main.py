@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routers import formations, goal_rewind, match_simulation, match_stats, scenarios, tactic, teams, win_probability
+from app.routers import ai_suggestion, formations, goal_rewind, match_simulation, match_stats, scenarios, tactic, teams, win_probability
 
 app = FastAPI()
 
@@ -22,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(ai_suggestion.router)
 app.include_router(teams.router)
 app.include_router(formations.router)
 app.include_router(tactic.router)

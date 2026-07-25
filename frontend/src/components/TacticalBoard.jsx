@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameState, useGameActions } from '../state/GameContext';
-import { postWinProbability } from '../api/client';
+import { postWinProbability, postAiSuggestion } from '../api/client';
 import { buildMyTeamConfig, buildTeamConfig } from '../utils/matchPayload';
 import Sidebar from './Sidebar';
 import PitchBoard from './PitchBoard';
@@ -16,6 +16,9 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
   const [predicting, setPredicting] = useState(false);
   const [predictError, setPredictError] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
 
   useEffect(() => {
     // 토너먼트 페이지에 다녀와도 이미 로드된 같은 매치업이면 다시 불러오지 않는다 —
@@ -48,6 +51,32 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
       setPredictError(err.message);
     } finally {
       setPredicting(false);
+    }
+  }
+
+  async function requestAiSuggestion() {
+    const myConfig = buildMyTeamConfig(state);
+    if (!myConfig || !winProb) return;
+
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const result = await postAiSuggestion({
+        teamA: myConfig,
+        teamB: buildTeamConfig(
+          state.oppTeam.id,
+          state.oppTacticPreset.formationId,
+          state.oppTacticPreset.goalkeeperId,
+          state.oppTacticPreset.startingPlayerIds,
+          state.oppTacticPreset.tacticConfig,
+        ),
+        winProb,
+      });
+      setAiSuggestion(result.suggestion);
+    } catch (err) {
+      setAiError(err.message);
+    } finally {
+      setAiLoading(false);
     }
   }
 
@@ -104,6 +133,10 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           predicting={predicting}
           predictError={predictError}
           onCalculateWinProbability={calculateWinProbability}
+          aiSuggestion={aiSuggestion}
+          aiLoading={aiLoading}
+          aiError={aiError}
+          onRequestAiSuggestion={requestAiSuggestion}
           onBack={() => setShowAnalytics(false)}
         />
       ) : (
