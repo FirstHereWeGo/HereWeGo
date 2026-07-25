@@ -7,6 +7,7 @@ import PitchBoard from './PitchBoard';
 import PlayerCard from './PlayerCard';
 import BenchList from './BenchList';
 import TeamAnalyticsBoard from './TeamAnalyticsBoard';
+import CoachButton from './CoachButton';
 
 export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams, onTournament }) {
   const state = useGameState();
@@ -134,10 +135,6 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           predicting={predicting}
           predictError={predictError}
           onCalculateWinProbability={calculateWinProbability}
-          aiSuggestion={aiSuggestion}
-          aiLoading={aiLoading}
-          aiError={aiError}
-          onRequestAiSuggestion={requestAiSuggestion}
           onBack={() => setShowAnalytics(false)}
         />
       ) : (
@@ -156,6 +153,14 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           </aside>
         </div>
       )}
+
+      <CoachButton
+        suggestion={aiSuggestion}
+        loading={aiLoading}
+        error={aiError}
+        disabled={!winProb}
+        onRequest={requestAiSuggestion}
+      />
     </section>
   );
 }

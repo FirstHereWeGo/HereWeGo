@@ -1,6 +1,7 @@
 import { useGameState } from '../state/GameContext';
 import { ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
 import { jerseyNumber } from '../utils/playerDisplay';
+import FootRating from './FootRating';
 
 export default function PlayerCard() {
   const state = useGameState();
@@ -75,9 +76,8 @@ export default function PlayerCard() {
             {isPrime && <span className="bio-chip prime">⭐ {d.label}</span>}
             <span className="bio-chip">{d.height}cm</span>
             <span className="bio-chip">{d.age}세</span>
-            <span className="bio-chip">왼발 {d.leftFoot}/5</span>
-            <span className="bio-chip">오른발 {d.rightFoot}/5</span>
           </div>
+          <FootRating leftFoot={d.leftFoot} rightFoot={d.rightFoot} />
         </div>
       </div>
 
