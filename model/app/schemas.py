@@ -259,5 +259,11 @@ class StatSection(BaseModel):
     rows: list[StatRow]
 
 
+class MomentumPoint(BaseModel):
+    minute: int
+    value: float  # -1(팀B 우세) ~ 1(팀A 우세)
+
+
 class MatchStatsOutput(BaseModel):
     sections: list[StatSection]
+    momentum: list[MomentumPoint]

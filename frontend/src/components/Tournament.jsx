@@ -12,7 +12,6 @@ import {
   mergeMatchStats,
   clampShotsToGoals,
 } from '../utils/tournament';
-import { buildStatGroups } from '../utils/liveMatchStats';
 import BracketLines from './BracketLines';
 import LiveMatchDashboard from './LiveMatchDashboard';
 
@@ -81,7 +80,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
   const [detail, setDetail] = useState(null);
   const [liveMatch, setLiveMatch] = useState(null); // 사용자 팀 경기가 구간별로 진행 중일 때만 값이 있음
   const [pendingOthers, setPendingOthers] = useState([]); // 같은 라운드의 다른 경기 결과 - 내 경기가 끝나야 대진표에 함께 반영
-  const [flowHistory, setFlowHistory] = useState([]); // 대시보드 모멘텀 스파크라인용 - 구간마다 그 시점 누적 점유율 스냅샷
 
   const gridRef = useRef(null);
   const qfRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -142,31 +140,58 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     return [];
   }
 
-  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 대진표를 갱신하고 다음 라운드로 넘어간다. */
-  function finalizeRound(matches, mineResult, othersPlayed) {
+  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 다음 라운드의 bracket/stage를 계산한다(상태는 바꾸지 않는 순수 함수). */
+  function computeNextRound(curBracket, curStage, matches, mineResult, othersPlayed) {
     const played = matches.map(m => {
       if (mineResult && m.home.id === mineResult.home.id && m.away.id === mineResult.away.id) return mineResult;
       return othersPlayed.find(o => o.home.id === m.home.id && o.away.id === m.away.id);
     });
 
-    if (stage === 'qf') {
-      setBracket(b => ({ ...b, qf: played, sf: nextRoundPairs(played) }));
-      setStage('sf');
-    } else if (stage === 'sf') {
-      const [loserA, loserB] = losersFromMatches(played);
-      setBracket(b => ({ ...b, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } }));
-      setStage('final');
-    } else if (stage === 'final') {
-      const [finalPlayed, bronzePlayed] = played;
-      setBracket(b => ({ ...b, final: finalPlayed, bronze: bronzePlayed }));
-      setStage('done');
+    if (curStage === 'qf') {
+      return { bracket: { ...curBracket, qf: played, sf: nextRoundPairs(played) }, stage: 'sf' };
     }
+    if (curStage === 'sf') {
+      const [loserA, loserB] = losersFromMatches(played);
+      return {
+        bracket: { ...curBracket, sf: played, final: nextRoundPairs(played)[0], bronze: { home: loserA, away: loserB, result: null } },
+        stage: 'final',
+      };
+    }
+    if (curStage === 'final') {
+      const [finalPlayed, bronzePlayed] = played;
+      return { bracket: { ...curBracket, final: finalPlayed, bronze: bronzePlayed }, stage: 'done' };
+    }
+    return { bracket: curBracket, stage: curStage };
   }
 
-  /** 대시보드 흐름 추이 스파크라인용 - 이 시점까지 누적된 점유율 스냅샷. */
-  function possessionSnapshot(stats, minute) {
-    const possession = buildStatGroups(stats).flow.find(r => r.label === '점유');
-    return { minute, possessionA: possession?.a ?? 0, possessionB: possession?.b ?? 0 };
+  /** matches(현재 라운드 원래 순서) + 이미 끝난 결과들로 대진표를 갱신하고 다음 라운드로 넘어간다. */
+  function finalizeRound(matches, mineResult, othersPlayed) {
+    const next = computeNextRound(bracket, stage, matches, mineResult, othersPlayed);
+    setBracket(next.bracket);
+    setStage(next.stage);
+  }
+
+  /** 내가 이미 탈락한 상태 - 남은 라운드(들)를 우승팀이 나올 때까지 자동으로 전부 시뮬레이션한다. */
+  async function simulateRemainingRounds(matches, othersPlayed) {
+    let curBracket = bracket;
+    let curStage = stage;
+    let curMatches = matches;
+    let curPlayed = othersPlayed;
+
+    while (true) {
+      const next = computeNextRound(curBracket, curStage, curMatches, null, curPlayed);
+      curBracket = next.bracket;
+      curStage = next.stage;
+      if (curStage === 'done') break;
+
+      curMatches = curStage === 'qf' ? curBracket.qf
+        : curStage === 'sf' ? (curBracket.sf ?? [])
+        : [curBracket.final, curBracket.bronze].filter(Boolean);
+      curPlayed = await Promise.all(curMatches.map(simulateOneMatch));
+    }
+
+    setBracket(curBracket);
+    setStage(curStage);
   }
 
   /** "경기 시작" - 내 경기가 아닌 매치는 기존처럼 즉시 끝내고, 내 경기는 구간별 진행을 시작한다. */
@@ -182,8 +207,8 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       const playedOthers = await Promise.all(others.map(simulateOneMatch));
 
       if (!mine) {
-        // 내가 이번 라운드에 없음(이미 탈락) - 바로 다음 라운드로 전환
-        finalizeRound(matches, null, playedOthers);
+        // 내가 이번 라운드에 없음(이미 탈락) - 우승팀이 나올 때까지 남은 라운드를 전부 자동 진행
+        await simulateRemainingRounds(matches, playedOthers);
         return;
       }
 
@@ -203,7 +228,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         finished: false,
         pso: null,
       });
-      setFlowHistory([possessionSnapshot(clampedStats, MATCH_PHASES[0].offset + MATCH_PHASES[0].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -230,7 +254,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
       const newScoreA = scoreA + sim.scoreA;
       const newScoreB = scoreB + sim.scoreB;
       const newEvents = [...events, ...sim.events];
-      const newStats = clampShotsToGoals(mergeMatchStats(stats, deltaStats), newScoreA, newScoreB);
+      const newStats = clampShotsToGoals(mergeMatchStats(stats, deltaStats, phases[nextIndex].offset), newScoreA, newScoreB);
 
       const isLastPhase = nextIndex === phases.length - 1;
       const wentToExtraTime = phases.length > MATCH_PHASES.length;
@@ -250,7 +274,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
         scoreA: newScoreA, scoreB: newScoreB, events: newEvents, stats: newStats,
         finished, pso,
       });
-      setFlowHistory(h => [...h, possessionSnapshot(newStats, phases[nextIndex].offset + phases[nextIndex].duration)]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -267,7 +290,6 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     const mineResult = { ...match, result: { scoreA, scoreB, events, pso, winnerId } };
     const matches = currentStageMatches();
     setLiveMatch(null);
-    setFlowHistory([]);
     finalizeRound(matches, mineResult, pendingOthers);
     setPendingOthers([]);
   }
@@ -415,11 +437,12 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
             <LiveMatchDashboard
               stats={liveMatch.stats}
               events={liveMatch.events}
-              flowHistory={flowHistory}
+              momentum={liveMatch.stats.momentum}
               colorA={liveMatch.match.home.id === myTeamId ? MY_COLOR : OPP_COLOR}
               colorB={liveMatch.match.away.id === myTeamId ? MY_COLOR : OPP_COLOR}
               teamAName={liveMatch.match.home.name}
               teamBName={liveMatch.match.away.name}
+              mineIsA={homeIsMine}
             />
 
             <div className="livematch-actions">

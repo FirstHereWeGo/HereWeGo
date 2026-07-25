@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GameProvider } from './state/GameContext';
+import { GameProvider, useGameActions } from './state/GameContext';
 import Landing from './components/Landing';
 import TeamSelect from './components/TeamSelect';
 import TacticalBoard from './components/TacticalBoard';
@@ -9,12 +9,16 @@ import './styles/global.css';
 function AppInner() {
   const [view, setView] = useState('landing'); // landing | teamSelect | board | tournament
   const [boardKey, setBoardKey] = useState(0);
+  const [tournamentKey, setTournamentKey] = useState(0);
   const [teams, setTeams] = useState(null); // { myTeamId, oppTeamId }
   const [tournamentStarted, setTournamentStarted] = useState(false);
+  const { reset } = useGameActions();
 
   function startTournament(myTeamId) {
+    reset(); // 이전 시도의 전술/포메이션/라인업을 새 토너먼트로 이어가지 않도록 초기화
     setTeams({ myTeamId, oppTeamId: null });
     setTournamentStarted(true);
+    setTournamentKey(k => k + 1); // Tournament를 새로 마운트해 bracket/stage/liveMatch 등 잔여 상태 제거
     setView('tournament');
   }
 
@@ -43,6 +47,7 @@ function AppInner() {
       {tournamentStarted && teams && (
         <div style={{ display: view === 'tournament' ? 'contents' : 'none' }}>
           <Tournament
+            key={tournamentKey}
             myTeamId={teams.myTeamId}
             onBack={goToBoard}
             onHome={() => setView('landing')}

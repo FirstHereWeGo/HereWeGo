@@ -75,5 +75,11 @@ class StatSection(BaseModel):
     rows: list[StatRow]
 
 
+class MomentumPoint(BaseModel):
+    minute: int
+    value: float
+
+
 class MatchStatsResponse(BaseModel):
     sections: list[StatSection]
+    momentum: list[MomentumPoint]

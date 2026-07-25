@@ -333,8 +333,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .dash-radar-legend span{display:flex;align-items:center;gap:.32rem}
 .dash-radar-legend i{width:.55rem;height:.55rem;border-radius:50%;display:inline-block}
 .momentum-svg{display:block}
-.momentum-mid{stroke:rgba(255,255,255,.08);stroke-width:1}
+.momentum-mid{stroke:rgba(255,255,255,.14);stroke-width:1}
 .momentum-empty{font-size:.7rem;color:var(--text-dim);text-align:center;padding:1.6rem 0}
+.momentum-area{opacity:.85}
 .momentum-goal{filter:drop-shadow(0 0 3px currentColor)}
 
 .coach-placeholder{margin-top:.9rem;padding:.7rem .8rem;border-radius:8px}

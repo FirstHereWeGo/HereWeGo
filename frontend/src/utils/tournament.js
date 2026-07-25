@@ -61,10 +61,16 @@ export const EXTRA_TIME_PHASES = [
 /**
  * 구간별 통계 델타를 누적한다. "점유"는 누적 카운트가 아니라 그 구간의 순간값이라
  * 합산하지 않고 최신 구간 값으로 교체한다. 섹션/행 순서는 model이 항상 같은
- * 순서로 만들어주므로(match_stats.py) 인덱스로 매칭한다.
+ * 순서로 만들어주므로(match_stats.py) 인덱스로 매칭한다. "momentum"은 구간 상대분
+ * (1..durationMinutes)으로 오므로, 이 구간의 minuteOffset을 더해 절대분으로 바꾼 뒤
+ * 이어붙인다(합산 대상이 아니라 시계열 자체를 계속 늘려나가는 값).
  */
-export function mergeMatchStats(prevStats, delta) {
-  if (!prevStats) return delta;
+export function mergeMatchStats(prevStats, delta, minuteOffset) {
+  const momentum = [
+    ...(prevStats?.momentum ?? []),
+    ...delta.momentum.map(p => ({ minute: p.minute + minuteOffset, value: p.value })),
+  ];
+  if (!prevStats) return { ...delta, momentum };
   return {
     sections: delta.sections.map((section, si) => {
       const prevSection = prevStats.sections[si];
@@ -77,6 +83,7 @@ export function mergeMatchStats(prevStats, delta) {
         }),
       };
     }),
+    momentum,
   };
 }
 
@@ -97,6 +104,7 @@ export function clampShotsToGoals(stats, scoreA, scoreB) {
         }),
       };
     }),
+    momentum: stats.momentum,
   };
 }
 

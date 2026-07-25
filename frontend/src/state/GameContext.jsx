@@ -159,6 +159,8 @@ function reducer(state, action) {
       return { ...state, tacticConfig: action.value };
     case 'SET_EDITABLE':
       return { ...state, editable: action.value };
+    case 'RESET':
+      return initialState;
     default:
       return state;
   }
@@ -218,5 +220,6 @@ export function useGameActions() {
     makeSub: useCallback((benchId) => dispatch({ type: 'MAKE_SUB', benchId }), [dispatch]),
     setTacticConfig: useCallback((value) => dispatch({ type: 'SET_TACTIC_CONFIG', value }), [dispatch]),
     setEditable: useCallback((value) => dispatch({ type: 'SET_EDITABLE', value }), [dispatch]),
+    reset: useCallback(() => dispatch({ type: 'RESET' }), [dispatch]),
   };
 }
