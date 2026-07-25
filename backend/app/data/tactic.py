@@ -329,10 +329,10 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
             "bel-20", "bel-11", "bel-7", "bel-10", "bel-17",
         ],
         tacticConfig=TacticConfig(
-            style=TacticStyle(tacticStyle="possession", approach="attacking"),
+            style=TacticStyle(tacticStyle="direct", approach="balanced"),
             inPossession=InPossession(
                 attackingWidth=70,
-                buildupStyle="short",
+                buildupStyle="direct",
                 overlapLeft=True,
                 overlapRight=True,
                 targetCentral=True,
@@ -358,7 +358,7 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
                 distributionMethod="short",
             ),
             outOfPossession=OutOfPossession(
-                defensiveShape="narrow",
+                defensiveShape="wide",
                 pressingIntensity=30,
                 pressingLine="low",
                 tackling="stay_on_feet",

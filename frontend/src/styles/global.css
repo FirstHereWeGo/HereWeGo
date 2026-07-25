@@ -167,7 +167,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 /* ===== 전술판(팀 분석) ===== */
 .analytics-page{flex:1;overflow-y:auto;padding:1.1rem}
 .analytics-header{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.1rem}
-.analytics-tabs{display:flex;gap:.4rem}
+.analytics-split{display:grid;grid-template-columns:3fr 2fr;gap:1.1rem;align-items:start}
 .analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
 .analytics-card{padding:1.1rem}
 .analytics-card-large{grid-column:span 2;min-height:200px}
@@ -182,11 +182,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .analytics-hero-unit{color:var(--text-dim);font-size:.9rem}
 .analytics-empty{color:var(--text-dim);font-size:.85rem;margin-bottom:.6rem}
 .ai-suggestion-text{white-space:pre-line;font-size:.88rem;line-height:1.7;color:var(--text);margin-top:.9rem}
-
-/* 탭 버튼 — 사이드바 카테고리/전술판 공용 */
-.tab-btn{padding:.5rem .9rem;border-radius:8px;font-size:.84rem;font-weight:700;color:var(--text-dim);border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
-.tab-btn.on{background:var(--green);color:#04170c;border-color:var(--green)}
-.tab-btn:not(.on):hover{border-color:var(--green);color:var(--text)}
 
 /* 오각형(레이더) 차트 */
 .radar-chart{overflow:visible;display:block;margin:0 auto}
