@@ -2,10 +2,25 @@ import { useState } from 'react';
 import { useGameState, useGameActions } from '../state/GameContext';
 import { jerseyNumber } from '../utils/playerDisplay';
 
+// 포지션 코드(GK|CB|FB|WB|DM|CM|AM|WG|ST) 기준 필터 그룹 - GK는 어느 그룹에도 없어서
+// 필터를 해제(전체 보기)했을 때만 후보 명단에 나타난다.
+const POSITION_GROUPS = [
+  { key: 'attack', label: '공격', positions: ['ST', 'WG'] },
+  { key: 'mid', label: '중앙', positions: ['AM', 'CM', 'DM'] },
+  { key: 'defense', label: '수비', positions: ['CB', 'FB', 'WB'] },
+];
+
 export default function BenchList() {
   const state = useGameState();
   const { makeSub, viewPlayer } = useGameActions();
   const [showPrime, setShowPrime] = useState(false);
+  const [posFilter, setPosFilter] = useState(null); // null = 전체, 아니면 POSITION_GROUPS의 key
+
+  function matchesFilter(positions) {
+    if (!posFilter) return true;
+    const group = POSITION_GROUPS.find(g => g.key === posFilter);
+    return (positions ?? []).some(p => group.positions.includes(p));
+  }
 
   function handleSub(benchId) {
     makeSub(benchId);
@@ -19,10 +34,27 @@ export default function BenchList() {
   const primePlayers = state.team ? state.primePlayers.filter(p => p.teamId === state.team.id && !state.players[p.id]) : [];
   const selectedBaseId = state.selected ? state.selected.replace(/^prime/, '') : null;
 
+  const filteredBench = bench.filter(d => matchesFilter(d.positions));
+  // PrimePlayer 자체엔 positions가 없어서 기준 선수(basePlayer)에서 가져와 필터링한다.
+  const filteredPrime = primePlayers
+    .map(d => ({ d, basePlayer: state.team.players.find(p => p.id === d.id.replace(/^prime/, '')) }))
+    .filter(({ basePlayer }) => matchesFilter(basePlayer?.positions));
+
   return (
     <div className="bench">
       <div className="bench-head">
-        <h4>벤치 · 후보 명단</h4>
+        <div className="bench-pos-filter">
+          {POSITION_GROUPS.map(g => (
+            <button
+              key={g.key}
+              type="button"
+              className={`bench-pos-btn ${posFilter === g.key ? 'on' : ''}`}
+              onClick={() => setPosFilter(f => (f === g.key ? null : g.key))}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className={`btn-prime-toggle ${showPrime ? 'on' : ''}`}
@@ -50,9 +82,8 @@ export default function BenchList() {
       </div>
       {showPrime ? (
         <div>
-          {primePlayers.map(d => {
+          {filteredPrime.map(({ d, basePlayer }) => {
             const basePlayerId = d.id.replace(/^prime/, '');
-            const basePlayer = state.team.players.find(p => p.id === basePlayerId);
             const canSub = state.editable && !!state.selected && selectedBaseId === basePlayerId;
 
             return (
@@ -83,7 +114,7 @@ export default function BenchList() {
         </div>
       ) : (
         <div>
-          {bench.map(d => {
+          {filteredBench.map(d => {
             const isInGk = d.positions.includes('GK');
             const isGkMismatch = state.selected ? (isOutGk !== isInGk) : false;
             // 이 선수의 프라임이 이미 다른 자리에 나가 있으면, 그 자리를 선택했을 때만 되돌릴 수 있다.
