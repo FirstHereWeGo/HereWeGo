@@ -39,3 +39,7 @@ export function postMatchSimulation(payload) {
 export function postMatchStats(payload) {
   return request('/api/match-stats', { method: 'POST', body: JSON.stringify(payload) });
 }
+
+export function postAiSuggestion(payload) {
+  return request('/api/ai-suggestion', { method: 'POST', body: JSON.stringify(payload) });
+}

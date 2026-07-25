@@ -5,6 +5,7 @@ import { TACTIC_GROUPS } from '../data/tacticFields';
 import { jerseyNumber } from '../utils/playerDisplay';
 import RadarChart from './RadarChart';
 import WinProbabilityPanel from './WinProbabilityPanel';
+import AiSuggestionPanel from './AiSuggestionPanel';
 import PlayerSelect from './PlayerSelect';
 
 const TABS = [
@@ -62,7 +63,7 @@ function PenaltyChips({ title, items, tone }) {
   );
 }
 
-function TeamAnalysisTab({ players, myTeamName, oppTeamName, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability }) {
+function TeamAnalysisTab({ players, myTeamName, oppTeamName, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability, aiSuggestion, aiLoading, aiError, onRequestAiSuggestion }) {
   const { attack, defense, strengths, weaknesses, gkOverall, max } = computeTeamAnalytics(players);
   const toAxes = arr => arr.map(s => ({ key: s.key, label: s.label }));
   const toValues = arr => Object.fromEntries(arr.map(s => [s.key, s.value]));
@@ -114,6 +115,14 @@ function TeamAnalysisTab({ players, myTeamName, oppTeamName, winProb, prevWinPro
       <AttrChips title="강점 TOP 3" items={strengths} tone="good" />
       <AttrChips title="약점 TOP 3" items={weaknesses} tone="bad" />
       <PenaltyChips title="전술적 결함" items={topPenalties} tone="bad" />
+
+      <AiSuggestionPanel
+        suggestion={aiSuggestion}
+        loading={aiLoading}
+        error={aiError}
+        disabled={!winProb}
+        onRequest={onRequestAiSuggestion}
+      />
     </div>
   );
 }
@@ -201,7 +210,7 @@ function PlayerCompareTab({ team, oppTeam }) {
   );
 }
 
-export default function TeamAnalyticsBoard({ team, oppTeam, players, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability, onBack }) {
+export default function TeamAnalyticsBoard({ team, oppTeam, players, winProb, prevWinProb, predicting, predictError, onCalculateWinProbability, aiSuggestion, aiLoading, aiError, onRequestAiSuggestion, onBack }) {
   const [tab, setTab] = useState('team');
 
   useEffect(() => {
@@ -238,6 +247,10 @@ export default function TeamAnalyticsBoard({ team, oppTeam, players, winProb, pr
           predicting={predicting}
           predictError={predictError}
           onCalculateWinProbability={onCalculateWinProbability}
+          aiSuggestion={aiSuggestion}
+          aiLoading={aiLoading}
+          aiError={aiError}
+          onRequestAiSuggestion={onRequestAiSuggestion}
         />
       ) : (
         <PlayerCompareTab team={team} oppTeam={oppTeam} />
