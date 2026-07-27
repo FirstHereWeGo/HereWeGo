@@ -265,7 +265,16 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .bracket-col{position:relative;z-index:1;display:flex;flex-direction:column;gap:2.2rem;justify-content:center;height:100%}
 .bracket-col-mid{gap:0}
 .bracket-col-center{align-items:center;text-align:center;gap:.6rem}
+.bracket-trophy-wrap{position:relative;display:flex;justify-content:center}
 .bracket-trophy{font-size:3rem;line-height:1;filter:drop-shadow(0 0 14px rgba(52,224,122,.55))}
+.bracket-champion-comment{
+  position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  margin-bottom:.3rem;white-space:nowrap;
+  font-size:1.1rem;font-weight:900;color:var(--gold);
+  text-shadow:0 0 14px rgba(242,193,78,.6);
+  animation:championPop .5s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes championPop{0%{opacity:0;transform:translateX(-50%) scale(.6)}60%{opacity:1;transform:translateX(-50%) scale(1.08)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
 .bracket-title{font-family:'Rajdhani';font-weight:700;letter-spacing:.18em;font-size:1rem;color:var(--text-dim)}
 .bracket-bronze-label{font-size:.7rem;letter-spacing:.2em;color:var(--text-dim);margin-top:.6rem}
 .bracket-match{background:var(--glass-bg);border:1px solid var(--glass-line);border-radius:10px;padding:.9rem 1.1rem;min-width:240px;box-sizing:border-box;backdrop-filter:blur(14px)}
@@ -290,7 +299,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
 }
 
 .bracket-bottom-bar{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.3rem 0 1.8rem}
-.bracket-champion-banner{font-size:1.15rem;font-weight:900;color:var(--gold)}
 
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
 .modal-card{padding:1.4rem;max-width:32rem;width:90%;max-height:80vh;overflow-y:auto}
@@ -385,6 +393,31 @@ input[type=range]{width:100%;accent-color:var(--green)}
 /* ===== 사이드바 카테고리(포메이션/공격/수비/조율) ===== */
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:1.1rem}
 .tactic-group:not(:last-child){margin-bottom:.4rem}
+
+/* ===== 전술 옵션 호버 프리뷰(미니 피치) — 3D 전술판 영역 왼쪽에 호버 중에만 떠오름 ===== */
+.tpp-flyout{
+  position:absolute;left:1rem;top:50%;transform:translateY(-50%);
+  width:14rem;z-index:15;pointer-events:none;
+  animation:tppPop .18s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes tppPop{from{opacity:0;transform:translateY(-50%) scale(.94)}to{opacity:1;transform:translateY(-50%) scale(1)}}
+.tpp{display:flex;flex-direction:column;padding:.85rem;gap:.65rem;border-color:var(--green);box-shadow:0 12px 34px rgba(0,0,0,.5),0 0 22px -6px rgba(52,224,122,.35)}
+.tpp-head{font-size:.78rem;letter-spacing:.16em;color:var(--text-dim);font-weight:700;text-transform:uppercase}
+.tpp-pitch{position:relative;width:100%;aspect-ratio:68/100;border-radius:8px;background:rgba(52,224,122,.05);overflow:hidden}
+.tpp-lines{position:absolute;inset:0;width:100%;height:100%}
+.tpp-line{fill:none;stroke:var(--glass-line);stroke-width:1}
+.tpp-dot{
+  position:absolute;transform:translate(-50%,-50%);
+  width:1.5rem;height:1.5rem;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--green-bright);color:#04170c;
+  font-size:.56rem;font-weight:900;letter-spacing:.02em;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+  transition:left .5s cubic-bezier(.2,.8,.2,1),top .5s cubic-bezier(.2,.8,.2,1);
+}
+.tpp-dot.gk{background:var(--gold)}
+.tpp-desc{font-size:.78rem;color:var(--text-dim);line-height:1.55;min-height:2.4em}
+.tpp.active .tpp-desc{color:var(--text)}
 
 /* ===== 중앙 3D + 오버레이 ===== */
 .gl-wrap{position:relative;min-height:0;min-width:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
@@ -509,8 +542,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .btn-sub:disabled{opacity:.35;cursor:not-allowed}
 .subbed{opacity:.42}
 
-/* ===== AI 전술 코치 (좌측 하단 원형 버튼 + 말풍선) ===== */
-.coach-fab-wrap{position:fixed;left:1.8rem;bottom:1.8rem;z-index:80;display:flex;flex-direction:column;align-items:flex-start;gap:.7rem}
+/* ===== AI 전술 코치 (3D 전술판 영역 좌측 하단 원형 버튼 + 말풍선, 줌 컨트롤 위에 쌓임) ===== */
+.coach-fab-wrap{position:absolute;left:.9rem;bottom:6.6rem;z-index:16;display:flex;flex-direction:column;align-items:flex-start;gap:.7rem}
 .coach-fab{
   width:5rem;height:5rem;border-radius:50%;flex-shrink:0;
   background:radial-gradient(circle at 32% 28%, #1a2620, var(--panel) 70%);

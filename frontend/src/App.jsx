@@ -51,6 +51,7 @@ function AppInner() {
             myTeamId={teams.myTeamId}
             onBack={goToBoard}
             onHome={() => setView('landing')}
+            onChangeTeams={() => setView('teamSelect')}
           />
         </div>
       )}

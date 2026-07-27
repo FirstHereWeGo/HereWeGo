@@ -32,14 +32,20 @@ async function simulatePhase(teamA, teamB, phaseDef) {
   return { sim, stats };
 }
 
+function didIWin(lm, myTeamId) {
+  const winnerId = lm.pso
+    ? (lm.pso.scoreA > lm.pso.scoreB ? lm.match.home.id : lm.match.away.id)
+    : (lm.scoreA > lm.scoreB ? lm.match.home.id : lm.match.away.id);
+  return winnerId === myTeamId;
+}
+
+/** 탈락(패배)한 라운드가 qf/sf면 다음 라운드로 안내하는 대신 곧장 우승 결과를 볼 수 있게 안내한다. */
 function continueLabel(lm, stage, myTeamId) {
   if (lm.finished) {
-    const winnerId = lm.pso
-      ? (lm.pso.scoreA > lm.pso.scoreB ? lm.match.home.id : lm.match.away.id)
-      : (lm.scoreA > lm.scoreB ? lm.match.home.id : lm.match.away.id);
-    const iWon = winnerId === myTeamId;
-    if (stage === 'qf') return iWon ? '4강으로' : '다음 경기로';
-    if (stage === 'sf') return iWon ? '결승으로' : '3,4위전으로';
+    const iWon = didIWin(lm, myTeamId);
+    if (!iWon && (stage === 'qf' || stage === 'sf')) return '결과보기';
+    if (stage === 'qf') return '4강으로';
+    if (stage === 'sf') return '결승으로';
     return '다음 경기로';
   }
   const atEndOfRegular = lm.phaseIndex === MATCH_PHASES.length - 1 && lm.phases.length === MATCH_PHASES.length;
@@ -70,7 +76,7 @@ function MatchBox({ match, onOpenDetail }) {
   );
 }
 
-export default function Tournament({ myTeamId, onBack, onHome }) {
+export default function Tournament({ myTeamId, onBack, onHome, onChangeTeams }) {
   const state = useGameState();
   const [pool, setPool] = useState(null); // { teams, tactics }
   const [bracket, setBracket] = useState(null);
@@ -171,15 +177,21 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     setStage(next.stage);
   }
 
-  /** 내가 이미 탈락한 상태 - 남은 라운드(들)를 우승팀이 나올 때까지 자동으로 전부 시뮬레이션한다. */
-  async function simulateRemainingRounds(matches, othersPlayed) {
+  /**
+   * 내가 이미 탈락한 상태 - 남은 라운드(들)를 우승팀이 나올 때까지 자동으로 전부 시뮬레이션한다.
+   * initialMineResult가 있으면 그 결과로 첫 라운드만 확정하고(방금 끝낸 내 경기), 그 다음부터는
+   * 완전히 탈락한 상태로 계속 자동 진행한다 - "결과보기" 버튼에서 쓴다.
+   */
+  async function simulateRemainingRounds(matches, othersPlayed, initialMineResult = null) {
     let curBracket = bracket;
     let curStage = stage;
     let curMatches = matches;
     let curPlayed = othersPlayed;
+    let mineResult = initialMineResult;
 
     while (true) {
-      const next = computeNextRound(curBracket, curStage, curMatches, null, curPlayed);
+      const next = computeNextRound(curBracket, curStage, curMatches, mineResult, curPlayed);
+      mineResult = null;
       curBracket = next.bracket;
       curStage = next.stage;
       if (curStage === 'done') break;
@@ -281,7 +293,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     }
   }
 
-  /** 브레이크 화면의 "다음 경기로" - 내 경기 결과를 확정하고 대진표를 갱신한다. */
+  /** 브레이크 화면의 "다음 경기로"/"4강으로"/"결승으로" - 내 경기 결과를 확정하고 대진표를 갱신한다. */
   function finishLiveMatch() {
     const { match, scoreA, scoreB, events, pso } = liveMatch;
     const winnerId = pso
@@ -292,6 +304,28 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
     setLiveMatch(null);
     finalizeRound(matches, mineResult, pendingOthers);
     setPendingOthers([]);
+  }
+
+  /** 브레이크 화면의 "결과보기"(탈락 시) - 방금 진 경기를 확정한 뒤, 이후 라운드는 전부 자동으로 우승팀까지 진행한다. */
+  async function finishLiveMatchAndSkipToResult() {
+    const { match, scoreA, scoreB, events, pso } = liveMatch;
+    const winnerId = pso
+      ? (pso.scoreA > pso.scoreB ? match.home.id : match.away.id)
+      : (scoreA > scoreB ? match.home.id : match.away.id);
+    const mineResult = { ...match, result: { scoreA, scoreB, events, pso, winnerId } };
+    const matches = currentStageMatches();
+    const others = pendingOthers;
+    setLiveMatch(null);
+    setPendingOthers([]);
+    setSimulating(true);
+    setError(null);
+    try {
+      await simulateRemainingRounds(matches, others, mineResult);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSimulating(false);
+    }
   }
 
   /** 아직 열리지 않은(result 없는) 현재 라운드의 내 경기 상대 id — 탈락했거나 우승했으면 null. */
@@ -352,7 +386,12 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
             <div ref={sfRefs[0]}><MatchBox match={bracket.sf?.[0]} onOpenDetail={setDetail} /></div>
           </div>
           <div className="bracket-col bracket-col-center">
-            <div className="bracket-trophy">🏆</div>
+            <div className="bracket-trophy-wrap">
+              {stage === 'done' && (
+                <div className="bracket-champion-comment">🎉 {championTeam.name} 우승!</div>
+              )}
+              <div className="bracket-trophy">🏆</div>
+            </div>
             <div className="bracket-title">WORLD CHAMPION</div>
             <div ref={finalRef}><MatchBox match={bracket.final} onOpenDetail={setDetail} /></div>
             <div className="bracket-bronze-label">BRONZE FINAL</div>
@@ -379,7 +418,7 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
             </button>
           </>
         ) : (
-          <div className="bracket-champion-banner">🏆 {championTeam.name} 우승</div>
+          <button className="cta" onClick={onChangeTeams}>국가 선택하기</button>
         )}
       </div>
 
@@ -457,7 +496,11 @@ export default function Tournament({ myTeamId, onBack, onHome }) {
               <button
                 className="cta"
                 disabled={simulating}
-                onClick={liveMatch.finished ? finishLiveMatch : continueLiveMatch}
+                onClick={
+                  !liveMatch.finished ? continueLiveMatch
+                  : (!didIWin(liveMatch, myTeamId) && (stage === 'qf' || stage === 'sf')) ? finishLiveMatchAndSkipToResult
+                  : finishLiveMatch
+                }
               >
                 {simulating ? '계산 중...' : continueLabel(liveMatch, stage, myTeamId)}
               </button>

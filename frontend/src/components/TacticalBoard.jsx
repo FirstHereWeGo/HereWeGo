@@ -7,7 +7,6 @@ import PitchBoard from './PitchBoard';
 import PlayerCard from './PlayerCard';
 import BenchList from './BenchList';
 import TeamAnalyticsBoard from './TeamAnalyticsBoard';
-import CoachButton from './CoachButton';
 
 export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTeams, onTournament }) {
   const state = useGameState();
@@ -20,6 +19,8 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
+  // 전술 옵션 호버 프리뷰 전용 상태 — GameContext의 실제 tacticConfig는 건드리지 않는 순수 UI 상태다.
+  const [tacticPreviewKey, setTacticPreviewKey] = useState(null);
 
   useEffect(() => {
     // 토너먼트 페이지에 다녀와도 이미 로드된 같은 매치업이면 다시 불러오지 않는다 —
@@ -139,13 +140,21 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
         />
       ) : (
         <div className="board-body">
-          <Sidebar />
+          <Sidebar
+            onPreviewEnter={setTacticPreviewKey}
+            onPreviewLeave={() => setTacticPreviewKey(null)}
+          />
           <PitchBoard
             winProb={winProb}
             prevWinProb={prevWinProb}
             predicting={predicting}
             predictError={predictError}
             onCalculateWinProbability={calculateWinProbability}
+            tacticPreviewKey={tacticPreviewKey}
+            aiSuggestion={aiSuggestion}
+            aiLoading={aiLoading}
+            aiError={aiError}
+            onRequestAiSuggestion={requestAiSuggestion}
           />
           <aside className="rightbar glass">
             <PlayerCard />
@@ -153,14 +162,6 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           </aside>
         </div>
       )}
-
-      <CoachButton
-        suggestion={aiSuggestion}
-        loading={aiLoading}
-        error={aiError}
-        disabled={!winProb}
-        onRequest={requestAiSuggestion}
-      />
     </section>
   );
 }
