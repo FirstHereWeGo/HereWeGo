@@ -1,20 +1,24 @@
 /**
  * backend TacticConfig(FM 스타일 5개 섹션)를 사이드바용 4개 카테고리(공격/수비/조율)로 재배치한 것.
  * 필드 스키마 자체는 backend/app/schemas/tactic.py와 1:1로 맞춰뒀다 (포메이션은 별도 카테고리라 여기 없음).
+ *
+ * previewKey(value): 호버 시 보여줄 TacticPreviewPitch 프리뷰의 key를 만드는 함수(선택).
+ * 반환한 key는 src/data/tacticPreviews.js의 TACTIC_PREVIEWS에 정의돼 있어야 한다.
+ * 다른 필드에도 같은 패턴으로 추가하면 Sidebar가 자동으로 호버 프리뷰를 연결한다.
  */
 export const TACTIC_GROUPS = {
   attack: [
     {
       key: 'inPossession', title: '공격 시 (볼 보유)',
       fields: [
-        { key: 'buildupStyle', label: '빌드업 방식', type: 'select', options: [['short', '짧게'], ['mixed', '혼합'], ['direct', '다이렉트']] },
+        { key: 'buildupStyle', label: '빌드업 방식', type: 'select', options: [['short', '짧게'], ['mixed', '혼합'], ['direct', '다이렉트']], previewKey: v => `buildup-${v}` },
         { key: 'attackingWidth', label: '공격 폭', type: 'slider' },
         { key: 'passingDirectness', label: '패스 직선성', type: 'slider' },
         { key: 'tempo', label: '템포', type: 'slider' },
         { key: 'timeWasting', label: '시간 끌기', type: 'slider' },
         { key: 'buildFromBack', label: '후방 빌드업', type: 'toggle' },
-        { key: 'overlapLeft', label: '왼쪽 오버래핑', type: 'toggle' },
-        { key: 'overlapRight', label: '오른쪽 오버래핑', type: 'toggle' },
+        { key: 'overlapLeft', label: '왼쪽 오버래핑', type: 'toggle', previewKey: v => `overlapL-${v ? 'on' : 'off'}` },
+        { key: 'overlapRight', label: '오른쪽 오버래핑', type: 'toggle', previewKey: v => `overlapR-${v ? 'on' : 'off'}` },
         { key: 'targetCentral', label: '중앙 타겟 플레이', type: 'toggle' },
         { key: 'targetWide', label: '측면 타겟 플레이', type: 'toggle' },
       ],
@@ -22,7 +26,7 @@ export const TACTIC_GROUPS = {
     {
       key: 'opponentHalf', title: '상대 진영에서',
       fields: [
-        { key: 'crossingApproach', label: '크로스 방식', type: 'select', options: [['low', '낮게'], ['mixed', '혼합'], ['high', '높게']] },
+        { key: 'crossingApproach', label: '크로스 방식', type: 'select', options: [['low', '낮게'], ['mixed', '혼합'], ['high', '높게']], previewKey: v => `cross-${v}` },
         { key: 'playCalmly', label: '침착하게 플레이', type: 'toggle' },
         { key: 'earlyCrosses', label: '빠른 크로스', type: 'toggle' },
         { key: 'dontHoldBack', label: '과감하게 전진', type: 'toggle' },
@@ -36,8 +40,8 @@ export const TACTIC_GROUPS = {
     {
       key: 'outOfPossession', title: '수비 시 (볼 미보유)',
       fields: [
-        { key: 'defensiveShape', label: '수비 대형', type: 'select', options: [['narrow', '좁게'], ['normal', '보통'], ['wide', '넓게']] },
-        { key: 'pressingLine', label: '압박 시작 라인', type: 'select', options: [['low', '낮게'], ['mid', '중간'], ['high', '높게']] },
+        { key: 'defensiveShape', label: '수비 대형', type: 'select', options: [['narrow', '좁게'], ['normal', '보통'], ['wide', '넓게']], previewKey: v => `shape-${v}` },
+        { key: 'pressingLine', label: '압박 시작 라인', type: 'select', options: [['low', '낮게'], ['mid', '중간'], ['high', '높게']], previewKey: v => `pressline-${v}` },
         { key: 'pressingIntensity', label: '압박 강도', type: 'slider' },
         { key: 'defensiveLineHeight', label: '수비 라인 높이', type: 'slider' },
         { key: 'tackling', label: '태클 강도', type: 'select', options: [['stay_on_feet', '신중하게'], ['hard_tackle', '강하게']] },

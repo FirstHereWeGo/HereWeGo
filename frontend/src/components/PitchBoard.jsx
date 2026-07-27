@@ -4,6 +4,8 @@ import { useGameState, useGameActions } from '../state/GameContext';
 import { layoutFormation, GK_COORD } from '../data/formationLayout';
 import { jerseyNumber } from '../utils/playerDisplay';
 import WinProbabilityPanel from './WinProbabilityPanel';
+import TacticPreviewPitch from './TacticPreviewPitch';
+import CoachButton from './CoachButton';
 
 const CAM_LABELS = [
   ['broadcast', '중계 캠'],
@@ -30,7 +32,10 @@ function buildOppLineup(oppTeam, oppTacticPreset, formations) {
   return lineup;
 }
 
-export default function PitchBoard({ winProb, prevWinProb, predicting, predictError, onCalculateWinProbability }) {
+export default function PitchBoard({
+  winProb, prevWinProb, predicting, predictError, onCalculateWinProbability, tacticPreviewKey,
+  aiSuggestion, aiLoading, aiError, onRequestAiSuggestion,
+}) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const pitchRef = useRef(null);
@@ -133,6 +138,23 @@ export default function PitchBoard({ winProb, prevWinProb, predicting, predictEr
         <button className="zoom-btn glass" onClick={() => pitchRef.current?.zoom(-12)}>＋</button>
         <button className="zoom-btn glass" onClick={() => pitchRef.current?.zoom(12)}>－</button>
       </div>
+
+      {tacticPreviewKey && (
+        <div className="tpp-flyout">
+          <TacticPreviewPitch
+            activeKey={tacticPreviewKey}
+            formation={state.formations.find(f => f.id === state.formationId)}
+          />
+        </div>
+      )}
+
+      <CoachButton
+        suggestion={aiSuggestion}
+        loading={aiLoading}
+        error={aiError}
+        disabled={!winProb}
+        onRequest={onRequestAiSuggestion}
+      />
     </div>
   );
 }

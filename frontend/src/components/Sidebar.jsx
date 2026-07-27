@@ -28,19 +28,23 @@ function SliderField({ label, value, onChange, disabled }) {
   );
 }
 
-function ToggleField({ label, value, onChange, disabled, onLabel = '사용', offLabel = '미사용' }) {
+function ToggleField({ label, value, onChange, disabled, onLabel = '사용', offLabel = '미사용', previewKey, onPreviewEnter, onPreviewLeave }) {
+  const hoverProps = (v) => previewKey ? {
+    onMouseEnter: () => onPreviewEnter?.(previewKey(v)),
+    onMouseLeave: () => onPreviewLeave?.(),
+  } : {};
   return (
     <div className="inst-group">
       <h4>{label}</h4>
       <div className="inst-opts">
-        <button className={`inst-btn ${value ? 'on' : ''}`} disabled={disabled} onClick={() => onChange(true)}>{onLabel}</button>
-        <button className={`inst-btn ${!value ? 'on' : ''}`} disabled={disabled} onClick={() => onChange(false)}>{offLabel}</button>
+        <button className={`inst-btn ${value ? 'on' : ''}`} disabled={disabled} onClick={() => onChange(true)} {...hoverProps(true)}>{onLabel}</button>
+        <button className={`inst-btn ${!value ? 'on' : ''}`} disabled={disabled} onClick={() => onChange(false)} {...hoverProps(false)}>{offLabel}</button>
       </div>
     </div>
   );
 }
 
-function SelectField({ label, value, options, onChange, disabled }) {
+function SelectField({ label, value, options, onChange, disabled, previewKey, onPreviewEnter, onPreviewLeave }) {
   return (
     <div className="inst-group">
       <h4>{label}</h4>
@@ -51,6 +55,8 @@ function SelectField({ label, value, options, onChange, disabled }) {
             className={`inst-btn ${value === val ? 'on' : ''}`}
             disabled={disabled}
             onClick={() => onChange(val)}
+            onMouseEnter={previewKey ? () => onPreviewEnter?.(previewKey(val)) : undefined}
+            onMouseLeave={previewKey ? () => onPreviewLeave?.() : undefined}
           >
             {optLabel}
           </button>
@@ -60,7 +66,7 @@ function SelectField({ label, value, options, onChange, disabled }) {
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onPreviewEnter, onPreviewLeave }) {
   const state = useGameState();
   const { setPlayerPosBulk, restoreHome, applyFormation, setTacticConfig } = useGameActions();
   const [category, setCategory] = useState('formation');
@@ -138,6 +144,9 @@ export default function Sidebar() {
                   key={field.key} label={field.label} value={value} disabled={locked}
                   onLabel={field.onLabel} offLabel={field.offLabel}
                   onChange={v => setField(section.key, field.key, v)}
+                  previewKey={field.previewKey}
+                  onPreviewEnter={onPreviewEnter}
+                  onPreviewLeave={onPreviewLeave}
                 />
               );
             }
@@ -145,6 +154,9 @@ export default function Sidebar() {
               <SelectField
                 key={field.key} label={field.label} value={value} options={field.options} disabled={locked}
                 onChange={v => setField(section.key, field.key, v)}
+                previewKey={field.previewKey}
+                onPreviewEnter={onPreviewEnter}
+                onPreviewLeave={onPreviewLeave}
               />
             );
           })}
