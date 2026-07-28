@@ -134,11 +134,6 @@ export default function PitchBoard({
         선수 클릭 후 다른 선수 클릭 시 위치 교체 · 빈 곳 드래그 회전 · 휠 줌
       </div>
 
-      <div className="zoom-hud">
-        <button className="zoom-btn glass" onClick={() => pitchRef.current?.zoom(-12)}>＋</button>
-        <button className="zoom-btn glass" onClick={() => pitchRef.current?.zoom(12)}>－</button>
-      </div>
-
       {tacticPreviewKey && (
         <div className="tpp-flyout">
           <TacticPreviewPitch

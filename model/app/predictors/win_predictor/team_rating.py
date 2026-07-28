@@ -11,8 +11,14 @@ from app.predictors.win_predictor.tactics_transitions import apply_transitions
 from app.schemas import TeamMatchInput
 
 
-def team_rating(team_input: TeamMatchInput) -> dict[str, float]:
-    context = build_context(team_input)
+def team_rating(team_input: TeamMatchInput, context=None) -> dict[str, float]:
+    """전술 조정까지 끝난 팀 rating 조각들을 돌려준다.
+
+    `context`를 넘기면 그 TeamContext를 그대로 써서, 계산 중 쌓인
+    시너지/페널티 판정(report.py)을 호출자가 꺼내 쓸 수 있다.
+    """
+    if context is None:
+        context = build_context(team_input)
     base_rating = compute_base_rating(team_input, context)
 
     ratings: dict[str, float] = {

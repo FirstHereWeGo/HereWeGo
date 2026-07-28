@@ -13,6 +13,8 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
   const { loadMatch } = useGameActions();
   const [winProb, setWinProb] = useState(null);
   const [prevWinProb, setPrevWinProb] = useState(null);
+  // 분석 화면의 "전술 정체성" 배지가 상대 팀 쪽 styleLabel/styleFit도 필요로 해서 같이 들고 있는다.
+  const [oppWinProb, setOppWinProb] = useState(null);
   const [predicting, setPredicting] = useState(false);
   const [predictError, setPredictError] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -49,6 +51,7 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
       });
       setPrevWinProb(winProb);
       setWinProb(result.teamA);
+      setOppWinProb(result.teamB);
     } catch (err) {
       setPredictError(err.message);
     } finally {
@@ -117,7 +120,9 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
         </div>
 
         <div className="topbar-side right">
-          {!showAnalytics && (
+          {showAnalytics ? (
+            <button className="btn-ghost" onClick={() => setShowAnalytics(false)}>← 포메이션으로</button>
+          ) : (
             <button className="btn-ghost" onClick={() => setShowAnalytics(true)}>분석</button>
           )}
           <button className="btn-ghost" onClick={onTournament}>토너먼트로</button>
@@ -132,11 +137,11 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           oppTacticPreset={state.oppTacticPreset}
           players={state.players}
           winProb={winProb}
+          oppWinProb={oppWinProb}
           prevWinProb={prevWinProb}
           predicting={predicting}
           predictError={predictError}
           onCalculateWinProbability={calculateWinProbability}
-          onBack={() => setShowAnalytics(false)}
         />
       ) : (
         <div className="board-body">

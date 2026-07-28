@@ -46,6 +46,7 @@ function continueLabel(lm, stage, myTeamId) {
     if (!iWon && (stage === 'qf' || stage === 'sf')) return '결과보기';
     if (stage === 'qf') return '4강으로';
     if (stage === 'sf') return '결승으로';
+    if (stage === 'final' && iWon) return '우승!';
     return '다음 경기로';
   }
   const atEndOfRegular = lm.phaseIndex === MATCH_PHASES.length - 1 && lm.phases.length === MATCH_PHASES.length;
@@ -494,7 +495,7 @@ export default function Tournament({ myTeamId, onBack, onHome, onChangeTeams }) 
                 </button>
               )}
               <button
-                className="cta"
+                className={`cta ${liveMatch.finished && stage === 'final' && didIWin(liveMatch, myTeamId) ? 'cta-champion' : ''}`}
                 disabled={simulating}
                 onClick={
                   !liveMatch.finished ? continueLiveMatch

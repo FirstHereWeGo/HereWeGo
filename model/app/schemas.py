@@ -220,11 +220,24 @@ class MatchSimulationInput(WinProbabilityInput):
     minuteOffset: int = 0  # 이벤트 표시용 시각 오프셋 (연장전후반은 90)
 
 
+class SynergyItem(BaseModel):
+    """전술 한 갈래에 대한 판정 1건 - 프론트 '시너지 리포트'가 그대로 그린다."""
+
+    key: str
+    category: Literal["style", "inPossession", "opponentHalf", "transitions", "outOfPossession", "squad"]
+    tone: Literal["good", "bad"]
+    label: str  # 판정 요약 한 줄
+    detail: str = ""  # 왜 그렇게 판정됐는지 - 요구 스탯 vs 실제 팀 평균
+
+
 class TeamOutcome(BaseModel):
     win: float
     draw: float
     loss: float
     penalties: list[str] = []
+    synergies: list[SynergyItem] = []
+    styleLabel: str = ""  # 예: "점유형 · 공격적"
+    styleFit: int = 50  # 짜둔 전술 전체를 스쿼드가 소화하는 정도 0~100 (50 = 보통)
 
 
 class WinProbabilityOutput(BaseModel):

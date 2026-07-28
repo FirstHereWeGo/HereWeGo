@@ -15,10 +15,11 @@
 """
 import os
 
-from app.predictors.win_predictor.context import TeamContext
-from app.predictors.win_predictor.probability import ratings_to_output
+from app.predictors.win_predictor.context import build_context
+from app.predictors.win_predictor.probability import ratings_to_output, style_fit
+from app.predictors.win_predictor.tactics_style import style_label
 from app.predictors.win_predictor.team_rating import team_rating
-from app.schemas import WinProbabilityInput, WinProbabilityOutput
+from app.schemas import TeamMatchInput, WinProbabilityInput, WinProbabilityOutput
 
 _model = None  # lazy-load 캐시
 
@@ -36,17 +37,23 @@ def predict_win_probability(payload: WinProbabilityInput) -> WinProbabilityOutpu
     반환값은 schemas.WinProbabilityOutput 형태이며 내부 계산은 0..1 구간의 확률로
     반환한다. (프론트/백엔드의 기대와 일치하도록 0~1 범위를 유지)
     """
-    setattr(TeamContext, "_last_penalty_codes", [])
-    rating_a_details = team_rating(payload.teamA)
-    penalties_a = list(getattr(TeamContext, "_last_penalty_codes", []))
+    total_a, penalties_a, extra_a = _rate(payload.teamA)
+    total_b, penalties_b, extra_b = _rate(payload.teamB)
 
-    setattr(TeamContext, "_last_penalty_codes", [])
-    rating_b_details = team_rating(payload.teamB)
-    penalties_b = list(getattr(TeamContext, "_last_penalty_codes", []))
+    return ratings_to_output(total_a, total_b, penalties_a, penalties_b, extra_a, extra_b)
 
-    return ratings_to_output(
-        rating_a_details["total"], rating_b_details["total"], penalties_a, penalties_b
-    )
+
+def _rate(team: TeamMatchInput) -> tuple[float, list[str], dict]:
+    """한 팀의 rating과 함께, 계산 중 쌓인 시너지/페널티 리포트를 꺼낸다."""
+    context = build_context(team)
+    details = team_rating(team, context)
+    tactic_adjustment = details["total"] - details["base"]
+    extra = {
+        "synergies": list(context.synergies),
+        "styleLabel": style_label(getattr(team, "tacticConfig", None)),
+        "styleFit": style_fit(tactic_adjustment),
+    }
+    return details["total"], list(context.penalty_codes), extra
 
 
 def _load_model():
