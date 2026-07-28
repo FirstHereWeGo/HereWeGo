@@ -55,12 +55,9 @@ export default function LiveMatchDashboard({ stats, events, momentum, colorA, co
           <span><i style={{ background: colorB }} />{teamBName}</span>
         </div>
 
-        <div className="dash-panel-title dash-panel-title-spaced">흐름 추이 <span className="dash-panel-sub">점유율 · 구간별</span></div>
-        <StatMomentumSpark momentum={momentum} events={events} colorA={colorA} colorB={colorB} mineIsA={mineIsA} />
-
-        <div className="coach-placeholder glass">
-          <div className="coach-placeholder-title">전술 코치</div>
-          <div className="coach-placeholder-body">AI 전술 코치는 추후 제공 예정입니다.</div>
+        <div className="dash-momentum-block">
+          <div className="dash-panel-title dash-panel-title-spaced">흐름 추이 <span className="dash-panel-sub">점유율 · 구간별</span></div>
+          <StatMomentumSpark momentum={momentum} events={events} colorA={colorA} colorB={colorB} mineIsA={mineIsA} />
         </div>
       </div>
     </div>

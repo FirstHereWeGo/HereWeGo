@@ -36,11 +36,24 @@ class MatchSimulationRequest(WinProbabilityRequest):
     minuteOffset: int = 0  # 이벤트 표시용 시각 오프셋 (연장전후반은 90)
 
 
+class SynergyItem(BaseModel):
+    """model이 계산한 전술 시너지/페널티 판정 1건 (model/app/schemas.py와 손으로 미러링)."""
+
+    key: str
+    category: Literal["style", "inPossession", "opponentHalf", "transitions", "outOfPossession", "squad"]
+    tone: Literal["good", "bad"]
+    label: str
+    detail: str = ""
+
+
 class TeamOutcome(BaseModel):
     win: float
     draw: float
     loss: float
     penalties: list[str] = []
+    synergies: list[SynergyItem] = []
+    styleLabel: str = ""
+    styleFit: int = 50
 
 
 class WinProbabilityResponse(BaseModel):

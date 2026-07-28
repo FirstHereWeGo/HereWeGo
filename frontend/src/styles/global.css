@@ -52,6 +52,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 }
 .cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,197,94,.4)}
 .cta:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+/* 결승 우승 시 "우승!" 버튼 - 골드/블랙으로 우승 트로피 느낌을 낸다. */
+.cta.cta-champion{background:linear-gradient(135deg,var(--gold),#c9971f);color:#120d02;box-shadow:0 0 26px var(--gold-glow)}
+.cta.cta-champion:hover{box-shadow:0 10px 34px var(--gold-glow)}
 .landing-foot{margin-top:1.1rem;font-size:.75rem;color:var(--text-dim)}
 
 /* ===== 팀 선택 ===== */
@@ -140,6 +143,10 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .btn-ghost:hover:not(:disabled){border-color:var(--green);color:var(--text)}
 .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
 
+/* 상단바 우측(분석/포메이션으로/토너먼트로/팀 변경) — 밝은 그린 톤으로 강조 */
+.topbar-side.right .btn-ghost{border-color:var(--green);color:var(--green-bright);background:rgba(52,224,122,.08);font-weight:700}
+.topbar-side.right .btn-ghost:hover:not(:disabled){border-color:var(--green-bright);color:#04170c;background:var(--green-bright)}
+
 .timeline-panel{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1.1rem;margin:0 1.1rem .7rem}
 .timeline-panel.timeline-error{color:var(--danger);font-size:.86rem}
 .timeline-chip{font-size:.82rem;font-weight:700;padding:.35rem .7rem;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--glass-line);white-space:nowrap}
@@ -166,11 +173,19 @@ input[type=range]{width:100%;accent-color:var(--green)}
 
 /* ===== 전술판(팀 분석) ===== */
 .analytics-page{flex:1;overflow-y:auto;padding:1.1rem}
-.analytics-header{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.1rem}
 .analytics-split{display:grid;grid-template-columns:3fr 2fr;gap:1.1rem;align-items:start}
-.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.analytics-right-col{display:flex;flex-direction:column;gap:1.1rem}
+/* 스탯 리더 비교 + 포지션별 맞대결 — 컨테이너 폭과 무관하게 항상 반반으로 나눈다. */
+.matchup-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1rem;align-items:start}
+/* 강점/약점 TOP3를 세로로 쌓아 한 그리드 칸에 담는다 (시너지 리포트 옆 칸을 채움). */
+.analytics-stack{display:flex;flex-direction:column;gap:1rem}
+/* align-items:start — 카드가 같은 행 이웃의 높이에 맞춰 늘어나지 않고 제 내용만큼만 차지한다. */
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;align-items:start}
+/* 팀 분석(좌측)은 열을 2개로 고정한다. auto-fit이면 폭에 따라 3열이 생겨서
+   span 2 카드 옆에 빈 칸이 남고 뒤 카드들이 그 틈으로 흩어진다. */
+.analytics-grid.team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .analytics-card{padding:1.1rem}
-.analytics-card-large{grid-column:span 2;min-height:200px}
+.analytics-card-large{grid-column:span 2}
 .analytics-card-title{font-size:.78rem;letter-spacing:.14em;color:var(--text-dim);font-weight:700;margin-bottom:.9rem;text-transform:uppercase}
 .analytics-chip-list{display:flex;flex-wrap:wrap;gap:.5rem}
 .analytics-chip{display:flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border-radius:999px;font-size:.82rem;font-weight:600;border:1px solid var(--glass-line);background:rgba(255,255,255,.03)}
@@ -181,6 +196,75 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .analytics-hero-stat .num{font-size:2.4rem;color:var(--gold)}
 .analytics-hero-unit{color:var(--text-dim);font-size:.9rem}
 .analytics-empty{color:var(--text-dim);font-size:.85rem;margin-bottom:.6rem}
+.analytics-note{margin-top:.7rem;font-size:.72rem;color:var(--text-dim)}
+
+/* 전술 정체성 배지 — 두 팀 스타일 + 스쿼드 적합도 */
+.style-badge-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.style-badge{padding:.8rem .9rem;border-radius:10px;border:1px solid var(--glass-line);background:rgba(255,255,255,.03)}
+.style-badge.mine{border-color:rgba(52,224,122,.35)}
+.style-badge.opp{border-color:rgba(239,83,80,.3)}
+.style-badge-team{font-size:.72rem;color:var(--text-dim);letter-spacing:.08em;margin-bottom:.3rem}
+.style-badge-label{font-size:1.15rem;font-weight:800;font-family:'Rajdhani','Noto Sans KR',sans-serif;letter-spacing:.02em}
+.style-badge.mine .style-badge-label{color:var(--green-bright)}
+.style-badge.opp .style-badge-label{color:var(--danger)}
+.style-badge-fit{display:flex;align-items:center;gap:.5rem;margin-top:.55rem}
+.style-badge-fit .num{font-size:1.1rem;font-weight:900}
+.style-badge-unit{font-size:.72rem;color:var(--text-dim)}
+.style-badge-meter{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.style-badge-meter-fill{height:100%;border-radius:999px;transition:width .35s ease}
+.style-badge-meter-fill.mine{background:var(--green-bright)}
+.style-badge-meter-fill.opp{background:var(--danger)}
+
+/* 포지션 라인별 능력치 비교 — 가운데 라벨을 두고 좌우로 뻗는 막대 */
+.grp-lines{display:flex;flex-direction:column;gap:.9rem;margin-top:.3rem}
+.grp-line-head{display:flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.4rem}
+.grp-line-count{font-size:.7rem;color:var(--text-dim);font-weight:500}
+.grp-row{display:grid;grid-template-columns:2.1rem 1fr 4.6rem 1fr 2.1rem;align-items:center;gap:.4rem;padding:.14rem 0}
+.grp-val{font-size:.78rem;font-weight:800}
+.grp-val.mine{text-align:right;color:var(--green-bright)}
+.grp-val.opp{text-align:left;color:var(--danger)}
+.grp-attr{text-align:center;font-size:.72rem;color:var(--text-dim);white-space:nowrap}
+.grp-track{height:7px;border-radius:999px;background:rgba(255,255,255,.06);display:flex}
+.grp-track.mine{justify-content:flex-end}
+.grp-fill{height:100%;border-radius:999px;transition:width .35s ease}
+.grp-fill.mine{background:linear-gradient(90deg,rgba(52,224,122,.35),var(--green-bright))}
+.grp-fill.opp{background:linear-gradient(90deg,var(--danger),rgba(239,83,80,.35))}
+/* 스탯이 앞선 쪽을 금색으로 강조 - 팀 색(초록/빨강)보다 우선하도록 선택자를 한 단계 더 준다. */
+.grp-row .grp-val.lead{color:var(--gold);font-weight:900}
+.grp-row .grp-fill.mine.lead{background:linear-gradient(90deg,rgba(242,193,78,.3),var(--gold))}
+.grp-row .grp-fill.opp.lead{background:linear-gradient(90deg,var(--gold),rgba(242,193,78,.3))}
+
+/* 스탯 리더보드 — 카테고리를 가운데 두고 두 팀 1위를 마주보게 */
+.leader-list{display:flex;flex-direction:column;gap:.4rem}
+.leader-row{display:grid;grid-template-columns:1fr 5rem 1fr;align-items:center;gap:.5rem;padding:.42rem .55rem;border-radius:8px;border:1px solid var(--glass-line);background:rgba(255,255,255,.03)}
+.leader-cat{text-align:center;font-size:.7rem;color:var(--text-dim);font-weight:700;white-space:nowrap}
+.leader-side{display:flex;align-items:center;gap:.45rem;min-width:0;opacity:.62}
+.leader-side.mine{justify-content:flex-end}
+.leader-side.opp{justify-content:flex-start}
+.leader-side.lead{opacity:1}
+.leader-no{font-size:.72rem;font-weight:800;color:var(--text-dim)}
+.leader-name{font-size:.84rem;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leader-val{font-size:1.05rem;font-weight:900}
+.leader-side.mine .leader-val{color:var(--green-bright)}
+.leader-side.opp .leader-val{color:var(--danger)}
+.leader-side.lead .leader-name{color:var(--text)}
+
+/* 시너지 리포트 — 보너스/페널티 전량 + 판정 근거 */
+.synergy-tally{float:right;display:flex;gap:.5rem;font-size:.72rem;letter-spacing:0}
+.synergy-tally b{font-weight:800}
+.synergy-tally .good{color:var(--green-bright)}
+.synergy-tally .bad{color:var(--danger)}
+.synergy-sections{display:flex;flex-direction:column;gap:.9rem}
+.synergy-section-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--text-dim);padding-bottom:.35rem;margin-bottom:.45rem;border-bottom:1px solid var(--glass-line)}
+.synergy-item{display:flex;align-items:flex-start;gap:.55rem;padding:.42rem .6rem;border-radius:8px;border-left:2px solid transparent;margin-bottom:.3rem}
+.synergy-item.good{background:rgba(52,224,122,.07);border-left-color:var(--green-bright)}
+.synergy-item.bad{background:rgba(239,83,80,.07);border-left-color:var(--danger)}
+.synergy-mark{font-size:.66rem;line-height:1.5}
+.synergy-item.good .synergy-mark{color:var(--green-bright)}
+.synergy-item.bad .synergy-mark{color:var(--danger)}
+.synergy-body{min-width:0}
+.synergy-label{font-size:.84rem;font-weight:600;line-height:1.45}
+.synergy-detail{font-size:.72rem;color:var(--text-dim);margin-top:.18rem;line-height:1.5}
 
 /* 오각형(레이더) 차트 */
 .radar-chart{overflow:visible;display:block;margin:0 auto}
@@ -310,10 +394,16 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .livematch-phase-label{font-size:.82rem;font-weight:700;color:var(--gold);text-align:center;letter-spacing:.04em;margin-bottom:.7rem}
 
 /* ===== 라이브 경기 대시보드 (3열: 공간 / 지표 대결 / 팀 성향·흐름) ===== */
-.livematch-dashboard{display:grid;grid-template-columns:minmax(190px,220px) minmax(320px,1fr) minmax(210px,250px);gap:1rem;margin-bottom:1rem;align-items:start}
+/* align-items 기본값(stretch) - 세 칸이 그 행의 최대 높이(보통 가장 좌측 공간 칼럼)에 맞춰 늘어난다. */
+.livematch-dashboard{display:grid;grid-template-columns:minmax(190px,220px) minmax(320px,1fr) minmax(210px,250px);gap:1rem;margin-bottom:1rem}
 .dash-col{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:.85rem}
 .dash-panel-title{font-size:.76rem;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-align:center;margin-bottom:.6rem}
 .dash-panel-title-spaced{margin-top:.9rem}
+/* 좌측 칼럼(공간)과 높이가 맞춰진 뒤 남는 빈 공간 쪽으로 흐름 추이를 내린다.
+   margin-top:auto가 남는 공간을 이 블록 위로 끌어오되, margin-bottom을 고정값으로
+   남겨둬서 완전히 바닥에 붙지 않고 그만큼 위로 띄운다. */
+.dash-side{display:flex;flex-direction:column}
+.dash-momentum-block{margin-top:auto;margin-bottom:2.2rem}
 .dash-panel-sub{font-weight:500;color:var(--text-dim);opacity:.7;letter-spacing:0;font-size:.68rem;display:block;margin-top:.15rem}
 .dash-skeleton{padding:2.4rem 1rem;text-align:center;color:var(--text-dim);font-size:.85rem}
 
@@ -357,10 +447,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .momentum-empty{font-size:.7rem;color:var(--text-dim);text-align:center;padding:1.6rem 0}
 .momentum-area{opacity:.85}
 .momentum-goal{filter:drop-shadow(0 0 3px currentColor)}
-
-.coach-placeholder{margin-top:.9rem;padding:.7rem .8rem;border-radius:8px}
-.coach-placeholder-title{font-size:.72rem;font-weight:700;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.3rem}
-.coach-placeholder-body{font-size:.74rem;color:var(--text-dim);line-height:1.5;opacity:.75}
 
 @media(max-width:1000px){
   .livematch-dashboard{grid-template-columns:1fr}
@@ -456,11 +542,6 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .spd-btn:not(.on):hover:not(:disabled){color:var(--green-bright)}
 .spd-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* 줌 — 좌하단 */
-.zoom-hud{position:absolute;bottom:.9rem;left:.9rem;display:flex;flex-direction:column;gap:.35rem;z-index:10}
-.zoom-btn{width:34px;height:34px;font-size:1.05rem;font-weight:700;color:var(--text)}
-.zoom-btn:hover{border-color:var(--green)}
-
 /* 결과 배너 (3초 자동 소멸) */
 .outcome-banner{
   position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);
@@ -542,8 +623,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .btn-sub:disabled{opacity:.35;cursor:not-allowed}
 .subbed{opacity:.42}
 
-/* ===== AI 전술 코치 (3D 전술판 영역 좌측 하단 원형 버튼 + 말풍선, 줌 컨트롤 위에 쌓임) ===== */
-.coach-fab-wrap{position:absolute;left:.9rem;bottom:6.6rem;z-index:16;display:flex;flex-direction:column;align-items:flex-start;gap:.7rem}
+/* ===== AI 전술 코치 (3D 전술판 영역 좌측 하단 원형 버튼 + 말풍선) ===== */
+.coach-fab-wrap{position:absolute;left:.9rem;bottom:.9rem;z-index:16;display:flex;flex-direction:column;align-items:flex-start;gap:.7rem}
 .coach-fab{
   width:5rem;height:5rem;border-radius:50%;flex-shrink:0;
   background:radial-gradient(circle at 32% 28%, #1a2620, var(--panel) 70%);
@@ -613,6 +694,11 @@ input[type=range]{width:100%;accent-color:var(--green)}
   .sidebar{order:2}
   .rightbar{order:3}
   .live-log{width:88%}
+  /* 팀 분석은 열 수가 고정이라 좁은 화면에서는 직접 1열로 되돌린다. */
+  .analytics-split{grid-template-columns:1fr}
+  .analytics-grid.team-grid{grid-template-columns:1fr}
+  .matchup-split{grid-template-columns:1fr}
+  .analytics-card-large{grid-column:auto}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 

@@ -3,7 +3,7 @@
 Backend는 이미 실제 Player 객체를 채워서 payload로 넘겨준다. 여기서는 그 값을
 그대로 쓰고 다시 조회하지 않는다.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.schemas import GoalkeepingBlock, Player, TeamMatchInput
 
@@ -41,6 +41,9 @@ class TeamContext:
     wingers: list[Player]
     defenders: list[Player]
     cbs: list[Player]
+    # report.py가 채우는 전술 시너지/페널티 판정 기록 (승률 응답의 synergies/penalties로 나감)
+    synergies: list[dict] = field(default_factory=list)
+    penalty_codes: list[str] = field(default_factory=list)
 
 
 def build_context(team_input: TeamMatchInput) -> TeamContext:

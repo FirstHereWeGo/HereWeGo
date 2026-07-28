@@ -1,5 +1,7 @@
 """전술 조정 이전 기본 rating: 선수 능력치 합산 + GK + 포지션 미스매치 + 연령/신장 페널티."""
 from app.predictors.win_predictor.context import ATTR_SCALE, TeamContext, gk_overall
+from app.predictors.win_predictor.report import SQUAD
+from app.predictors.win_predictor.report import penalty as report_penalty
 from app.predictors.win_predictor.weights import WEIGHTS
 from app.schemas import TeamMatchInput
 
@@ -25,15 +27,6 @@ POSITION_COMPATIBILITY = {
     "WG": {"same_family": {"AM", "ST"}, "adjacent_line": {"FB", "WB", "CM"}},
     "ST": {"same_family": {"WG", "AM"}, "adjacent_line": {"CM", "DM"}},
 }
-
-
-def _record_penalty(context: TeamContext, code: str) -> None:
-    penalties = getattr(context, "penalty_codes", None)
-    if penalties is None:
-        penalties = []
-        setattr(context, "penalty_codes", penalties)
-    penalties.append(code)
-    setattr(TeamContext, "_last_penalty_codes", list(penalties))
 
 
 def _position_mismatch_penalty(slot_pos: str, player_positions: list[str]) -> float:
@@ -116,10 +109,16 @@ def compute_base_rating(team_input: TeamMatchInput, context: TeamContext) -> flo
         for i, pos in enumerate(formation_positions):
             if i < len(team_input.players):
                 p = team_input.players[i]
-                penalty = _position_mismatch_penalty(pos, list(getattr(p, "positions", [])))
-                if penalty > 0:
-                    rating -= penalty
-                    _record_penalty(context, "선수의 주 포지션이 아니어서 제 기량을 발휘하기 어려움")
+                player_positions = list(getattr(p, "positions", []))
+                mismatch = _position_mismatch_penalty(pos, player_positions)
+                if mismatch > 0:
+                    rating -= mismatch
+                    report_penalty(
+                        context,
+                        SQUAD,
+                        "선수의 주 포지션이 아니어서 제 기량을 발휘하기 어려움",
+                        f"{getattr(p, 'name', '선수')} — {pos} 슬롯 배치 (주 포지션 {'/'.join(player_positions) or '없음'})",
+                    )
     except Exception:
         pass
 
