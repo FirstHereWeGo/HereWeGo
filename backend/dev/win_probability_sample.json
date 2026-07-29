@@ -1,0 +1,102 @@
+{
+  "teamA": {
+    "teamId": "kor",
+    "startingXI": {
+      "formationId": "3-4-3",
+      "goalkeeperId": "kor-1",
+      "playerIds": ["kor-2", "kor-4", "kor-3", "kor-22", "kor-6", "kor-8", "kor-13", "kor-19", "kor-18", "kor-11"]
+    },
+    "tacticConfig": {
+      "style": {
+        "tacticStyle": "possession",
+        "approach": "attacking"
+      },
+      "inPossession": {
+        "attackingWidth": 65,
+        "buildupStyle": "short",
+        "overlapLeft": true,
+        "overlapRight": true,
+        "targetCentral": false,
+        "targetWide": true,
+        "buildFromBack": true,
+        "passingDirectness": 35,
+        "tempo": 60,
+        "timeWasting": 10
+      },
+      "opponentHalf": {
+        "crossingApproach": "mixed",
+        "playCalmly": true,
+        "earlyCrosses": false,
+        "dontHoldBack": false,
+        "exploitSetPieces": true,
+        "dribbleMore": true,
+        "playForFreedom": false
+      },
+      "transitions": {
+        "pressAfterLoss": true,
+        "counterAfterWin": true,
+        "gkDistributeQuick": false,
+        "distributionMethod": "short"
+      },
+      "outOfPossession": {
+        "defensiveShape": "normal",
+        "pressingIntensity": 30,
+        "pressingLine": "low",
+        "tackling": "stay_on_feet",
+        "defensiveLineHeight": 30,
+        "offsideTrap": "out",
+        "allowCrosses": false
+      }
+    }
+  },
+  "teamB": {
+    "teamId": "rsa",
+    "startingXI": {
+      "formationId": "4-2-3-1",
+      "goalkeeperId": "rsa-1",
+      "playerIds": ["rsa-20", "rsa-21", "rsa-14", "rsa-6", "rsa-13", "rsa-5", "rsa-12", "rsa-10", "rsa-7", "rsa-17"]
+    },
+    "tacticConfig": {
+      "style": {
+        "tacticStyle": "counter",
+        "approach": "balanced"
+      },
+      "inPossession": {
+        "attackingWidth": 55,
+        "buildupStyle": "direct",
+        "overlapLeft": false,
+        "overlapRight": true,
+        "targetCentral": true,
+        "targetWide": false,
+        "buildFromBack": false,
+        "passingDirectness": 65,
+        "tempo": 55,
+        "timeWasting": 20
+      },
+      "opponentHalf": {
+        "crossingApproach": "high",
+        "playCalmly": false,
+        "earlyCrosses": true,
+        "dontHoldBack": true,
+        "exploitSetPieces": true,
+        "dribbleMore": false,
+        "playForFreedom": false
+      },
+      "transitions": {
+        "pressAfterLoss": false,
+        "counterAfterWin": true,
+        "gkDistributeQuick": true,
+        "distributionMethod": "long"
+      },
+      "outOfPossession": {
+        "defensiveShape": "narrow",
+        "pressingIntensity": 45,
+        "pressingLine": "mid",
+        "tackling": "hard_tackle",
+        "defensiveLineHeight": 45,
+        "offsideTrap": "none",
+        "allowCrosses": true
+      }
+    }
+  }
+}

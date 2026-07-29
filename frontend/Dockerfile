@@ -1,21 +1,16 @@
-# frontend/Dockerfile (프로덕션용 - 멀티스테이지 빌드)
+# frontend/Dockerfile (프로덕션용 - Vite 빌드 후 nginx로 정적 파일 서빙)
 
-FROM node:20-alpine AS builder
+FROM node:20-slim AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+
+COPY package.json package-lock.json ./
+RUN npm install
+
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-EXPOSE 3000
-CMD ["npm", "start"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
