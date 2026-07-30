@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter
 
 from app.data.teams import get_team
@@ -32,7 +34,12 @@ def _build_prompt(my: dict, bench: list[dict], opp: dict, win_prob: TeamOutcome)
     opp_players = "\n".join(_format_player(p) for p in opp["players"])
 
     return f"""당신은 축구 코치입니다. 아래 데이터만 근거로, 우리 팀이 전술 설정이나 선발 선수를 어떻게 바꾸면 좋을지 한국어로 조언해서 감독을 도우세요.
-추상적인 일반론이 아니라 실제 선수 이름과 스탯 수치를 근거로, 구체적인 포지션/전술 옵션 변경이나 벤치 선수로의 교체를 bullet point 3개로 제안하세요. 스탯은 선수 간 상대 비교용 수치입니다.
+추상적인 일반론이 아니라 실제 선수 이름과 스탯 수치를 근거로, 구체적인 포지션/전술 옵션 변경이나 벤치 선수로의 교체를 제안하세요. 스탯은 선수 간 상대 비교용 수치입니다.
+
+[출력 형식 - 반드시 지킬 것]
+- 총 5줄 이내로 요약하세요. 줄마다 한 문장, 군더더기 설명 없이 핵심만.
+- 서식 없는 일반 텍스트로만 작성하세요. **, *, #, -, 마크다운 강조, 번호 매기기, 이모지를 쓰지 마세요.
+- 각 줄은 그냥 줄바꿈으로만 구분하세요 (불릿 기호 없이).
 
 [현재 예측 결과 (우리 팀 기준)]
 승률 {win_prob.win * 100:.0f}% / 무승부 {win_prob.draw * 100:.0f}% / 패배 {win_prob.loss * 100:.0f}%
@@ -63,6 +70,15 @@ def _build_prompt(my: dict, bench: list[dict], opp: dict, win_prob: TeamOutcome)
 """
 
 
+def _strip_markdown(text: str) -> str:
+    """프론트 말풍선은 마크다운을 렌더링하지 않는 순수 텍스트라, 모델이 프롬프트 지시를
+    무시하고 강조 기호를 넣는 경우를 대비해 여기서 한 번 더 걷어낸다."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)  # **강조**
+    text = re.sub(r"(?<!\*)\*(?!\*)(.+?)\*(?!\*)", r"\1", text)  # *강조*
+    text = re.sub(r"^\s*[-*#]+\s*", "", text, flags=re.MULTILINE)  # 줄머리 마크다운 불릿/헤딩
+    return text.strip()
+
+
 @router.post("/ai-suggestion")
 async def ai_suggestion(payload: AiSuggestionRequest) -> AiSuggestionResponse:
     my = resolve_team(payload.teamA)
@@ -74,4 +90,4 @@ async def ai_suggestion(payload: AiSuggestionRequest) -> AiSuggestionResponse:
 
     prompt = _build_prompt(my, bench, opp, payload.winProb)
     suggestion = await gemini_client.generate_suggestion(prompt)
-    return AiSuggestionResponse(suggestion=suggestion)
+    return AiSuggestionResponse(suggestion=_strip_markdown(suggestion))

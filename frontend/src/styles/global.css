@@ -709,7 +709,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .sidebar,
 .bench,
 .bench-list,
-.livematch-card {
+.livematch-card,
+.coach-bubble-text {
   /* IE, Edge, Firefox */
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -720,7 +721,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .sidebar::-webkit-scrollbar,
 .bench::-webkit-scrollbar,
 .bench-list::-webkit-scrollbar,
-.livematch-card::-webkit-scrollbar {
+.livematch-card::-webkit-scrollbar,
+.coach-bubble-text::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
