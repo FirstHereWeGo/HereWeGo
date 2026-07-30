@@ -220,6 +220,75 @@ ARGENTINA = Team(
     ],
 )
 
+GERMANY = Team(
+    id="ger",
+    name="Germany",
+    manager="NAGELSMANN",
+    players=[
+        Player(id="ger-1", name="Manuel Neuer", positions=["GK"], age=39, height=193, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(70)),
+        Player(id="ger-2", name="Antonio Rüdiger", positions=["DC"], age=32, height=190, leftFoot=3, rightFoot=5, attributes=AttributeBlock(75, 45, 85, 35, 50, 60, 60, 70, 85, 75)),
+        Player(id="ger-3", name="Waldemar Anton", positions=["DC"], age=29, height=189, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 55, 75, 30, 60, 70, 65, 75, 75, 75)),
+        Player(id="ger-4", name="Jonathan Tah", positions=["DC"], age=29, height=195, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 50, 90, 30, 50, 70, 65, 80, 65, 75)),
+        Player(id="ger-5", name="Aleksandar Pavlović", positions=["DM", "MC"], age=21, height=188, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 60, 55, 40, 60, 85, 75, 65, 60, 55)),
+        Player(id="ger-6", name="Joshua Kimmich", positions=["DR", "DM", "MC"], age=30, height=177, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 60, 60, 55, 65, 90, 90, 65, 65, 60)),
+        Player(id="ger-7", name="Kai Havertz", positions=["AMC", "ST"], age=26, height=191, leftFoot=5, rightFoot=3, attributes=AttributeBlock(70, 65, 70, 65, 75, 80, 75, 85, 50, 40)),
+        Player(id="ger-8", name="Leon Goretzka", positions=["DM", "MC"], age=30, height=189, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 55, 85, 60, 60, 75, 70, 80, 70, 60)),
+        Player(id="ger-9", name="Jamie Leweling", positions=["AMR", "AML"], age=24, height=185, leftFoot=4, rightFoot=5, attributes=AttributeBlock(80, 60, 70, 60, 75, 55, 60, 65, 55, 45)),
+        Player(id="ger-10", name="Jamal Musiala", positions=["AML", "AMC"], age=22, height=184, leftFoot=3, rightFoot=5, attributes=AttributeBlock(75, 90, 50, 75, 95, 75, 75, 70, 55, 45)),
+        Player(id="ger-11", name="Nick Woltemade", positions=["AMC", "ST"], age=23, height=198, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 75, 75, 75, 80, 70, 75, 65, 45, 40)),
+        Player(id="ger-12", name="Oliver Baumann", positions=["GK"], age=35, height=187, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(75)),
+        Player(id="ger-13", name="Pascal Groß", positions=["DM", "MC"], age=34, height=181, leftFoot=3, rightFoot=5, attributes=AttributeBlock(50, 60, 55, 55, 60, 80, 80, 65, 55, 55)),
+        Player(id="ger-14", name="Maximilian Beier", positions=["ST"], age=23, height=185, leftFoot=3, rightFoot=5, attributes=AttributeBlock(85, 80, 50, 70, 65, 55, 60, 70, 40, 40)),
+        Player(id="ger-15", name="Nico Schlotterbeck", positions=["DC"], age=26, height=191, leftFoot=5, rightFoot=2, attributes=AttributeBlock(70, 60, 80, 35, 60, 80, 80, 75, 85, 70)),
+        Player(id="ger-16", name="Angelo Stiller", positions=["DM", "MC"], age=24, height=183, leftFoot=5, rightFoot=2, attributes=AttributeBlock(55, 60, 60, 40, 60, 85, 85, 70, 60, 60)),
+        Player(id="ger-17", name="Florian Wirtz", positions=["AMC"], age=22, height=177, leftFoot=3, rightFoot=5, attributes=AttributeBlock(75, 80, 50, 65, 85, 90, 90, 80, 50, 40)),
+        Player(id="ger-18", name="Nathaniel Brown", positions=["DL", "WBL"], age=22, height=176, leftFoot=5, rightFoot=3, attributes=AttributeBlock(80, 75, 50, 40, 65, 65, 65, 65, 75, 55)),
+        Player(id="ger-19", name="Leroy Sané", positions=["AMR", "AML"], age=29, height=183, leftFoot=5, rightFoot=3, attributes=AttributeBlock(85, 80, 55, 60, 85, 75, 75, 70, 40, 25)),
+        Player(id="ger-20", name="Nadiem Amiri", positions=["DM", "MC"], age=29, height=180, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 65, 65, 60, 75, 75, 80, 65, 60, 50)),
+        Player(id="ger-21", name="Alexander Nübel", positions=["GK"], age=29, height=193, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(70)),
+        Player(id="ger-22", name="David Raum", positions=["DL", "WBL"], age=27, height=181, leftFoot=5, rightFoot=2, attributes=AttributeBlock(80, 65, 65, 40, 60, 60, 65, 80, 65, 60)),
+        Player(id="ger-23", name="Felix Nmecha", positions=["DM", "MC"], age=25, height=188, leftFoot=2, rightFoot=5, attributes=AttributeBlock(80, 80, 80, 50, 80, 75, 75, 65, 65, 55)),
+        Player(id="ger-24", name="Malick Thiaw", positions=["DC"], age=24, height=194, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 60, 80, 35, 45, 60, 60, 70, 75, 75)),
+        Player(id="ger-25", name="Assan Ouédraogo", positions=["MC", "AMC"], age=19, height=191, leftFoot=3, rightFoot=5, attributes=AttributeBlock(65, 80, 55, 60, 80, 65, 65, 65, 50, 40)),
+        Player(id="ger-26", name="Deniz Undav", positions=["AMC", "ST"], age=29, height=179, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 60, 75, 85, 65, 70, 75, 75, 45, 40)),
+    ],
+)
+
+
+BRAZIL = Team(
+    id="bra",
+    name="Brazil",
+    manager="Carlo ANCELOTTI",
+    players=[
+        Player(id="bra-1", name="Alisson", positions=["GK"], age=33, height=191, leftFoot=2, rightFoot=5, attributes=GoalkeepingBlock(85)),
+        Player(id="bra-2", name="Éderson (Atalanta)", positions=["MC"], age=26, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 65, 75, 60, 65, 75, 65, 75, 75, 60)),
+        Player(id="bra-3", name="Gabriel", positions=["DC"], age=27, height=190, leftFoot=5, rightFoot=3, attributes=AttributeBlock(75, 65, 95, 40, 50, 65, 65, 75, 90, 80)),
+        Player(id="bra-4", name="Marquinhos", positions=["DC"], age=31, height=183, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 65, 75, 40, 50, 65, 65, 80, 80, 80)),
+        Player(id="bra-5", name="Casemiro", positions=["DM", "MC"], age=33, height=185, leftFoot=4, rightFoot=5, attributes=AttributeBlock(50, 45, 85, 55, 50, 70, 70, 70, 85, 70)),
+        Player(id="bra-6", name="Alex Sandro", positions=["DL"], age=34, height=180, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 60, 65, 45, 65, 70, 60, 80, 75, 65)),
+        Player(id="bra-7", name="Vinícius Júnior", positions=["AML"], age=25, height=176, leftFoot=3, rightFoot=5, attributes=AttributeBlock(90, 85, 60, 80, 95, 75, 60, 40, 30, 15)),
+        Player(id="bra-8", name="Bruno Guimarães", positions=["DM", "MC"], age=28, height=182, leftFoot=2, rightFoot=5, attributes=AttributeBlock(55, 65, 70, 60, 80, 90, 85, 80, 70, 65)),
+        Player(id="bra-9", name="Matheus Cunha", positions=["AMC", "ST"], age=26, height=183, leftFoot=4, rightFoot=5, attributes=AttributeBlock(75, 80, 60, 75, 90, 70, 60, 25, 30, 20)),
+        Player(id="bra-10", name="Neymar", positions=["AML", "AMC"], age=33, height=175, leftFoot=3, rightFoot=5, attributes=AttributeBlock(55, 60, 50, 75, 95, 80, 85, 20, 25, 20)),
+        Player(id="bra-11", name="Raphinha", positions=["AMR", "AML"], age=28, height=176, leftFoot=5, rightFoot=3, attributes=AttributeBlock(80, 75, 55, 70, 75, 75, 70, 40, 55, 40)),
+        Player(id="bra-12", name="Weverton", positions=["GK"], age=37, height=189, leftFoot=3, rightFoot=5, attributes=GoalkeepingBlock(70)),
+        Player(id="bra-13", name="Danilo", positions=["DR", "DC"], age=34, height=184, leftFoot=4, rightFoot=5, attributes=AttributeBlock(60, 55, 60, 40, 55, 65, 65, 80, 70, 70)),
+        Player(id="bra-14", name="Bremer", positions=["DC"], age=28, height=187, leftFoot=2, rightFoot=5, attributes=AttributeBlock(75, 60, 80, 60, 45, 65, 55, 75, 80, 85)),
+        Player(id="bra-15", name="Léo Pereira", positions=["DC"], age=29, height=188, leftFoot=5, rightFoot=2, attributes=AttributeBlock(65, 70, 65, 40, 60, 75, 65, 70, 75, 75)),
+        Player(id="bra-16", name="Douglas Santos", positions=["DL"], age=31, height=175, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 75, 45, 55, 65, 70, 65, 65, 65, 60)),
+        Player(id="bra-17", name="Fabinho", positions=["DM"], age=32, height=188, leftFoot=3, rightFoot=5, attributes=AttributeBlock(60, 45, 80, 45, 55, 80, 70, 75, 70, 60)),
+        Player(id="bra-18", name="Danilo (Botafogo)", positions=["DM", "MC"], age=24, height=177, leftFoot=5, rightFoot=3, attributes=AttributeBlock(60, 70, 55, 45, 65, 70, 65, 65, 65, 65)),
+        Player(id="bra-19", name="Endrick", positions=["ST"], age=19, height=173, leftFoot=5, rightFoot=4, attributes=AttributeBlock(75, 70, 75, 75, 70, 65, 65, 30, 30, 30)),
+        Player(id="bra-20", name="Lucas Paquetá", positions=["MC", "AML", "AMC"], age=28, height=180, leftFoot=5, rightFoot=3, attributes=AttributeBlock(65, 70, 65, 60, 75, 65, 70, 50, 60, 50)),
+        Player(id="bra-21", name="Luiz Henrique", positions=["AMR"], age=24, height=182, leftFoot=5, rightFoot=3, attributes=AttributeBlock(75, 75, 60, 50, 85, 70, 60, 55, 55, 35)),
+        Player(id="bra-22", name="Gabriel Martinelli", positions=["AML"], age=24, height=180, leftFoot=3, rightFoot=5, attributes=AttributeBlock(80, 80, 55, 70, 80, 60, 65, 35, 25, 25)),
+        Player(id="bra-23", name="Ederson (GK, Fenerbahçe)", positions=["GK"], age=32, height=188, leftFoot=5, rightFoot=3, attributes=GoalkeepingBlock(80)),
+        Player(id="bra-24", name="Roger Ibañez", positions=["DC"], age=27, height=185, leftFoot=3, rightFoot=5, attributes=AttributeBlock(75, 65, 65, 45, 55, 70, 55, 75, 85, 70)),
+        Player(id="bra-25", name="Thiago", positions=["ST"], age=24, height=191, leftFoot=3, rightFoot=5, attributes=AttributeBlock(70, 60, 80, 75, 65, 60, 60, 40, 45, 35)),
+        Player(id="bra-26", name="Rayan", positions=["AMR", "ST"], age=19, height=185, leftFoot=5, rightFoot=2, attributes=AttributeBlock(75, 70, 75, 70, 65, 55, 45, 35, 35, 35)),
+    ],
+)
+
 BELGIUM = Team(
     id="bel",
     name="Belgium",
@@ -390,7 +459,7 @@ PORTUGAL = Team(
     ],
 )
 
-TEAMS: list[Team] = [KOREA_REPUBLIC, SOUTH_AFRICA, SPAIN, FRANCE, ENGLAND, ARGENTINA, BELGIUM, MOROCCO, SWITZERLAND, NORWAY, PORTUGAL]
+TEAMS: list[Team] = [KOREA_REPUBLIC, SOUTH_AFRICA, SPAIN, FRANCE, ENGLAND, ARGENTINA, GERMANY, BRAZIL, BELGIUM, MOROCCO, SWITZERLAND, NORWAY, PORTUGAL]
 
 
 def get_team(team_id: str) -> Team | None:
