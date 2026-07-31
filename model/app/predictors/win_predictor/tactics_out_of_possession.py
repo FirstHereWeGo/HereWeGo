@@ -13,6 +13,7 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
 
     field_players = context.field_players
     cbs = context.cbs
+    gk = context.gk
 
     pressing = getattr(oop_def, "pressingIntensity", 50)
     dline = getattr(oop_def, "defensiveLineHeight", 50)
@@ -27,16 +28,31 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
     cb_mark_avg = avg(lambda p: attr(p, "marking"), cbs)
     cb_pos_avg = avg(lambda p: attr(p, "positioning"), cbs)
     cb_height_avg = avg(lambda p: getattr(p, "height", 0), cbs)
+    gk_decisions = attr(gk, "decisions")
+    gk_positioning = attr(gk, "positioning")
+    gk_handling = attr(gk, "handling")
+    gk_cross_defense = (gk_handling + gk_positioning) / 2
 
-    # 높은 라인 & 강한 압박은 빠른 CB가 필요
+    # 높은 라인 & 강한 압박은 빠른 CB가 필요 - 판단력 좋은 골키퍼가 뒷공간 상황 판단을 도와줌
     if dline > 70 and pressing > 70:
-        reasons = (need("센터백 주력", cb_pace_avg, 11.1), need("민첩성", cb_agil_avg, 11.1))
-        if cb_pace_avg <= 11 or cb_agil_avg <= 11:
-            penalty(context, CAT, "높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함", *reasons)
-            rating_adjustment -= 64.0
-        else:
+        cb_slow = cb_pace_avg <= 11 or cb_agil_avg <= 11
+        reasons = (
+            need("센터백 주력", cb_pace_avg, 11.1),
+            need("민첩성", cb_agil_avg, 11.1),
+            need("골키퍼 판단력", gk_decisions, 13),
+        )
+        if not cb_slow:
             bonus(context, CAT, "센터백이 빨라 하이라인 뒷공간을 커버함", *reasons)
             rating_adjustment += 10.0
+            if gk_decisions >= 13:
+                bonus(context, CAT, "판단력 좋은 골키퍼까지 더해져 하이라인 뒷공간 대응이 한층 안정적임", *reasons)
+                rating_adjustment += 6.0
+        elif gk_decisions >= 13:
+            penalty(context, CAT, "센터백은 느리지만 판단력 좋은 골키퍼가 위험을 미리 감지해 피해를 줄임", *reasons)
+            rating_adjustment -= 24.0
+        else:
+            penalty(context, CAT, "높은 수비 라인과 강한 압박을 버틸 센터백 속도/민첩성이 부족함", *reasons)
+            rating_adjustment -= 64.0
 
     # 낮은 라인(텐백)은 힘/신장/마킹을 중시
     if dline < 40 and pressing < 40:
@@ -101,12 +117,20 @@ def apply_out_of_possession(tc: TacticConfig, context: TeamContext) -> float:
             penalty(context, CAT, "오프사이드 트랩을 운영할 센터백 위치선정/시야가 부족함", *reasons)
             rating_adjustment -= 48.0
 
-    # 수비 형태 & 크로스 허용
+    # 수비 형태 & 크로스 허용 - 핸들링+위치선정 좋은 골키퍼면 제공권 약점을 일부 보완
     if defensive_shape == "narrow" and allow_crosses:
-        reasons = (need("센터백 신장", cb_height_avg, 182, "cm"), need("몸싸움", cb_strength_avg, 12))
-        if cb_height_avg >= 182 and cb_strength_avg >= 12:
+        cb_air_weak = cb_height_avg < 182 or cb_strength_avg < 12
+        reasons = (
+            need("센터백 신장", cb_height_avg, 182, "cm"),
+            need("몸싸움", cb_strength_avg, 12),
+            need("골키퍼 핸들링+위치선정(크로스 대응)", gk_cross_defense, 13),
+        )
+        if not cb_air_weak:
             bonus(context, CAT, "중앙을 좁히고 크로스를 걷어낼 제공권이 있음", *reasons)
             rating_adjustment += 10.0
+        elif gk_cross_defense >= 13:
+            penalty(context, CAT, "센터백 제공권은 약하지만 골키퍼가 크로스를 직접 걷어내 보완함", *reasons)
+            rating_adjustment -= 6.0
         else:
             penalty(context, CAT, "좁은 수비 형태에서 크로스를 허용했을 때 제공권 대응이 약함", *reasons)
             rating_adjustment -= 16.0

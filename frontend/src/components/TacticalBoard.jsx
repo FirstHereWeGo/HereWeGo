@@ -136,6 +136,8 @@ export default function TacticalBoard({ myTeamId, oppTeamId, onHome, onChangeTea
           oppTeam={state.oppTeam}
           oppTacticPreset={state.oppTacticPreset}
           players={state.players}
+          formations={state.formations}
+          formationId={state.formationId}
           winProb={winProb}
           oppWinProb={oppWinProb}
           prevWinProb={prevWinProb}

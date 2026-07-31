@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { computeTeamAnalytics, computeGroupComparison, computeStatLeaders, computeMatchupComparison } from '../utils/teamAnalytics';
+import { computeTeamAnalytics, computeGroupComparison, computeStatLeaders, computeMatchupComparison, currentSlotPositions, slotPositionsFromOrderedIds } from '../utils/teamAnalytics';
 import { ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
 import { jerseyNumber } from '../utils/playerDisplay';
 import RadarChart from './RadarChart';
@@ -162,8 +162,8 @@ function StatLeaderCompare({ team, oppTeam, players, oppPlayers }) {
 }
 
 /** 실제로 맞상대하는 같은 포지션끼리(우리 ST vs 상대 ST 등) 대표 스탯을 비교한다. */
-function PositionMatchup({ team, oppTeam, players, oppPlayers }) {
-  const rows = computeMatchupComparison(players, oppPlayers);
+function PositionMatchup({ team, oppTeam, players, oppPlayers, mySlots, oppSlots }) {
+  const rows = computeMatchupComparison(players, oppPlayers, mySlots, oppSlots);
 
   return (
     <div className="analytics-card glass">
@@ -393,7 +393,7 @@ function PlayerComparePanel({ team, oppTeam }) {
   );
 }
 
-export default function TeamAnalyticsBoard({ team, oppTeam, oppTacticPreset, players, winProb, oppWinProb, onCalculateWinProbability }) {
+export default function TeamAnalyticsBoard({ team, oppTeam, oppTacticPreset, players, formations, formationId, winProb, oppWinProb, onCalculateWinProbability }) {
   useEffect(() => {
     if (!winProb) {
       onCalculateWinProbability();
@@ -402,6 +402,12 @@ export default function TeamAnalyticsBoard({ team, oppTeam, oppTacticPreset, pla
   }, []);
 
   const oppPlayers = startingElevenMap(oppTeam.players, oppTacticPreset?.goalkeeperId, oppTacticPreset?.startingPlayerIds);
+
+  // "포지션별 맞대결"용 - 카드에 적힌 주 포지션이 아니라 지금 실제로 서 있는 슬롯 기준으로 비교하기 위함.
+  const myFormation = formations?.find(f => f.id === formationId);
+  const oppFormation = formations?.find(f => f.id === oppTacticPreset?.formationId);
+  const mySlots = currentSlotPositions(players, myFormation);
+  const oppSlots = slotPositionsFromOrderedIds(oppTacticPreset?.goalkeeperId, oppTacticPreset?.startingPlayerIds, oppFormation);
 
   return (
     <div className="analytics-page">
@@ -418,7 +424,7 @@ export default function TeamAnalyticsBoard({ team, oppTeam, oppTacticPreset, pla
           <PlayerComparePanel team={team} oppTeam={oppTeam} />
           <div className="matchup-split">
             <StatLeaderCompare team={team} oppTeam={oppTeam} players={players} oppPlayers={oppPlayers} />
-            <PositionMatchup team={team} oppTeam={oppTeam} players={players} oppPlayers={oppPlayers} />
+            <PositionMatchup team={team} oppTeam={oppTeam} players={players} oppPlayers={oppPlayers} mySlots={mySlots} oppSlots={oppSlots} />
           </div>
         </div>
       </div>

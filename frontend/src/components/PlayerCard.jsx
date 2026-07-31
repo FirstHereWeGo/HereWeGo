@@ -1,5 +1,5 @@
 import { useGameState } from '../state/GameContext';
-import { ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
+import { ATTRIBUTE_LABELS, GK_ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
 import { jerseyNumber } from '../utils/playerDisplay';
 import FootRating from './FootRating';
 
@@ -38,7 +38,7 @@ export default function PlayerCard() {
   const photoFallbackId = isPrime ? d.id.replace(/^prime/, '') : null;
 
   const no = jerseyNumber(d.id);
-  const isGk = isPrime ? 'overall' in d.attributes : d.positions.includes('GK');
+  const isGk = positions.includes('GK');
   const keySet = new Set(KEY_ATTRS[positions[0]] || []);
 
   return (
@@ -83,13 +83,15 @@ export default function PlayerCard() {
 
       {isGk ? (
         <div className="stat-grid">
-          <div className="statline keystat gk-overall">
-            <span className="sname">종합 능력치</span>
-            <div className="sbar">
-              <div className="sfill" style={{ width: `${(d.attributes.overall / 100) * 100}%` }} />
+          {GK_ATTRIBUTE_LABELS.map(([key, name]) => (
+            <div key={key} className="statline">
+              <span className="sname">{name}</span>
+              <div className="sbar">
+                <div className="sfill" style={{ width: `${(d.attributes[key] / 100) * 100}%` }} />
+              </div>
+              <span className="sval num">{d.attributes[key]}</span>
             </div>
-            <span className="sval num">{d.attributes.overall}</span>
-          </div>
+          ))}
         </div>
       ) : (
         <div className="stat-grid">

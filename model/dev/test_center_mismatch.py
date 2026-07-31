@@ -19,7 +19,7 @@ def mk_player(id_, positions, **overrides):
 
 def mk_gk(id_):
     return Player(id=id_, name=id_, positions=["GK"], age=25, height=190, leftFoot=3, rightFoot=3,
-                  attributes=GoalkeepingBlock(overall=70))
+                  attributes=GoalkeepingBlock(reflexes=70, decisions=70, handling=70, positioning=70, passing=70))
 
 # 팀A의 AM = 패스/시야 만점(중앙 창의성 최강), 팀B의 CM들은 태클/마킹 평균 그대로.
 players_a = [

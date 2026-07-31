@@ -1,5 +1,5 @@
 """TacticConfig.transitions 기반 rating_adjustment 조정."""
-from app.predictors.win_predictor.context import TeamContext, attr, avg, gk_overall
+from app.predictors.win_predictor.context import TeamContext, attr, avg
 from app.predictors.win_predictor.report import TRANSITIONS as CAT
 from app.predictors.win_predictor.report import bonus, have, need, penalty
 from app.schemas import TacticConfig
@@ -62,15 +62,15 @@ def apply_transitions(tc: TacticConfig, context: TeamContext) -> float:
 
     if gk_distribution_quick:
         if distribution_method == "short":
-            gk_over = gk_overall(gk)
+            gk_pass = attr(gk, "passing")
             cb_pos_avg = avg(lambda p: attr(p, "positioning"), cbs)
             cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
             reasons = (
-                need("골키퍼 종합", gk_over, 12),
+                need("골키퍼 패스", gk_pass, 12),
                 need("센터백 위치선정", cb_pos_avg, 11),
                 need("패스", cb_pass_avg, 11),
             )
-            if gk_over >= 12 and cb_pos_avg >= 11 and cb_pass_avg >= 11:
+            if gk_pass >= 12 and cb_pos_avg >= 11 and cb_pass_avg >= 11:
                 bonus(context, CAT, "짧고 빠른 배급으로 공격 전환을 시작할 수 있음", *reasons)
                 rating_adjustment += 1.8
             else:
