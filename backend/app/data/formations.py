@@ -18,7 +18,7 @@ FORMATIONS: list[Formation] = [
     Formation(id="3-2-4-1", name="3-2-4-1", positions=["CB", "CB", "CB", "DM", "DM", "WG", "AM", "AM", "WG", "ST"]),
     # 백4
     Formation(id="4-4-2", name="4-4-2", positions=["FB", "CB", "CB", "FB", "WG", "CM", "CM", "WG", "ST", "ST"]),
-    Formation(id="4-3-3", name="4-3-3", positions=["FB", "CB", "CB", "FB", "DM", "AM", "AM", "WG", "ST", "WG"]),
+    Formation(id="4-3-3", name="4-3-3", positions=["FB", "CB", "CB", "FB", "AM", "DM", "AM", "WG", "ST", "WG"]),
     Formation(id="4-2-3-1", name="4-2-3-1", positions=["FB", "CB", "CB", "FB", "CM", "CM", "WG", "AM", "WG", "ST"]),
     Formation(id="4-3-1-2", name="4-3-1-2", positions=["FB", "CB", "CB", "FB", "CM", "DM", "CM", "AM", "ST", "ST"]),
     Formation(id="4-2-2-2", name="4-2-2-2", positions=["FB", "CB", "CB", "FB", "DM", "DM", "AM", "AM", "ST", "ST"]),

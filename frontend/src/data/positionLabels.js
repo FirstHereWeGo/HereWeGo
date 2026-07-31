@@ -16,6 +16,15 @@ export const ATTRIBUTE_LABELS = [
   ['marking', '1:1 마크'],
 ];
 
+// GoalkeepingBlock(5개 스탯)에 대한 표시용 라벨.
+export const GK_ATTRIBUTE_LABELS = [
+  ['reflexes', '반사신경'],
+  ['decisions', '판단력'],
+  ['handling', '핸들링'],
+  ['positioning', '위치선정'],
+  ['passing', '패스'],
+];
+
 // 포지션별 핵심 스탯(강조 표시용)
 export const KEY_ATTRS = {
   CB: ['marking', 'tackling', 'strength'],

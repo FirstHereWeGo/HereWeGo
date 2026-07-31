@@ -20,7 +20,7 @@ def mk_player(id_, positions, **overrides):
 
 def mk_gk(id_):
     return Player(id=id_, name=id_, positions=["GK"], age=25, height=190, leftFoot=3, rightFoot=3,
-                  attributes=GoalkeepingBlock(overall=70))
+                  attributes=GoalkeepingBlock(reflexes=70, decisions=70, handling=70, positioning=70, passing=70))
 
 # 팀A 오른쪽 윙어 = 만점, 팀A 왼쪽 윙어 = 바닥. 나머지는 전부 평균.
 # 팀B 왼쪽 풀백(팀A 오른쪽 공격과 마주봄) = 바닥 수비. 나머지는 평균.

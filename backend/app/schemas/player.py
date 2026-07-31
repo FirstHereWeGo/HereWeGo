@@ -62,14 +62,35 @@ class AttributeBlock(BaseModel):
 
 
 class GoalkeepingBlock(BaseModel):
-    """골키퍼는 세부 스탯 없이 종합 능력치 1개만 사용, 1~20."""
+    """골키퍼 세부 스탯 5개, 1~20."""
 
     model_config = ConfigDict(extra="forbid")
 
-    overall: int = 10
+    reflexes: int = 10  # 반사신경
+    decisions: int = 10  # 판단력
+    handling: int = 10  # 핸들링
+    positioning: int = 10  # 위치선정
+    passing: int = 10  # 패스
 
-    def __init__(self, overall: int = 10, **kwargs):
-        super().__init__(overall=overall, **kwargs)
+    def __init__(
+        self,
+        reflexes: int = 10,
+        decisions: int = 10,
+        handling: int = 10,
+        positioning: int = 10,
+        passing: int = 10,
+        **kwargs,
+    ):
+        # seed 데이터(app/data/teams.py)가 위 필드 순서대로 위치 인자를 넘기므로,
+        # Pydantic v2 기본(키워드 전용)과 다르게 위치 인자도 받도록 열어둔다.
+        super().__init__(
+            reflexes=reflexes,
+            decisions=decisions,
+            handling=handling,
+            positioning=positioning,
+            passing=passing,
+            **kwargs,
+        )
 
 
 Position = Literal["GK", "CB", "FB", "WB", "DM", "CM", "AM", "WG", "ST"]
