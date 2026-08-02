@@ -319,6 +319,110 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
         ),
     ),
     TeamTacticPreset(
+        teamId="ger",
+        formationId="4-2-3-1",
+        goalkeeperId="ger-1",
+        # positions 순서(FB,CB,CB,FB,CM,CM,WG,AM,WG,ST)와 1:1 대응:
+        # 키미히,뤼디거,타,브라운,은메차,파블로비치,사네,운다브,비르츠,하베르츠
+        # 2026 월드컵 나겔스만호 - 키미히가 인버티드 풀백으로 좁혀 들어가 3-2-4-1로 가변하는
+        # 극단적 공격/게겐프레싱 전술(높은 수비라인 뒤 공간이 약점).
+        startingPlayerIds=[
+            "ger-6", "ger-2", "ger-4", "ger-18", "ger-23",
+            "ger-5", "ger-19", "ger-26", "ger-17", "ger-7",
+        ],
+        tacticConfig=TacticConfig(
+            style=TacticStyle(tacticStyle="gegenpress", approach="attacking"),
+            inPossession=InPossession(
+                attackingWidth=30,
+                buildupStyle="short",
+                overlapLeft=False,
+                overlapRight=False,
+                targetCentral=True,
+                targetWide=False,
+                buildFromBack=True,
+                passingDirectness=30,
+                tempo=80,
+                timeWasting=0,
+            ),
+            opponentHalf=OpponentHalf(
+                crossingApproach="low",
+                playCalmly=True,
+                earlyCrosses=False,
+                dontHoldBack=True,
+                exploitSetPieces=True,
+                dribbleMore=True,
+                playForFreedom=False,
+            ),
+            transitions=Transitions(
+                pressAfterLoss=True,
+                counterAfterWin=True,
+                gkDistributeQuick=False,
+                distributionMethod="short",
+            ),
+            outOfPossession=OutOfPossession(
+                defensiveShape="narrow",
+                pressingIntensity=85,
+                pressingLine="high",
+                tackling="stay_on_feet",
+                defensiveLineHeight=80,
+                offsideTrap="out",
+                allowCrosses=True,
+            ),
+        ),
+    ),
+    TeamTacticPreset(
+        teamId="bra",
+        formationId="4-2-3-1",
+        goalkeeperId="bra-23",
+        # positions 순서(FB,CB,CB,FB,CM,CM,WG,AM,WG,ST)와 1:1 대응:
+        # 다닐루,마르퀴뇨스,가브리에우,더글라스산토스,브루누기마랑이스,카제미루,하얀,마르티넬리,비니시우스,마테우스쿠냐
+        # 2026 월드컵 안첼로티호 - 카제미루가 포백을 보호하는 빌드업 축, 탈취 직후
+        # 최소 터치로 뒤 공간을 노리는 수직 역습 축구(엘리트 풀백 부재로 측면 크로스 대응이 약점).
+        startingPlayerIds=[
+            "bra-13", "bra-4", "bra-3", "bra-16", "bra-8",
+            "bra-5", "bra-26", "bra-22", "bra-7", "bra-9",
+        ],
+        tacticConfig=TacticConfig(
+            style=TacticStyle(tacticStyle="counter", approach="attacking"),
+            inPossession=InPossession(
+                attackingWidth=65,
+                buildupStyle="direct",
+                overlapLeft=False,
+                overlapRight=False,
+                targetCentral=False,
+                targetWide=True,
+                buildFromBack=True,
+                passingDirectness=60,
+                tempo=75,
+                timeWasting=10,
+            ),
+            opponentHalf=OpponentHalf(
+                crossingApproach="low",
+                playCalmly=False,
+                earlyCrosses=False,
+                dontHoldBack=True,
+                exploitSetPieces=True,
+                dribbleMore=True,
+                playForFreedom=False,
+            ),
+            transitions=Transitions(
+                pressAfterLoss=False,
+                counterAfterWin=True,
+                gkDistributeQuick=False,
+                distributionMethod="short",
+            ),
+            outOfPossession=OutOfPossession(
+                defensiveShape="wide",
+                pressingIntensity=45,
+                pressingLine="mid",
+                tackling="stay_on_feet",
+                defensiveLineHeight=45,
+                offsideTrap="none",
+                allowCrosses=True,
+            ),
+        ),
+    ),
+    TeamTacticPreset(
         teamId="bel",
         formationId="4-2-3-1",
         goalkeeperId="bel-1",
@@ -529,22 +633,22 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
             "por-15", "por-11", "por-8", "por-18", "por-7",
         ],
         tacticConfig=TacticConfig(
-            style=TacticStyle(tacticStyle="possession", approach="attacking"),
+            style=TacticStyle(tacticStyle="direct", approach="attacking"),
             inPossession=InPossession(
                 attackingWidth=45,
-                buildupStyle="short",
-                overlapLeft=True,
-                overlapRight=True,
+                buildupStyle="direct",
+                overlapLeft=False,
+                overlapRight=False,
                 targetCentral=True,
                 targetWide=False,
-                buildFromBack=True,
-                passingDirectness=25,
-                tempo=40,
+                buildFromBack=False,
+                passingDirectness=75,
+                tempo=60,
                 timeWasting=10,
             ),
             opponentHalf=OpponentHalf(
                 crossingApproach="low",
-                playCalmly=True,
+                playCalmly=False,
                 earlyCrosses=False,
                 dontHoldBack=False,
                 exploitSetPieces=True,
@@ -554,8 +658,8 @@ TEAM_TACTIC_PRESETS: list[TeamTacticPreset] = [
             transitions=Transitions(
                 pressAfterLoss=False,
                 counterAfterWin=False,
-                gkDistributeQuick=False,
-                distributionMethod="short",
+                gkDistributeQuick=True,
+                distributionMethod="long",
             ),
             outOfPossession=OutOfPossession(
                 defensiveShape="normal",

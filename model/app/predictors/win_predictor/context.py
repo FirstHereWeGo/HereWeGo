@@ -22,8 +22,14 @@ def attr(player: Player, name: str):
     return getattr(getattr(player, "attributes", None), name, 0) / ATTR_SCALE
 
 
+GK_STATS = ("reflexes", "decisions", "handling", "positioning", "passing")
+
+
 def gk_overall(player: Player | None) -> float:
-    return getattr(getattr(player, "attributes", None), "overall", 0) / ATTR_SCALE
+    """골키퍼 세부 스탯 5개 평균 - 기존 gk_over 임계값(예: >=12)은 이 평균 기준으로 캘리브레이션돼 있다."""
+    attrs = getattr(player, "attributes", None)
+    vals = [getattr(attrs, stat, 0) for stat in GK_STATS]
+    return (sum(vals) / len(vals)) / ATTR_SCALE
 
 
 def _has_position(player: Player, positions: tuple[str, ...]) -> bool:

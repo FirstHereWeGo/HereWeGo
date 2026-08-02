@@ -1,5 +1,5 @@
 """TacticConfig.inPossession 기반 rating_adjustment 조정."""
-from app.predictors.win_predictor.context import TeamContext, attr, avg, gk_overall
+from app.predictors.win_predictor.context import TeamContext, attr, avg
 from app.predictors.win_predictor.report import IN_POSSESSION as CAT
 from app.predictors.win_predictor.report import bonus, have, need, penalty
 from app.schemas import TacticConfig
@@ -125,19 +125,19 @@ def apply_in_possession(tc: TacticConfig, context: TeamContext) -> float:
             penalty(context, CAT, "풀백/윙백의 전진 자원과 위치 선정이 부족해 오버랩이 살아나지 않음", *reasons)
             rating_adjustment -= 12.0
 
-    # 빌드업 시 GK 참여
+    # 빌드업 시 GK 참여 - 골키퍼가 직접 짧게 연결해야 하므로 종합이 아니라 패스 스탯을 본다
     if build_from_back:
-        gk_over = gk_overall(gk)
+        gk_pass = attr(gk, "passing")
         cb_pass_avg = avg(lambda p: attr(p, "passing"), cbs)
         cb_vision_avg = avg(lambda p: attr(p, "vision"), cbs)
         cb_agility_avg = avg(lambda p: attr(p, "agility"), cbs)
         reasons = (
-            need("골키퍼 종합", gk_over, 12),
+            need("골키퍼 패스", gk_pass, 12),
             need("센터백 패스", cb_pass_avg, 11),
             need("시야", cb_vision_avg, 11),
             need("민첩성", cb_agility_avg, 10),
         )
-        if gk_over >= 12 and cb_pass_avg >= 11 and cb_vision_avg >= 11 and cb_agility_avg >= 10:
+        if gk_pass >= 12 and cb_pass_avg >= 11 and cb_vision_avg >= 11 and cb_agility_avg >= 10:
             bonus(context, CAT, "골키퍼까지 참여하는 후방 빌드업이 안정적으로 돌아감", *reasons)
             rating_adjustment += 12.0
         else:

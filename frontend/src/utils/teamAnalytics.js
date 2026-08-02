@@ -1,4 +1,5 @@
-import { ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
+import { ATTRIBUTE_LABELS, GK_ATTRIBUTE_LABELS, KEY_ATTRS } from '../data/positionLabels';
+import { slotOrderPlayerIds } from './autoAssign';
 
 // 실 시드 데이터(app/data/teams.py) 기준 실제 값 범위는 대략 0~100.
 const ATTR_MAX = 100;
@@ -7,6 +8,14 @@ const ATTACK_KEYS = ['finishing', 'dribbling', 'passing', 'vision', 'pace'];
 const DEFENSE_KEYS = ['tackling', 'marking', 'positioning', 'strength', 'agility'];
 
 const LABEL_BY_KEY = Object.fromEntries(ATTRIBUTE_LABELS);
+const GK_KEYS = GK_ATTRIBUTE_LABELS.map(([key]) => key);
+const GK_LABEL_BY_KEY = Object.fromEntries(GK_ATTRIBUTE_LABELS);
+
+/** GoalkeepingBlock 5개 세부 스탯 평균 - "종합" 한 줄이 필요한 곳(대표 스탯 비교)에서 쓴다. */
+function gkAggregate(attributes) {
+  const sum = GK_KEYS.reduce((s, key) => s + (attributes?.[key] ?? 0), 0);
+  return sum / GK_KEYS.length;
+}
 
 function outfieldStarters(players) {
   return Object.values(players || {}).filter(p => !p.data.positions.includes('GK'));
@@ -32,7 +41,7 @@ export function computeTeamAnalytics(players) {
   const weaknesses = allAttrs.slice(-3).reverse();
 
   const gk = Object.values(players || {}).find(p => p.data.positions.includes('GK'));
-  const gkOverall = gk ? gk.data.attributes.overall : null;
+  const gkOverall = gk ? gkAggregate(gk.data.attributes) : null;
 
   return { attack, defense, strengths, weaknesses, gkOverall, max: ATTR_MAX };
 }
@@ -86,7 +95,7 @@ export function computeGroupComparison(myPlayers, oppPlayers) {
     };
   });
 
-  // GK는 세부 스탯 없이 종합 능력치 하나뿐이라 별도 행으로 뺀다.
+  // GK는 필드 플레이어와 스탯 종류가 달라 별도 행으로 뺀다.
   const myGk = goalkeeperOf(myPlayers);
   const oppGk = goalkeeperOf(oppPlayers);
   const keeper = {
@@ -94,12 +103,12 @@ export function computeGroupComparison(myPlayers, oppPlayers) {
     label: '골키퍼',
     mineCount: myGk ? 1 : 0,
     oppCount: oppGk ? 1 : 0,
-    rows: [{
-      key: 'overall',
-      label: '종합',
-      mine: myGk?.data.attributes.overall ?? 0,
-      opp: oppGk?.data.attributes.overall ?? 0,
-    }],
+    rows: GK_KEYS.map(key => ({
+      key,
+      label: GK_LABEL_BY_KEY[key],
+      mine: myGk?.data.attributes[key] ?? 0,
+      opp: oppGk?.data.attributes[key] ?? 0,
+    })),
   };
 
   return [keeper, ...lines].filter(line => line.mineCount > 0 || line.oppCount > 0);
@@ -113,32 +122,67 @@ const MATCHUP_LABEL = {
   CM: '중앙 미드필더', AM: '공격형 미드필더', WG: '윙어', ST: '스트라이커',
 };
 
-/** 선수 한 명의 "대표 스탯"(그 포지션 핵심 스탯 평균) - GK는 종합 능력치 그대로 쓴다. */
-function representativeScore(player) {
-  if (player.positions.includes('GK')) return player.attributes.overall ?? 0;
-  const keys = KEY_ATTRS[player.positions[0]] ?? ATTRIBUTE_LABELS.map(([key]) => key);
+/**
+ * 현재 피치 좌표(x,y) 기준으로 각 선수가 "지금 서 있는" 포메이션 슬롯 포지션을 구한다.
+ * @param {Object.<string,{x:number,y:number,data:import('../api/client').Player}>} players GK 포함
+ * @param {{positions:string[]}|null} formation
+ * @returns {Object.<string,string>} playerId -> 슬롯 포지션 코드
+ */
+export function currentSlotPositions(players, formation) {
+  const result = {};
+  const outfield = {};
+  Object.entries(players || {}).forEach(([id, p]) => {
+    if (p.data.positions.includes('GK')) result[id] = 'GK';
+    else outfield[id] = p;
+  });
+  if (formation) {
+    const order = slotOrderPlayerIds(outfield, formation);
+    if (order) order.forEach((id, i) => { result[id] = formation.positions[i]; });
+  }
+  return result;
+}
+
+/**
+ * 이미 슬롯 순서로 정렬된 목록(TeamTacticPreset.startingPlayerIds 등)에서 슬롯 포지션을 구한다.
+ * 상대팀은 피치 좌표가 없는 대신 프리셋 배열 순서 자체가 formation.positions와 1:1 대응이라
+ * 좌표 매칭 없이 바로 짝지을 수 있다.
+ */
+export function slotPositionsFromOrderedIds(goalkeeperId, startingPlayerIds, formation) {
+  const result = {};
+  if (goalkeeperId) result[goalkeeperId] = 'GK';
+  if (formation) {
+    (startingPlayerIds || []).forEach((id, i) => { result[id] = formation.positions[i]; });
+  }
+  return result;
+}
+
+/** 선수 한 명의 "대표 스탯"(주어진 포지션의 핵심 스탯 평균) - GK는 종합 능력치 그대로 쓴다. */
+function representativeScore(player, pos) {
+  if (player.positions.includes('GK')) return gkAggregate(player.attributes);
+  const keys = KEY_ATTRS[pos] ?? ATTRIBUTE_LABELS.map(([key]) => key);
   const sum = keys.reduce((s, key) => s + (player.attributes[key] ?? 0), 0);
   return sum / keys.length;
 }
 
-function byPrimaryPosition(players) {
+function byPrimaryPosition(players, slotById) {
   const groups = {};
   Object.values(players || {}).forEach(p => {
-    const pos = p.data.positions[0];
+    const pos = slotById?.[p.data.id] ?? p.data.positions[0];
     (groups[pos] ??= []).push(p.data);
   });
   return groups;
 }
 
-function representativeAvg(members) {
+function representativeAvg(members, pos) {
   if (members.length === 0) return 0;
-  return members.reduce((sum, p) => sum + representativeScore(p), 0) / members.length;
+  return members.reduce((sum, p) => sum + representativeScore(p, pos), 0) / members.length;
 }
 
-/** 같은 포지션끼리(우리 ST vs 상대 ST 등) 실제로 맞상대하는 구도로 대표 스탯을 비교한다. */
-export function computeMatchupComparison(myPlayers, oppPlayers) {
-  const mineGroups = byPrimaryPosition(myPlayers);
-  const oppGroups = byPrimaryPosition(oppPlayers);
+/** 같은 포지션끼리(우리 ST vs 상대 ST 등) 실제로 맞상대하는 구도로 대표 스탯을 비교한다.
+ * mySlots/oppSlots를 넘기면 선수 카드의 주 포지션이 아니라 "지금 서 있는" 슬롯 기준으로 묶는다. */
+export function computeMatchupComparison(myPlayers, oppPlayers, mySlots, oppSlots) {
+  const mineGroups = byPrimaryPosition(myPlayers, mySlots);
+  const oppGroups = byPrimaryPosition(oppPlayers, oppSlots);
 
   return MATCHUP_ORDER
     .filter(pos => mineGroups[pos] || oppGroups[pos])
@@ -148,8 +192,8 @@ export function computeMatchupComparison(myPlayers, oppPlayers) {
       return {
         key: pos,
         label: MATCHUP_LABEL[pos] ?? pos,
-        mine: representativeAvg(mine),
-        opp: representativeAvg(opp),
+        mine: representativeAvg(mine, pos),
+        opp: representativeAvg(opp, pos),
         mineCount: mine.length,
         oppCount: opp.length,
       };

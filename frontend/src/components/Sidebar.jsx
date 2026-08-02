@@ -6,12 +6,12 @@ import { TACTIC_GROUPS } from '../data/tacticFields';
 
 const CATEGORIES = [
   ['formation', '포메이션'],
+  ['coordination', '조율'],
   ['attack', '공격'],
   ['defense', '수비'],
-  ['coordination', '조율'],
 ];
 
-function SliderField({ label, value, onChange, disabled }) {
+function SliderField({ label, value, onChange, disabled, previewKey, onPreviewEnter, onPreviewLeave }) {
   return (
     <div className="slider-group">
       <div className="slider-head">
@@ -22,7 +22,13 @@ function SliderField({ label, value, onChange, disabled }) {
         type="range" min="0" max="100" step="1"
         value={value}
         disabled={disabled}
-        onChange={e => onChange(Number(e.target.value))}
+        onChange={e => {
+          const next = Number(e.target.value);
+          onChange(next);
+          if (previewKey) onPreviewEnter?.(previewKey(next)); // 드래그 중에도 구간이 바뀌면 미리보기 텍스트가 같이 바뀌도록
+        }}
+        onMouseEnter={previewKey ? () => onPreviewEnter?.(previewKey(value)) : undefined}
+        onMouseLeave={previewKey ? () => onPreviewLeave?.() : undefined}
       />
     </div>
   );
@@ -135,6 +141,9 @@ export default function Sidebar({ onPreviewEnter, onPreviewLeave }) {
                 <SliderField
                   key={field.key} label={field.label} value={value} disabled={locked}
                   onChange={v => setField(section.key, field.key, v)}
+                  previewKey={field.previewKey}
+                  onPreviewEnter={onPreviewEnter}
+                  onPreviewLeave={onPreviewLeave}
                 />
               );
             }
