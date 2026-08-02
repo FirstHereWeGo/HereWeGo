@@ -305,18 +305,31 @@ function PlayerComparePanel({ team, oppTeam }) {
   const myOutfield = team.players.filter(p => !p.positions.includes('GK'));
   const oppOutfield = oppTeam.players.filter(p => !p.positions.includes('GK'));
   const [myId, setMyId] = useState(myOutfield[0]?.id);
-  const [oppId, setOppId] = useState(oppOutfield[0]?.id);
+  const [rightSource, setRightSource] = useState('opp'); // 'mine' | 'opp' - 오른쪽 비교 대상을 우리 팀/상대 팀 중 어디서 고를지
+  const rightOutfield = rightSource === 'opp' ? oppOutfield : myOutfield;
+  const [rightId, setRightId] = useState(rightOutfield[0]?.id);
   const myPlayer = myOutfield.find(p => p.id === myId);
-  const oppPlayer = oppOutfield.find(p => p.id === oppId);
+  const rightPlayer = rightOutfield.find(p => p.id === rightId);
   const axes = ATTRIBUTE_LABELS.map(([key, label]) => ({ key, label }));
+
+  function handleSourceChange(source) {
+    if (source === rightSource) return;
+    setRightSource(source);
+    const list = source === 'opp' ? oppOutfield : myOutfield;
+    setRightId(list[0]?.id);
+  }
 
   return (
     <div className="analytics-grid">
       <div className="analytics-card glass compare-card">
-        <div className="analytics-card-title">선수 비교 — 우리 팀 vs 상대 팀 (GK 제외)</div>
+        <div className="analytics-card-title">선수 비교</div>
 
         <div className="compare-sides">
           <div className="compare-side mine">
+            <div className="compare-source-toggle spacer" aria-hidden="true">
+              <button type="button" tabIndex={-1}>우리팀</button>
+              <button type="button" tabIndex={-1}>상대팀</button>
+            </div>
             <PlayerSelect players={myOutfield} value={myId} onChange={setMyId} />
             {myPlayer && (
               <>
@@ -337,38 +350,54 @@ function PlayerComparePanel({ team, oppTeam }) {
           <span className="compare-vs">VS</span>
 
           <div className="compare-side opp">
-            <PlayerSelect players={oppOutfield} value={oppId} onChange={setOppId} />
-            {oppPlayer && (
+            <div className="compare-source-toggle">
+              <button
+                type="button"
+                className={rightSource === 'mine' ? 'active' : ''}
+                onClick={() => handleSourceChange('mine')}
+              >
+                우리팀
+              </button>
+              <button
+                type="button"
+                className={rightSource === 'opp' ? 'active' : ''}
+                onClick={() => handleSourceChange('opp')}
+              >
+                상대팀
+              </button>
+            </div>
+            <PlayerSelect players={rightOutfield} value={rightId} onChange={setRightId} />
+            {rightPlayer && (
               <>
-                <PlayerPhoto player={oppPlayer} />
+                <PlayerPhoto player={rightPlayer} />
                 <div className="compare-headline">
-                  {oppPlayer.positions.map(pos => (
+                  {rightPlayer.positions.map(pos => (
                     <div className="compare-headline-item" key={pos}>
                       <span className="compare-headline-pos">{pos}</span>
-                      <span className="compare-headline-val num">{positionStat(oppPlayer.attributes, pos)}</span>
+                      <span className="compare-headline-val num">{positionStat(rightPlayer.attributes, pos)}</span>
                     </div>
                   ))}
                 </div>
-                <div className="compare-side-name">{oppPlayer.name}</div>
+                <div className="compare-side-name">{rightPlayer.name}</div>
               </>
             )}
           </div>
         </div>
 
-        {myPlayer && oppPlayer && (
+        {myPlayer && rightPlayer && (
           <>
             <RadarChart
               axes={axes} max={100}
               series={[
-                { name: oppPlayer.name, color: OPP_COLOR, values: oppPlayer.attributes },
+                { name: rightPlayer.name, color: OPP_COLOR, values: rightPlayer.attributes },
                 { name: myPlayer.name, color: MY_COLOR, values: myPlayer.attributes },
               ]}
             />
             <div className="compare-stats">
               {axes.map(ax => {
                 const myVal = myPlayer.attributes[ax.key];
-                const oppVal = oppPlayer.attributes[ax.key];
-                const diff = myVal - oppVal;
+                const rightVal = rightPlayer.attributes[ax.key];
+                const diff = myVal - rightVal;
                 return (
                   <div className="compare-row" key={ax.key}>
                     <div className="compare-row-side left">
@@ -378,7 +407,7 @@ function PlayerComparePanel({ team, oppTeam }) {
                     </div>
                     <div className="compare-row-label">{ax.label}</div>
                     <div className="compare-row-side right">
-                      <span className={`compare-row-val num ${diff < 0 ? 'stat-lead opp' : ''}`}>{oppVal}</span>
+                      <span className={`compare-row-val num ${diff < 0 ? 'stat-lead opp' : ''}`}>{rightVal}</span>
                       {diff < 0 && <span className="compare-row-arrow opp">▲</span>}
                       {diff < 0 && <span className="compare-row-diff opp">{-diff}</span>}
                     </div>

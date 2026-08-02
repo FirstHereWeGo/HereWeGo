@@ -139,6 +139,7 @@ export default function PitchBoard({
           <TacticPreviewPitch
             activeKey={tacticPreviewKey}
             formation={state.formations.find(f => f.id === state.formationId)}
+            oppFormation={state.formations.find(f => f.id === state.oppTacticPreset.formationId)}
           />
         </div>
       )}
